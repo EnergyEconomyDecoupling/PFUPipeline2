@@ -13,6 +13,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 has not yet been a stable, usable release suitable for the
 public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 <!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5228375.svg)](https://doi.org/10.5281/zenodo.5228375) -->
+[![R-CMD-check](https://github.com/EnergyEconomyDecoupling/PFUPipeline2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/EnergyEconomyDecoupling/PFUPipeline2/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 # PFUPipeline2
@@ -47,7 +48,7 @@ helpful dependency management for all calculations.
 ## History
 
 `PFUPipeline2` is the successor to `PFUPipeline` and `PFUAggPipeline`,
-which are now superceded. `PFUPipeline` and `PFUAggPipeline` created
+which are now superseded. `PFUPipeline` and `PFUAggPipeline` created
 flat files (`pins`) of output data. In contrast, `PFUPipeline2` provides
 a computational pipeline that uses a
 [PostgreSQL](https://www.postgresql.org) database for data storage.

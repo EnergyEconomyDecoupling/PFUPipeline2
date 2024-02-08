@@ -16,33 +16,34 @@ do_chops <- FALSE
 input_data_version <- "v1.4"
 output_version <- "v1.4a1"
 
-db_user <- "mkh2"
-db_host <- "eviz.cs.calvin.edu"
+worker_threads <- 16 # For parallel processing
 
-n_worker_threads <- 16 # For parallel processing
+conn_params <- list(dbname = output_version,
+                    user = "postgres",
+                    host = "eviz.cs.calvin.edu",
+                    port = 5432)
 
 
 ##################################
 # End user-adjustable parameters #
 ##################################
 
-# Set database connection parameters
-conn_params <- list(dbname = output_version,
-                    user = db_user,
-                    host = db_host,
-                    port = 5432)
-
 # Load packages required to define the pipeline:
 library(PFUPipeline2)
+library(tarchetypes)
 library(targets)
-library(qs)
-# library(tarchetypes) # Load other packages as needed.
+
+# Set database connection parameters
+
+# Get file locations
+setup <- PFUSetup::get_abs_paths(version = input_data_version)
 
 # Set target options:
 tar_option_set(
   # packages that your targets need to run
   packages = c("Matrix",
                "PFUPipelineTools",
+               "qs",
                "tibble"),
   # Optionally set the default storage format. qs is fast.
   format = "qs",
@@ -52,7 +53,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
 
-  controller = crew::crew_controller_local(workers = n_worker_threads)
+  controller = crew::crew_controller_local(workers = worker_threads)
 
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package. The following
@@ -76,4 +77,7 @@ PFUPipeline2::get_pipeline(input_data_version = input_data_version,
                            conn_params = conn_params,
                            countries = countries,
                            years = years,
-                           do_chops = do_chops)
+                           do_chops = do_chops,
+                           schema_file_path = setup[["schema_path"]])
+
+

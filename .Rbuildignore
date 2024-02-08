@@ -5,3 +5,8 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^LICENSE\.md$
+^_targets$
+^_targets\.R$
+^run.R$
+^run.sh$
