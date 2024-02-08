@@ -1,0 +1,5 @@
+url: https://energyeconomydecoupling.github.io/PFUPipeline2/
+template:
+  bootstrap: 5
+  bootswatch: simplex
+
