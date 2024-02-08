@@ -16,3 +16,5 @@ Suggests:
 Language: en-US
 URL: https://energyeconomydecoupling.github.io/PFUPipeline2/
 Config/testthat/edition: 3
+Imports:
+    DBI
