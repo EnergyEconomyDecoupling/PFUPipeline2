@@ -16,17 +16,12 @@ do_chops <- FALSE
 input_data_version <- "v1.4"
 output_version <- "v1.4a1"
 
-db_user <- "postgres"
-db_host <- "eviz.cs.calvin.edu"
-
 worker_threads <- 16 # For parallel processing
 
-# conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
-#                        dbname = "v1.4a1",
-#                        host = "eviz.cs.calvin.edu",
-#                        port = 5432,
-#                        user = "mkh2")
-# DBI::dbDisconnect(conn)
+conn_params <- list(dbname = output_version,
+                    user = "postgres",
+                    host = "eviz.cs.calvin.edu",
+                    port = 5432)
 
 
 ##################################
@@ -39,10 +34,6 @@ library(tarchetypes)
 library(targets)
 
 # Set database connection parameters
-conn_params <- list(dbname = output_version,
-                    user = db_user,
-                    host = db_host,
-                    port = 5432)
 
 # Get file locations
 setup <- PFUSetup::get_abs_paths(version = input_data_version)
@@ -62,7 +53,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
 
-  # controller = crew::crew_controller_local(workers = worker_threads)
+  controller = crew::crew_controller_local(workers = worker_threads)
 
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package. The following

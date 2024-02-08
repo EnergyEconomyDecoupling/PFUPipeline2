@@ -59,10 +59,13 @@ get_pipeline <- function(input_data_version,
     ),
 
     # Upload the data model to the database
-    tar_target(
+    targets::tar_target(
       UploadDM,
-      dm::copy_dm_to(conn, DM, temporary = FALSE)
+      PFUPipeline2::upload_schema(DM, conn, drop_tables = TRUE)
     )
+
+
+
 
   ) |>
     # Ensure each target has access to the database,
