@@ -47,13 +47,14 @@ helpful dependency management for all calculations.
 
 ## History
 
-`PFUPipeline2` is the successor to `PFUPipeline` and `PFUAggPipeline`.
-`PFUPipeline` and `PFUAggPipeline` created flat files (`pins`) of output
-data. In contrast, `PFUPipeline2` provides a computational pipeline that
-uses a [PostgreSQL](https://www.postgresql.org) database for data
-storage. There are so many differences flat file storage and database
-storage (i.e., between `PFUPipeline`/`PFUAggPipeline` and
-`PFUPipeline2`) that it made sense to start over.
+`PFUPipeline2` is the successor to `PFUPipeline` and `PFUAggPipeline`,
+which are now superceded. `PFUPipeline` and `PFUAggPipeline` created
+flat files (`pins`) of output data. In contrast, `PFUPipeline2` provides
+a computational pipeline that uses a
+[PostgreSQL](https://www.postgresql.org) database for data storage.
+There are so many differences flat file storage and database storage
+(i.e., between `PFUPipeline`/`PFUAggPipeline` and `PFUPipeline2`) that
+it made sense to start over.
 
 ## Installation
 

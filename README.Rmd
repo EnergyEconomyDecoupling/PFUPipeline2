@@ -59,7 +59,8 @@ provides helpful dependency management for all calculations.
 
 ## History
 
-`PFUPipeline2` is the successor to `PFUPipeline` and `PFUAggPipeline`.
+`PFUPipeline2` is the successor to `PFUPipeline` and `PFUAggPipeline`, 
+which are now superceded.
 `PFUPipeline` and `PFUAggPipeline` created flat files (`pins`) of output data.
 In contrast, 
 `PFUPipeline2` provides a computational pipeline that
