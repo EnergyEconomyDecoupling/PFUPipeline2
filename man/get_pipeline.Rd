@@ -11,7 +11,8 @@ get_pipeline(
   countries,
   years,
   do_chops,
-  schema_file_path
+  schema_file_path = PFUSetup::get_abs_paths(version =
+    input_data_version)[["schema_path"]]
 )
 }
 \arguments{

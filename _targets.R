@@ -33,11 +33,6 @@ library(PFUPipeline2)
 library(tarchetypes)
 library(targets)
 
-# Set database connection parameters
-
-# Get file locations
-setup <- PFUSetup::get_abs_paths(version = input_data_version)
-
 # Set target options:
 tar_option_set(
   # packages that your targets need to run
@@ -77,7 +72,6 @@ PFUPipeline2::get_pipeline(input_data_version = input_data_version,
                            conn_params = conn_params,
                            countries = countries,
                            years = years,
-                           do_chops = do_chops,
-                           schema_file_path = setup[["schema_path"]])
+                           do_chops = do_chops)
 
 

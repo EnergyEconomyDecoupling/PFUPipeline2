@@ -31,7 +31,7 @@ get_pipeline <- function(input_data_version,
                          countries,
                          years,
                          do_chops ,
-                         schema_file_path) {
+                         schema_file_path = PFUSetup::get_abs_paths(version = input_data_version)[["schema_path"]]) {
 
   # Avoid warnings on target names
   SchemaFilePath <- NULL; Schema <- NULL; DM <- NULL
