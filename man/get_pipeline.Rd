@@ -10,7 +10,8 @@ get_pipeline(
   conn_params,
   countries,
   years,
-  do_chops
+  do_chops,
+  schema_file_path
 )
 }
 \arguments{

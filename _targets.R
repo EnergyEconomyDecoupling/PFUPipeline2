@@ -16,15 +16,27 @@ do_chops <- FALSE
 input_data_version <- "v1.4"
 output_version <- "v1.4a1"
 
-db_user <- "mkh2"
+db_user <- "postgres"
 db_host <- "eviz.cs.calvin.edu"
 
-n_worker_threads <- 16 # For parallel processing
+worker_threads <- 16 # For parallel processing
+
+# conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
+#                        dbname = "v1.4a1",
+#                        host = "eviz.cs.calvin.edu",
+#                        port = 5432,
+#                        user = "mkh2")
+# DBI::dbDisconnect(conn)
 
 
 ##################################
 # End user-adjustable parameters #
 ##################################
+
+# Load packages required to define the pipeline:
+library(PFUPipeline2)
+library(tarchetypes)
+library(targets)
 
 # Set database connection parameters
 conn_params <- list(dbname = output_version,
@@ -32,17 +44,15 @@ conn_params <- list(dbname = output_version,
                     host = db_host,
                     port = 5432)
 
-# Load packages required to define the pipeline:
-library(PFUPipeline2)
-library(targets)
-library(qs)
-# library(tarchetypes) # Load other packages as needed.
+# Get file locations
+setup <- PFUSetup::get_abs_paths(version = input_data_version)
 
 # Set target options:
 tar_option_set(
   # packages that your targets need to run
   packages = c("Matrix",
                "PFUPipelineTools",
+               "qs",
                "tibble"),
   # Optionally set the default storage format. qs is fast.
   format = "qs",
@@ -52,7 +62,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
 
-  controller = crew::crew_controller_local(workers = n_worker_threads)
+  # controller = crew::crew_controller_local(workers = worker_threads)
 
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package. The following
@@ -76,4 +86,7 @@ PFUPipeline2::get_pipeline(input_data_version = input_data_version,
                            conn_params = conn_params,
                            countries = countries,
                            years = years,
-                           do_chops = do_chops)
+                           do_chops = do_chops,
+                           schema_file_path = setup[["schema_path"]])
+
+
