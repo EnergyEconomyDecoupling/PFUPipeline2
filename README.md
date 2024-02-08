@@ -8,7 +8,7 @@
 [![CRAN
 status](https://www.r-pkg.org/badges/version/PFUPipeline2)](https://cran.r-project.org/package=PFUPipeline2)
 [![Lifecycle:
-experimantal](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![Project Status: Concept – Minimal or no implementation has been done
 yet, or the repository is only intended to be a limited example, demo,
 or
