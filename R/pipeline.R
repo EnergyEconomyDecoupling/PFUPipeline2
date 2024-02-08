@@ -10,7 +10,7 @@
 #' * host: the hostname or IP address of the database management system (DBMS)
 #' * port: the port for DBMS connections
 #'
-#' The passwords should _not_ be included in `conn_params` and will be ignored.
+#' Passwords should _not_ be included in `conn_params` and will be ignored.
 #' Rather, passwords should be set in the user's `.pgpass` file.
 #'
 #' @param input_data_version A string indicating which input data should be used.
@@ -22,7 +22,7 @@
 #' @param do_chops A boolean that tells whether to perform slices on the
 #'                 resource matrix and final demand matrix.
 #'
-#' @return A list representing the `targets` pipeline
+#' @return A list representing the `targets` pipeline.
 #'
 #' @export
 get_pipeline <- function(input_data_version,
@@ -34,11 +34,14 @@ get_pipeline <- function(input_data_version,
 
   setup <- PFUSetup::get_abs_paths(version = input_data_version)
 
+  # Avoid warnings on target names
+  Schema <- NULL
 
   # Return the targets pipeline
   list(
-    tar_target(Schema,
-               PFUPipelineTools::load_schema_table(version = input_data_version))
+    targets::tar_target(
+      Schema,
+      PFUPipelineTools::load_schema_table(version = input_data_version))
 
   )
 }

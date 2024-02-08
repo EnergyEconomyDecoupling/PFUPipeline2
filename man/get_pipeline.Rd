@@ -29,7 +29,7 @@ See details.}
 resource matrix and final demand matrix.}
 }
 \value{
-A list representing the \code{targets} pipeline
+A list representing the \code{targets} pipeline.
 }
 \description{
 This is a type of target factory whose arguments
@@ -44,6 +44,6 @@ specify the details of a targets workflow to be constructed
 \item port: the port for DBMS connections
 }
 
-The passwords should \emph{not} be included in \code{conn_params} and will be ignored.
+Passwords should \emph{not} be included in \code{conn_params} and will be ignored.
 Rather, passwords should be set in the user's \code{.pgpass} file.
 }
