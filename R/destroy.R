@@ -10,6 +10,9 @@
 #' Because this is a very destructive function,
 #' the caller must opt into behaviors.
 #'
+#' If `drop_tables` is `TRUE`,  `destroy_cache` is implied to be `TRUE`,
+#' and the targets cache is destroyed.
+#'
 #' @param conn A `DBI` connection to a database.
 #' @param store The path to the `targets` store.
 #'              Default is `targets::tar_config_get("store")`,
@@ -28,7 +31,7 @@ pl_destroy <- function(conn,
                        destroy_cache = FALSE,
                        drop_tables = FALSE) {
 
-  if (destroy_cache) {
+  if (destroy_cache | drop_tables) {
     # Destroy the local targets cache
     targets::tar_destroy(verbose = FALSE, ask = FALSE, store = store)
   }
