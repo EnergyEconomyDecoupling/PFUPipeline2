@@ -1,0 +1,13 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+.Random.seed|object|ebbf6ac6d0f4becd|||||||||||||||
+conn_params|object|4a44a3c27cf3ffc8|||||||||||||||
+countries|object|0d9f9d0007d1e6de|||||||||||||||
+DM|stem|fd2797b675fa801b|c0a1f9595057cc4e|e98d0eb5ddba24e4|1789290761||t19762.7690735271s|6ee40e43b8565e4f|1215|qs|local|vector|||0.275||
+do_chops|object|df161ddba3dacc9e|||||||||||||||
+input_data_version|object|4960691d1f155564|||||||||||||||
+output_version|object|847c493884abc87c|||||||||||||||
+Schema|stem|14f4be43f542ce3b|79231bb9cb867aa0|ca97cfe5cb25eb9a|1131015279||t19762.7690701527s|76c9ef911ac0602c|593|qs|local|vector|||0.078||
+SchemaFilePath|stem|f72124678dc67ea1|743d42ae8caaf5e5|39d4bd72f42927f6|-519443191|/Users/mkh2/Dropbox/Fellowship 1960-2015 PFU database/InputData/v1.4/Schema.xlsx|t19762.7412705133s|dd064bbad4eb7a32|55107|file|local|vector|||0.565||
+UploadDM|stem|f80d269cfe5f2a1f|824d2bb0f23ffd1f|3910ca86e51f8163|-36430866||t19762.7690775867s|bc4ba902c83a992f|5719|qs|local|vector|||0.336||
+worker_threads|object|fb755ea17e7be4b3|||||||||||||||
+years|object|dcc4706dd2c7368c|||||||||||||||
