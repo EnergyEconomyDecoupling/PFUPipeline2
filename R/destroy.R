@@ -37,11 +37,19 @@ pl_destroy <- function(conn,
   }
 
   if (drop_tables) {
-    # Remove all tables in the database
-    DBI::dbListTables(conn) |>
-      purrr::map(function(this_table_name) {
-        DBI::dbExecute(conn, paste0('DROP TABLE "', this_table_name, '" CASCADE;'))
-      })
+    table_names <- DBI::dbListTables(conn)
+    if (inherits(conn, "RPostgres") {
+      # Remove all tables in the database
+      table_names |>
+        purrr::map(function(this_table_name) {
+          DBI::dbExecute(conn, paste0('DROP TABLE "', this_table_name, '" CASCADE;'))
+        })
+    } else if (inherits(conn, "RSQLite"))
+      table_names |>
+    purrr::map(function(this_table_name) {
+      DBI::dbExecute(conn, paste0('DROP TABLE "', this_table_name, '" CASCADE;'))
+    })
   }
+
   return(invisible(TRUE))
 }
