@@ -23,10 +23,10 @@ conn_params <- list(dbname = output_version,
                     host = "eviz.cs.calvin.edu",
                     port = 5432)
 
-
 ##################################
 # End user-adjustable parameters #
 ##################################
+
 
 # Load packages required to define the pipeline:
 library(PFUPipeline2)
@@ -66,12 +66,8 @@ tar_option_set(
   # Set other options as needed.
 )
 
-# Get the target list
-PFUPipeline2::get_pipeline(input_data_version = input_data_version,
-                           output_version = output_version,
-                           conn_params = conn_params,
-                           countries = countries,
-                           years = years,
-                           do_chops = do_chops)
+# Run the R scripts in the R/ folder with your custom functions:
+tar_source()
 
-
+# Source other scripts as needed.
+source("pipeline.R")
