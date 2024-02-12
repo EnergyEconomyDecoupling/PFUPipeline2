@@ -25,7 +25,7 @@ list(
   # Upload the data model to the database
   targets::tar_target(
     UploadDM,
-    PFUPipeline2::upload_schema(DM, conn, drop_tables = TRUE)
+    PFUPipelineTools::upload_schema_and_simple_tables(DM, conn, drop_tables = TRUE)
   )
 
 ) |>
