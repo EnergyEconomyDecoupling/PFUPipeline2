@@ -3,29 +3,44 @@
 
 list(
 
-  # Schema file set as a target to track changes
+  # SchemaFilePath -------------------------------------------------------------
+  # Set as a target to track changes.
   targets::tar_target_raw(
     "SchemaFilePath",
     PFUSetup::get_abs_paths(version = input_data_version)[["schema_path"]],
     format = "file"
   ),
 
-  # Load the schema file
+  # SchemaTable ----------------------------------------------------------------
+  # Load the schema table from the schema file.
   targets::tar_target(
-    Schema,
+    SchemaTable,
     PFUPipelineTools::load_schema_table(schema_path = SchemaFilePath)
   ),
 
-  # Create a data model
+  # SimpleFKTables -------------------------------------------------------------
+  # Store a list of foreign key tables available in SchemaFilePath.
+  # Additions will be made later.
   targets::tar_target(
-    DM,
-    PFUPipelineTools::schema_dm(Schema)
+    SimpleFKTables,
+    PFUPipelineTools::load_simple_tables(simple_tables_path = SchemaFilePath)
   ),
 
-  # Upload the data model to the database
+  # DM -------------------------------------------------------------------------
+  # Create the data model (dm object) from the SchemaTable.
+  targets::tar_target(
+    DM,
+    PFUPipelineTools::schema_dm(SchemaTable)
+  ),
+
+  # UploadDM -------------------------------------------------------------------
+  # Upload the data model and SimpleFKTables to the database.
   targets::tar_target(
     UploadDM,
-    PFUPipelineTools::upload_schema_and_simple_tables(DM, conn, drop_tables = TRUE)
+    PFUPipelineTools::pl_upload_schema_and_simple_tables(schema = DM,
+                                                         simple_tables = SimpleFKTables,
+                                                         conn = conn,
+                                                         drop_db_tables = TRUE)
   )
 
 ) |>
