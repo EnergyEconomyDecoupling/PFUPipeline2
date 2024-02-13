@@ -5,27 +5,41 @@
 # targets::tar_make(callr_function = NULL) to debug.
 
 
-##############################
-# User-adjustable parameters #
-##############################
+
+# User-adjustable parameters ---------------------------------------------------
 
 countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+# Set the years for IEA data analysis
 years <- 1960:2020
+# Set the years to provide exiobase coefficients
+years_exiobase <- 1995:2020
 do_chops <- FALSE
 
 input_data_version <- "v2.0"
 output_version <- "v2.0a1"
 
-worker_threads <- 16 # For parallel processing
+worker_threads <- 8 # For parallel processing
+# worker_threads <- 16 # For parallel processing
 
 conn_params <- list(dbname = output_version,
                     user = "postgres",
                     host = "eviz.cs.calvin.edu",
                     port = 5432)
 
-##################################
-# End user-adjustable parameters #
-##################################
+# Additional exemplar countries are countries which aren't included in the workflow
+# as individual countries, but from which allocation or efficiency data may be
+# obtained and assigned to countries in the workflow using the exemplar system.
+additional_exemplar_countries <- c("AFRI", # Africa
+                                   "ASIA", # Asia
+                                   "EURP", # Europe
+                                   "MIDE", # Middle East
+                                   "NAMR", # North America
+                                   "OCEN", # Oceania
+                                   "SAMR", # South America
+                                   "BUNK") # Bunkers
+
+
+# End user-adjustable parameters -----------------------------------------------
 
 
 # Load packages required to define the pipeline:
@@ -33,7 +47,29 @@ library(PFUPipeline2)
 library(tarchetypes)
 library(targets)
 
-# Set target options:
+
+# Sort out a few issues with countries -----------------------------------------
+
+# WRLD should not be in both countries and additional_exemplar_countries
+if (("WRLD" %in% countries) & ("WRLD" %in% additional_exemplar_countries)) {
+  # Remove WRLD from additional_exemplar_countries
+  additional_exemplar_countries <- additional_exemplar_countries[!(additional_exemplar_countries == "WRLD")]
+}
+
+# WRLD should always be in countries or in additional_exemplar_countries.
+if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
+  # Add WRLD to additional_exemplar_countries
+  additional_exemplar_countries <- c("WRLD", additional_exemplar_countries)
+}
+
+
+# Get setup information --------------------------------------------------------
+
+pfu_setup_paths <- PFUSetup::get_abs_paths(version = input_data_version)
+
+
+# Set target options -----------------------------------------------------------
+
 tar_option_set(
   # packages that your targets need to run
   packages = c("Matrix",
@@ -48,7 +84,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
 
-  controller = crew::crew_controller_local(workers = worker_threads)
+  # controller = crew::crew_controller_local(workers = worker_threads)
 
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package. The following
@@ -66,8 +102,10 @@ tar_option_set(
   # Set other options as needed.
 )
 
-# Run the R scripts in the R/ folder with your custom functions:
+
+# Source scripts ---------------------------------------------------------------
 tar_source()
 
-# Source other scripts as needed.
+
+# Source the pipeline ----------------------------------------------------------
 source("pipeline.R")
