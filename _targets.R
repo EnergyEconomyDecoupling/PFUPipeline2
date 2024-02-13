@@ -13,8 +13,8 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 years <- 1960:2020
 do_chops <- FALSE
 
-input_data_version <- "v1.4"
-output_version <- "v1.4a1"
+input_data_version <- "v2.0"
+output_version <- "v2.0a1"
 
 worker_threads <- 16 # For parallel processing
 
