@@ -66,7 +66,8 @@ list(
   targets::tar_target(
     AllIEAData,
     IEADataPath |>
-      load_iea_data(override_df = CountryConcordanceTable)),
+      load_iea_data(override_df = CountryConcordanceTable,
+                    dataset = iea_dataset)),
 
   ## Upload AllIEAData
   targets::tar_target(

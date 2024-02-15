@@ -5,6 +5,7 @@
 #'
 #' @param iea_data_path The path to an IEA data file.
 #' @param override_df A country concordance data frame.
+#' @param dataset The dataset name.
 #' @param specify_non_energy_flows A boolean that tells whether to specify non-energy flows.
 #'                                 Default is `TRUE`.
 #' @param apply_fixes A boolean that tells whether to apply fixes to the IEA data.
@@ -19,6 +20,7 @@
 #' @export
 load_iea_data <- function(iea_data_path,
                           override_df,
+                          dataset,
                           specify_non_energy_flows = TRUE,
                           apply_fixes = TRUE,
                           iea_countries = c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> unlist(),
@@ -28,6 +30,9 @@ load_iea_data <- function(iea_data_path,
     IEATools::load_tidy_iea_df(override_df = override_df,
                                specify_non_energy_flows = specify_non_energy_flows,
                                apply_fixes = apply_fixes) |>
-    dplyr::filter(.data[[country]] %in% iea_countries)
+    dplyr::filter(.data[[country]] %in% iea_countries) |>
+    dplyr::mutate(
+      Dataset = dataset
+    )
 }
 

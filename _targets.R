@@ -39,6 +39,7 @@ years_exiobase <- 1995:2020
 do_chops <- FALSE
 
 # Set versions
+iea_dataset <- "IEAEWEB2022"
 input_data_version <- "v2.0"
 output_version <- "v2.0a1"
 
@@ -108,7 +109,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
 
-  controller = crew::crew_controller_local(workers = worker_threads)
+  # controller = crew::crew_controller_local(workers = worker_threads)
 
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package. The following
