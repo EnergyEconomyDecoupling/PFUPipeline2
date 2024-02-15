@@ -22,7 +22,7 @@ list(
   # Additions will be made later.
   targets::tar_target(
     SimpleFKTables,
-    PFUPipelineTools::load_simple_tables(simple_tables_path = SchemaFilePath)),
+    PFUPipelineTools::load_fk_tables(simple_tables_path = SchemaFilePath)),
 
   ## DM
   # Create the data model (dm object) from the SchemaTable.
