@@ -65,10 +65,8 @@ list(
   ## AllIEAData
   targets::tar_target(
     AllIEAData,
-    IEATools::load_tidy_iea_df(IEADataPath,
-                               override_df = CountryConcordanceTable,
-                               specify_non_energy_flows = TRUE,
-                               apply_fixes = TRUE)),
+    IEADataPath |>
+      load_iea_data(override_df = CountryConcordanceTable)),
 
   ## Upload AllIEAData
   targets::tar_target(
@@ -78,15 +76,18 @@ list(
                                   conn = conn,
                                   in_place = TRUE,
                                   schema = DM,
-                                  fk_parent_tables = SimpleFKTables))
+                                  fk_parent_tables = SimpleFKTables)),
 
   ## IEAData
-
-
-
-
-  ## Upload IEAData
-
+  targets::tar_target(
+    UploadIEAData,
+    AllIEAData |>
+      dplyr::filter(Country %in% countries) |>
+      PFUPipelineTools::pl_upsert(db_table_name = "IEAData",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables))
 
 ) |>
 
@@ -94,7 +95,6 @@ list(
   # conn tar_hook_before targets -----------------------------------------------
 
   tarchetypes::tar_hook_before(
-    names = tidyr::starts_with("Upload"),
     hook = {
       # Ensure each target has access to the database,
       # using the hint found at https://github.com/ropensci/targets/discussions/1164.

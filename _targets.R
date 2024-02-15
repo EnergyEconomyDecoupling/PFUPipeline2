@@ -8,18 +8,42 @@
 
 # User-adjustable parameters ---------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+# countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+countries <- c("USA", "WRLD")
+# countries <- c('AGO', 'ALB', 'ARE', 'ARG', 'ARM', 'AUS', 'AUT', 'AZE', 'BEL', 'BEN',
+#                'BGD', 'BGR', 'BHR', 'BIH', 'BLR', 'BOL', 'BRA', 'BRN', 'BWA', 'CAN',
+#                'CHE', 'CHL', 'CHNM', 'CMR', 'COD', 'COG', 'COL', 'CIV', 'CRI', 'CUB',
+#                'CUW', 'CYP', 'CZE', 'DEU', 'DNK', 'DOM', 'DZA', 'ECU', 'EGY', 'ERI',
+#                'ESP', 'EST', 'ETH', 'FIN', 'FRA', 'GAB', 'GBR', 'GEO', 'GHA', 'GIB',
+#                'GNQ', 'GRC', 'GTM', 'GUY', 'HKG', 'HND', 'HRV', 'HTI', 'HUN', 'IDN',
+#                'IND', 'IRL', 'IRN', 'IRQ', 'ISL', 'ISR', 'ITA', 'JAM', 'JOR', 'JPN',
+#                'KAZ', 'KEN', 'KGZ', 'KHM', 'KOR', 'KWT', 'LAO', 'LBN', 'LBY', 'LKA',
+#                'LTU', 'LUX', 'LVA', 'MAR', 'MDA', 'MDG', 'MEX', 'MKD', 'MLT', 'MMR',
+#                'MNE', 'MNG', 'MOZ', 'MUS', 'MYS', 'NAM', 'NER', 'NGA', 'NIC', 'NLD',
+#                'NOR', 'NPL', 'NZL', 'OAFR', 'OAMR', 'OASI', 'OMN', 'PAK', 'PAN', 'PER',
+#                'PHL', 'POL', 'PRK', 'PRT', 'PRY', 'QAT', 'ROU', 'RUS', 'RWA', 'SAU',
+#                'SDN', 'SEN', 'SGP', 'SLV', 'SRB', 'SSD', 'SUN', 'SUR', 'SVK', 'SVN',
+#                'SWE', 'SWZ', 'SYR', 'TGO', 'THA', 'TJK', 'TKM', 'TTO', 'TUN', 'TUR',
+#                'TWN', 'TZA', 'UGA', 'UKR', 'URY', 'USA', 'UZB', 'VEN', 'VNM', 'WABK',
+#                'WMBK', 'XKX', 'YEM', 'YUG', 'ZAF', 'ZMB', 'ZWE', 'AFRI', 'ASIA', 'BUNK',
+#                'EURP', 'MIDE', 'NAMR', 'OCEN', 'SAMR', 'WRLD', 'FoSUN', 'FoYUG', 'FoCZK', 'UnDEU',
+#                'Africa', 'Asia_', 'Europe', 'MidEast', 'NoAmr', 'Oceania', 'SoCeAmr')
+
 # Set the years for IEA data analysis
 years <- 1960:2020
+
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
+
+# Tell whether to do chops
 do_chops <- FALSE
 
+# Set versions
 input_data_version <- "v2.0"
 output_version <- "v2.0a1"
 
-worker_threads <- 8 # For parallel processing
-# worker_threads <- 16 # For parallel processing
+# worker_threads <- 8 # For parallel processing
+worker_threads <- 16 # For parallel processing
 
 conn_params <- list(dbname = output_version,
                     user = "postgres",
@@ -84,7 +108,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
 
-  # controller = crew::crew_controller_local(workers = worker_threads)
+  controller = crew::crew_controller_local(workers = worker_threads)
 
   # Alternatively, if you want workers to run on a high-performance computing
   # cluster, select a controller from the {crew.cluster} package. The following
