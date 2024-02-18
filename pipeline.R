@@ -19,7 +19,7 @@ list(
   ## SchemaFilePath
   targets::tar_target_raw(
     "SchemaFilePath",
-    pfu_setup_paths[["schema_path"]],
+    clpfu_setup_paths[["schema_path"]],
     format = "file"),
 
   ## SchemaTable
@@ -56,7 +56,7 @@ list(
   ## CountryConcordancePath
   targets::tar_target_raw(
     "CountryConcordancePath",
-    pfu_setup_paths[["country_concordance_path"]],
+    clpfu_setup_paths[["country_concordance_path"]],
     format = "file"),
 
   ## CountryConcordanceTable
@@ -70,11 +70,12 @@ list(
   ## IEADataPath
   targets::tar_target_raw(
     "IEADataPath",
-    pfu_setup_paths[["iea_data_path"]],
+    clpfu_setup_paths[["iea_data_path"]],
     format = "file"),
 
   ## AllIEADataLocal
   targets::tar_target(
+  # targets::tar_target(
     AllIEADataLocal,
     IEADataPath |>
       load_iea_data(override_df = CountryConcordanceTable,
@@ -92,22 +93,30 @@ list(
                                   schema = DM,
                                   fk_parent_tables = SimpleFKTables)),
 
+  ## IEADataLocal
+  tarchetypes::tar_group_by(
+    IEADataLocal,
+    AllIEADataLocal |>
+      dplyr::filter(Country %in% countries),
+    Country),
+
   ## IEAData
   targets::tar_target(
     IEAData,
-    AllIEADataLocal |>
-      dplyr::filter(Country %in% countries) |>
+    IEADataLocal |>
       PFUPipelineTools::pl_upsert(db_table_name = "IEAData",
                                   conn = conn,
                                   in_place = TRUE,
                                   schema = DM,
-                                  fk_parent_tables = SimpleFKTables)),
+                                  fk_parent_tables = SimpleFKTables),
+    pattern = map(IEADataLocal)),
 
   ## Check IEA data balance
   targets::tar_target(
     BalancedBeforeIEA,
-    is_balanced(IEAData, countries = AllocAndEffCountries),
-    pattern = map(AllocAndEffCountries))
+    IEAData |>
+      is_balanced(conn = conn, schema = DM, fk_parent_tables = SimpleFKTables),
+    pattern = map(IEAData))
 
 
 ) |>
