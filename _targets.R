@@ -96,8 +96,10 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 }
 
 
-# Get setup information --------------------------------------------------------
-
+# Get local machine setup information ------------------------------------------
+# Duplicate local_setup_template.R and
+# rename as local_setup.R
+source(local_setup.R)
 pfu_setup_paths <- PFUSetup::get_abs_paths(version = input_data_version)
 
 
