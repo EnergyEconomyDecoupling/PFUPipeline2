@@ -3,6 +3,17 @@
 
 list(
 
+  # Initialize -----------------------------------------------------------------
+  targets::tar_target_raw("Countries", list(countries)),
+  targets::tar_target_raw("AdditionalExemplarCountries", list(additional_exemplar_countries)),
+  targets::tar_target_raw("SpecifyNonEnergyFlows", list(specify_non_energy_flows)),
+  targets::tar_target_raw("ApplyFixes", list(apply_fixes)),
+
+  targets::tar_target(
+    AllocAndEffCountries,
+    combine_countries_exemplars(Countries, AdditionalExemplarCountries)),
+
+
   # Schema and data model ------------------------------------------------------
 
   ## SchemaFilePath
@@ -22,7 +33,7 @@ list(
   # Additions will be made later.
   targets::tar_target(
     SimpleFKTables,
-    PFUPipelineTools::load_simple_tables(simple_tables_path = SchemaFilePath)),
+    PFUPipelineTools::load_fk_tables(simple_tables_path = SchemaFilePath)),
 
   ## DM
   # Create the data model (dm object) from the SchemaTable.
@@ -62,18 +73,19 @@ list(
     pfu_setup_paths[["iea_data_path"]],
     format = "file"),
 
-  ## AllIEAData
+  ## AllIEADataLocal
   targets::tar_target(
-    AllIEAData,
-    IEATools::load_tidy_iea_df(IEADataPath,
-                               override_df = CountryConcordanceTable,
-                               specify_non_energy_flows = TRUE,
-                               apply_fixes = TRUE)),
+    AllIEADataLocal,
+    IEADataPath |>
+      load_iea_data(override_df = CountryConcordanceTable,
+                    dataset = iea_dataset,
+                    specify_non_energy_flows = SpecifyNonEnergyFlows,
+                    apply_fixes = ApplyFixes)),
 
   ## Upload AllIEAData
   targets::tar_target(
-    UploadAllIEAData,
-    AllIEAData |>
+    AllIEAData,
+    AllIEADataLocal |>
       PFUPipelineTools::pl_upsert(db_table_name = "AllIEAData",
                                   conn = conn,
                                   in_place = TRUE,
@@ -81,11 +93,21 @@ list(
                                   fk_parent_tables = SimpleFKTables)),
 
   ## IEAData
+  targets::tar_target(
+    IEAData,
+    AllIEADataLocal |>
+      dplyr::filter(Country %in% countries) |>
+      PFUPipelineTools::pl_upsert(db_table_name = "IEAData",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables)),
 
-
-
-
-  ## Upload IEAData
+  ## Check IEA data balance
+  targets::tar_target(
+    BalancedBeforeIEA,
+    is_balanced(IEAData, countries = AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries))
 
 
 ) |>
@@ -94,7 +116,6 @@ list(
   # conn tar_hook_before targets -----------------------------------------------
 
   tarchetypes::tar_hook_before(
-    names = tidyr::starts_with("Upload"),
     hook = {
       # Ensure each target has access to the database,
       # using the hint found at https://github.com/ropensci/targets/discussions/1164.
