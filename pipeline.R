@@ -3,6 +3,17 @@
 
 list(
 
+  # Initialize -----------------------------------------------------------------
+  targets::tar_target_raw("Countries", list(countries)),
+  targets::tar_target_raw("AdditionalExemplarCountries", list(additional_exemplar_countries)),
+  targets::tar_target_raw("SpecifyNonEnergyFlows", list(specify_non_energy_flows)),
+  targets::tar_target_raw("ApplyFixes", list(apply_fixes)),
+
+  targets::tar_target(
+    AllocAndEffCountries,
+    combine_countries_exemplars(Countries, AdditionalExemplarCountries)),
+
+
   # Schema and data model ------------------------------------------------------
 
   ## SchemaFilePath
@@ -62,17 +73,19 @@ list(
     pfu_setup_paths[["iea_data_path"]],
     format = "file"),
 
-  ## AllIEAData
+  ## AllIEADataLocal
   targets::tar_target(
-    AllIEAData,
+    AllIEADataLocal,
     IEADataPath |>
       load_iea_data(override_df = CountryConcordanceTable,
-                    dataset = iea_dataset)),
+                    dataset = iea_dataset,
+                    specify_non_energy_flows = SpecifyNonEnergyFlows,
+                    apply_fixes = ApplyFixes)),
 
   ## Upload AllIEAData
   targets::tar_target(
-    UploadAllIEAData,
-    AllIEAData |>
+    AllIEAData,
+    AllIEADataLocal |>
       PFUPipelineTools::pl_upsert(db_table_name = "AllIEAData",
                                   conn = conn,
                                   in_place = TRUE,
@@ -81,14 +94,21 @@ list(
 
   ## IEAData
   targets::tar_target(
-    UploadIEAData,
-    AllIEAData |>
+    IEAData,
+    AllIEADataLocal |>
       dplyr::filter(Country %in% countries) |>
       PFUPipelineTools::pl_upsert(db_table_name = "IEAData",
                                   conn = conn,
                                   in_place = TRUE,
                                   schema = DM,
-                                  fk_parent_tables = SimpleFKTables))
+                                  fk_parent_tables = SimpleFKTables)),
+
+  ## Check IEA data balance
+  targets::tar_target(
+    BalancedBeforeIEA,
+    is_balanced(IEAData, countries = AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries))
+
 
 ) |>
 

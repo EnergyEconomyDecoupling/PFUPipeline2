@@ -38,30 +38,26 @@ years_exiobase <- 1995:2020
 # Tell whether to do chops
 do_chops <- FALSE
 
+# Should we specify non-energy flows?
+specify_non_energy_flows <- TRUE
+
+# Should we apply fixes to the IEA data?
+apply_fixes <- TRUE
+
+
 # Set versions
 iea_dataset <- "IEAEWEB2022"
 input_data_version <- "v2.0"
 output_version <- "v2.0a1"
 
-# worker_threads <- 8 # For parallel processing
-worker_threads <- 16 # For parallel processing
+worker_threads <- 8 # For parallel processing
+# worker_threads <- 16 # For parallel processing
 
 conn_params <- list(dbname = output_version,
                     user = "postgres",
                     host = "eviz.cs.calvin.edu",
                     port = 5432)
 
-# Additional exemplar countries are countries which aren't included in the workflow
-# as individual countries, but from which allocation or efficiency data may be
-# obtained and assigned to countries in the workflow using the exemplar system.
-additional_exemplar_countries <- c("AFRI", # Africa
-                                   "ASIA", # Asia
-                                   "EURP", # Europe
-                                   "MIDE", # Middle East
-                                   "NAMR", # North America
-                                   "OCEN", # Oceania
-                                   "SAMR", # South America
-                                   "BUNK") # Bunkers
 
 
 # End user-adjustable parameters -----------------------------------------------
@@ -74,6 +70,18 @@ library(targets)
 
 
 # Sort out a few issues with countries -----------------------------------------
+
+# Additional exemplar countries are countries which aren't included in the workflow
+# as individual countries, but from which allocation or efficiency data may be
+# obtained and assigned to countries in the workflow using the exemplar system.
+additional_exemplar_countries <- c("AFRI", # Africa
+                                   "ASIA", # Asia
+                                   "EURP", # Europe
+                                   "MIDE", # Middle East
+                                   "NAMR", # North America
+                                   "OCEN", # Oceania
+                                   "SAMR", # South America
+                                   "BUNK") # Bunkers
 
 # WRLD should not be in both countries and additional_exemplar_countries
 if (("WRLD" %in% countries) & ("WRLD" %in% additional_exemplar_countries)) {
