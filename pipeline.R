@@ -109,14 +109,14 @@ list(
                                   in_place = TRUE,
                                   schema = DM,
                                   fk_parent_tables = SimpleFKTables),
-    pattern = map(IEADataLocal)),
+    pattern = map(IEADataLocal))
 
   ## Check IEA data balance
-  targets::tar_target(
-    BalancedBeforeIEA,
-    IEAData |>
-      is_balanced(conn = conn, schema = DM, fk_parent_tables = SimpleFKTables),
-    pattern = map(IEAData))
+  # targets::tar_target(
+  #   BalancedBeforeIEA,
+  #   IEAData |>
+  #     is_balanced(conn = conn, schema = DM, fk_parent_tables = SimpleFKTables),
+  #   pattern = map(IEAData))
 
 
 ) |>
