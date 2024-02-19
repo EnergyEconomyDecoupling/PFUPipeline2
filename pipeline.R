@@ -97,10 +97,10 @@ list(
   tarchetypes::tar_group_by(
     IEADataLocal,
     AllIEADataLocal |>
-      dplyr::filter(Country %in% countries),
+      dplyr::filter(Country %in% countries, Year %in% years),
     Country),
 
-  ## IEAData
+  ## Upload IEAData
   targets::tar_target(
     IEAData,
     IEADataLocal |>

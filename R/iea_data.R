@@ -93,16 +93,19 @@ combine_countries_exemplars <- function(couns, exempls) {
 #' @param conn The database connection.
 #' @param max_fix The maximum allowable energy imbalance to fix.
 #'                Default is `3`.
+#' @param balanced_table_name The name of the table in `conn` where
+#'                            balanced IEA data should be uploaded.
 #' @param grp_vars the groups that should be checked.
 #'                 Default is
 #'                 `c(IEATools::iea_cols$country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
 #'
-#' @return A data frame of balanced IEA data.
+#' @return A hash of the balanced data frame. See `pl_upsert()`.
 #'
 #' @export
 make_balanced <- function(.iea_data,
                           conn,
                           max_fix = 6,
+                          balanced_table_name = "BalancedIEAData",
                           grp_vars = c(IEATools::iea_cols$country,
                                        IEATools::iea_cols$method,
                                        IEATools::iea_cols$energy_type,
@@ -114,5 +117,8 @@ make_balanced <- function(.iea_data,
     PFUPipelineTools::pl_collect(conn = conn) |>
     dplyr::group_by(!!as.name(grp_vars)) %>%
     IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() |>
+    PFUPipelineTools::pl_upsert(conn = conn,
+                                db_table_name = balanced_table_name,
+                                in_place = TRUE)
 }
