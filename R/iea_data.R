@@ -43,35 +43,28 @@ load_iea_data <- function(iea_data_path,
 #' Internally, this function uses `IEATools::calc_tidy_iea_df_balances()`.
 #' Grouping is doing internal to this function using the value of `grp_vars`.
 #'
-#' @param .iea_data a tidy IEA data frame
-#' @param countries the countries for which balancing should be checked as strings
-#' @param country The name of the country column in `IEAData`. Default is `r IEATools::iea_cols$country`.
-#' @param grp_vars the groups that should be checked. Default is
+#' @param .iea_data A tidy IEA data frame
+#' @param conn The database connection.
+#' @param grp_vars The groups that should be checked. Default is
 #'                 `c(country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
 #'
 #' @return a logical stating whether all products are balanced for the country of interest
 #'
 #' @export
 is_balanced <- function(.iea_data,
-                        countries,
-                        country = IEATools::iea_cols$country,
-                        grp_vars = c(country,
+                        conn,
+                        grp_vars = c(IEATools::iea_cols$country,
                                      IEATools::iea_cols$method,
                                      IEATools::iea_cols$energy_type,
                                      IEATools::iea_cols$last_stage,
                                      IEATools::iea_cols$year,
                                      IEATools::iea_cols$product)) {
-  table_name <- .iea_data |>
-    dplyr::select(PFUPipelineTools::hashed_table_colnames$db_table_name) |>
-    unique() |>
-    unname() |>
-    unlist()
-
-  # Get data from the database
-  PFUPipelineTools::pl_download(table_name)
-  dplyr::filter(.iea_data, .data[[country]] %in% countries) %>%
-    dplyr::group_by(!!as.name(grp_vars)) %>%
-    IEATools::calc_tidy_iea_df_balances() %>%
+  .iea_data |>
+    # Get data from the database
+    PFUPipelineTools::pl_collect(conn = conn) |>
+    dplyr::group_by(!!as.name(grp_vars)) |>
+    # Check balances
+    IEATools::calc_tidy_iea_df_balances() |>
     IEATools::tidy_iea_df_balanced()
 }
 
@@ -87,4 +80,45 @@ is_balanced <- function(.iea_data,
 combine_countries_exemplars <- function(couns, exempls) {
   c(couns, exempls) %>%
     unique()
+}
+
+
+#' Balance IEA data
+#'
+#' Balances the IEA data in a way that is amenable to drake subtargets.
+#' Internally, this function uses `IEATools::fix_tidy_iea_df_balances()`.
+#' Grouping is done internal to this function using the value of `grp_vars`.
+#'
+#' @param .iea_data A tidy IEA data frame.
+#' @param conn The database connection.
+#' @param max_fix The maximum allowable energy imbalance to fix.
+#'                Default is `3`.
+#' @param balanced_table_name The name of the table in `conn` where
+#'                            balanced IEA data should be uploaded.
+#' @param grp_vars the groups that should be checked.
+#'                 Default is
+#'                 `c(IEATools::iea_cols$country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
+#'
+#' @return A hash of the balanced data frame. See `pl_upsert()`.
+#'
+#' @export
+make_balanced <- function(.iea_data,
+                          conn,
+                          max_fix = 6,
+                          balanced_table_name = "BalancedIEAData",
+                          grp_vars = c(IEATools::iea_cols$country,
+                                       IEATools::iea_cols$method,
+                                       IEATools::iea_cols$energy_type,
+                                       IEATools::iea_cols$last_stage,
+                                       IEATools::iea_cols$year,
+                                       IEATools::iea_cols$product)) {
+  .iea_data |>
+    # Get data from the database
+    PFUPipelineTools::pl_collect(conn = conn) |>
+    dplyr::group_by(!!as.name(grp_vars)) %>%
+    IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) %>%
+    dplyr::ungroup() |>
+    PFUPipelineTools::pl_upsert(conn = conn,
+                                db_table_name = balanced_table_name,
+                                in_place = TRUE)
 }
