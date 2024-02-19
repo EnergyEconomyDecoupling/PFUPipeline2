@@ -115,8 +115,16 @@ list(
   targets::tar_target(
     BalancedBeforeIEA,
     IEAData |>
-      is_balanced(conn = conn, schema = DM, fk_parent_tables = SimpleFKTables),
+      is_balanced(conn = conn),
+    pattern = map(IEAData)),
+
+  ## Balance all of the data by product and year.
+  targets::tar_target(
+    BalancedIEAData,
+    IEAData |>
+      make_balanced(conn = conn),
     pattern = map(IEAData))
+
 
 
 ) |>

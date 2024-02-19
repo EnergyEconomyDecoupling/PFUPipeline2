@@ -45,8 +45,6 @@ load_iea_data <- function(iea_data_path,
 #'
 #' @param .iea_data A tidy IEA data frame
 #' @param conn The database connection.
-#' @param schema The schema for the database at `conn`.
-#' @param fk_parent_tables The foreign key parent tables for the database at `conn`.
 #' @param grp_vars The groups that should be checked. Default is
 #'                 `c(country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
 #'
@@ -55,8 +53,6 @@ load_iea_data <- function(iea_data_path,
 #' @export
 is_balanced <- function(.iea_data,
                         conn,
-                        schema,
-                        fk_parent_tables,
                         grp_vars = c(IEATools::iea_cols$country,
                                      IEATools::iea_cols$method,
                                      IEATools::iea_cols$energy_type,
@@ -84,4 +80,39 @@ is_balanced <- function(.iea_data,
 combine_countries_exemplars <- function(couns, exempls) {
   c(couns, exempls) %>%
     unique()
+}
+
+
+#' Balance IEA data
+#'
+#' Balances the IEA data in a way that is amenable to drake subtargets.
+#' Internally, this function uses `IEATools::fix_tidy_iea_df_balances()`.
+#' Grouping is done internal to this function using the value of `grp_vars`.
+#'
+#' @param .iea_data A tidy IEA data frame.
+#' @param conn The database connection.
+#' @param max_fix The maximum allowable energy imbalance to fix.
+#'                Default is `3`.
+#' @param grp_vars the groups that should be checked.
+#'                 Default is
+#'                 `c(IEATools::iea_cols$country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
+#'
+#' @return A data frame of balanced IEA data.
+#'
+#' @export
+make_balanced <- function(.iea_data,
+                          conn,
+                          max_fix = 6,
+                          grp_vars = c(IEATools::iea_cols$country,
+                                       IEATools::iea_cols$method,
+                                       IEATools::iea_cols$energy_type,
+                                       IEATools::iea_cols$last_stage,
+                                       IEATools::iea_cols$year,
+                                       IEATools::iea_cols$product)) {
+  .iea_data |>
+    # Get data from the database
+    PFUPipelineTools::pl_collect(conn = conn) |>
+    dplyr::group_by(!!as.name(grp_vars)) %>%
+    IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) %>%
+    dplyr::ungroup()
 }
