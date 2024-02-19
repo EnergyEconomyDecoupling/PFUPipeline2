@@ -111,14 +111,14 @@ list(
                                   fk_parent_tables = SimpleFKTables),
     pattern = map(IEADataLocal)),
 
-  ## Check IEA data balance
+  ## BalancedBeforeIEA
   targets::tar_target(
     BalancedBeforeIEA,
     IEAData |>
       is_balanced(conn = conn),
     pattern = map(IEAData)),
 
-  ## Balance all of the data by product and year.
+  ## BalancedIEAData
   targets::tar_target(
     BalancedIEAData,
     IEAData |>
