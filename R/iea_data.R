@@ -63,13 +63,11 @@ is_balanced <- function(.iea_data,
                                      IEATools::iea_cols$last_stage,
                                      IEATools::iea_cols$year,
                                      IEATools::iea_cols$product)) {
-  # Get data from the database
-  table_name <- .iea_data[[PFUPipelineTools::hashed_table_colnames$db_table_name]] |>
-    unique()
   .iea_data |>
-    PFUPipelineTools::pl_collect(conn) |>
-    PFUPipelineTools::decode_fks(db_table_name = table_name, schema = schema, fk_parent_tables = fk_parent_tables) |>
+    # Get data from the database
+    PFUPipelineTools::pl_collect(conn = conn) |>
     dplyr::group_by(!!as.name(grp_vars)) |>
+    # Check balances
     IEATools::calc_tidy_iea_df_balances() |>
     IEATools::tidy_iea_df_balanced()
 }
