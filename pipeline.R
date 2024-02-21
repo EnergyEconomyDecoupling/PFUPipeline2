@@ -137,9 +137,9 @@ list(
     OKToProceedIEA,
     ifelse(is.null(stopifnot(all(BalancedAfterIEA))), yes = TRUE, no = FALSE)),
 
-  ## SpecifiedIEA
+  ## SpecifiedIEAData
   targets::tar_target(
-    SpecifiedIEA,
+    SpecifiedIEAData,
     BalancedIEAData |>
       specify(conn = conn),
     pattern = map(BalancedIEAData))
