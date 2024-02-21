@@ -131,6 +131,8 @@ make_balanced <- function(.iea_data,
 #'
 #' @param BalancedIEAData IEA data that have already been balanced.
 #' @param conn The database connection.
+#' @param specified_table_name The name of the specified IEA data table in `conn`.
+#'                             Default is "SpecifiedIEAData".
 #'
 #' @return A data frame of specified IEA data.
 #'
