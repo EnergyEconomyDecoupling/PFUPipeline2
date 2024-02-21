@@ -122,3 +122,26 @@ make_balanced <- function(.iea_data,
                                 db_table_name = balanced_table_name,
                                 in_place = TRUE)
 }
+
+
+#' Specify the IEA data
+#'
+#' Specifies the IEA data in a way that is amenable to targets parallelization
+#' See `IEATools::specify_all()` for details.
+#'
+#' @param BalancedIEAData IEA data that have already been balanced.
+#' @param conn The database connection.
+#'
+#' @return A data frame of specified IEA data.
+#'
+#' @export
+specify <- function(BalancedIEAData,
+                    conn,
+                    specified_table_name = "SpecifiedIEAData") {
+  BalancedIEAData |>
+    PFUPipelineTools::pl_collect(conn = conn) |>
+    IEATools::specify_all() |>
+    PFUPipelineTools::pl_upsert(conn = conn,
+                                db_table_name = specified_table_name,
+                                in_place = TRUE)
+}

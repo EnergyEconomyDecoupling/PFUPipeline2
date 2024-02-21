@@ -125,13 +125,24 @@ list(
       make_balanced(conn = conn),
     pattern = map(IEAData)),
 
-  # BalancedAfterIEA
+  ## BalancedAfterIEA
   targets::tar_target(
     BalancedAfterIEA,
     BalancedIEAData |>
       is_balanced(conn = conn),
-    pattern = map(BalancedIEAData))
+    pattern = map(BalancedIEAData)),
 
+  ## OKToProceedIEA
+  targets::tar_target(
+    OKToProceedIEA,
+    ifelse(is.null(stopifnot(all(BalancedAfterIEA))), yes = TRUE, no = FALSE)),
+
+  ## SpecifiedIEA
+  targets::tar_target(
+    SpecifiedIEA,
+    BalancedIEAData |>
+      specify(conn = conn),
+    pattern = map(BalancedIEAData))
 
 
 
