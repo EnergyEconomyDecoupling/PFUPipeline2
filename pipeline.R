@@ -83,7 +83,7 @@ list(
                     specify_non_energy_flows = SpecifyNonEnergyFlows,
                     apply_fixes = ApplyFixes)),
 
-  ## Upload AllIEAData
+  ## AllIEAData
   targets::tar_target(
     AllIEAData,
     AllIEADataLocal |>
@@ -100,7 +100,7 @@ list(
       dplyr::filter(Country %in% countries, Year %in% years),
     Country),
 
-  ## Upload IEAData
+  ## IEAData
   targets::tar_target(
     IEAData,
     IEADataLocal |>
@@ -123,7 +123,15 @@ list(
     BalancedIEAData,
     IEAData |>
       make_balanced(conn = conn),
-    pattern = map(IEAData))
+    pattern = map(IEAData)),
+
+  # BalancedAfterIEA
+  targets::tar_target(
+    BalancedAfterIEA,
+    BalancedIEAData |>
+      is_balanced(conn = conn),
+    pattern = map(BalancedIEAData))
+
 
 
 
