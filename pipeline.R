@@ -67,6 +67,18 @@ list(
 
   # IEA data -------------------------------------------------------------------
 
+  # The following diagram shows the dependencies among IEA targets:
+  #
+  # AllIEAData             IEAData -----> BalancedIEAData -----> SpecifiedIEAData
+  #  ^                      ^
+  #  |                      |
+  #  |                      |
+  # AllIEADataLocal -----> IEADataLocal
+  #  ^
+  #  |
+  #  |
+  # IEADataPath
+
   ## IEADataPath
   targets::tar_target_raw(
     "IEADataPath",

@@ -115,8 +115,8 @@ make_balanced <- function(.iea_data,
   .iea_data |>
     # Get data from the database
     PFUPipelineTools::pl_collect(conn = conn) |>
-    dplyr::group_by(!!as.name(grp_vars)) %>%
-    IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) %>%
+    dplyr::group_by(!!as.name(grp_vars)) |>
+    IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) |>
     dplyr::ungroup() |>
     PFUPipelineTools::pl_upsert(conn = conn,
                                 db_table_name = balanced_table_name,

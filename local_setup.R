@@ -8,8 +8,8 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
-# countries <- "GHA"
+# countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+countries <- "GHA"
 # countries <- c("USA", "WRLD")
 
 #
@@ -18,8 +18,8 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-years <- 1960:2020
-# years <- 1971:1972
+# years <- 1960:2020
+years <- 1971:1972
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -48,9 +48,9 @@ apply_fixes <- TRUE
 worker_threads <- 16
 
 # For parallel processing
-crew_controller <- crew::crew_controller_local(workers = worker_threads)
+# crew_controller <- crew::crew_controller_local(workers = worker_threads)
 # For debugging in a single thread
-# crew_controller <- NULL
+crew_controller <- NULL
 
 
 #
