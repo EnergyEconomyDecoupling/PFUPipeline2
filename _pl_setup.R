@@ -9,7 +9,8 @@
 # Countries --------------------------------------------------------------------
 
 # countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
-countries <- "GHA"
+# countries <- "GHA"
+countries <- "WRLD"
 # countries <- c("USA", "WRLD")
 
 #
