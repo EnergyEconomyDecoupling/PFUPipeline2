@@ -64,11 +64,10 @@
 
 
 # Get local machine setup information ------------------------------------------
-# Duplicate file local_setup_template.R and
-# rename as local_setup.R.
+# Duplicate file _pl_setup_template.R and
+# rename as _pl_setup.R.
 # Modify details for your setup, as needed.
-source("local_setup.R")
-# pfu_setup_paths <- PFUSetup::get_abs_paths(version = input_data_version)
+source("_pl_setup.R")
 
 
 # Load packages required to define the pipeline:
