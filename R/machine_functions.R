@@ -65,9 +65,12 @@ get_eta_filepaths <- function(filepath,
 #' @param eta_fin_paths A list of the file paths to machine excel files containing
 #'                      FIN_ETA front sheets, and therefore usable data.
 #'                      Created by calling the `get_eta_filepaths()` function.
+#' @param version A string containing the version of the database you are creating.
 #' @param efficiency_tab_name See `PFUPipeline::machine_constants`.
 #' @param year See `IEATools::iea_cols`.
 #' @param .values See `IEATools::template_cols`.
+#' @param dataset_colname The name of the dataset column in the output file.
+#'                        Default is "Dataset"
 #' @param hidden_excel_file_prefix The prefix for hidden Excel files.
 #'                                 These files appear when an Excel file is open
 #'                                 and should be ignored.
@@ -80,9 +83,18 @@ get_eta_filepaths <- function(filepath,
 #'
 #' @export
 read_all_eta_files <- function(eta_fin_paths,
+                               version,
                                efficiency_tab_name = "FIN_ETA",
+                               country = IEATools::iea_cols$country,
+                               energy_type = IEATools::iea_cols$energy_type,
+                               last_stage = IEATools::iea_cols$last_stage,
+                               method = IEATools::iea_cols$method,
+                               machine = IEATools::template_cols$machine,
+                               eu_product = IEATools::template_cols$eu_product,
+                               quantity = IEATools::template_cols$quantity,
                                year = IEATools::iea_cols$year,
                                .values = IEATools::template_cols$.values,
+                               dataset_colname = "Dataset",
                                hidden_excel_file_prefix = "~$") {
 
   # Check if eta_fin_paths is a directory. If so, call get_eta_filepaths() before loading the files.
@@ -115,22 +127,28 @@ read_all_eta_files <- function(eta_fin_paths,
     raw_etas <- raw_etas %>%
       tidyr::pivot_longer(cols = dplyr::all_of(year_columns),
                           names_to = year,
-                          values_to = .values)
+                          values_to = .values) |>
+      dplyr::mutate(
+        # Add the version column
+        "{dataset_colname}" := version
+      ) |>
+      # Move it to the left
+      dplyr::relocate(dplyr::all_of(dataset_colname))
+
     # Sets column classes
-    raw_etas$Country <- as.character(raw_etas$Country)
-    raw_etas$Energy.type <- as.character(raw_etas$Energy.type)
-    raw_etas$Last.stage <- as.character(raw_etas$Last.stage)
-    raw_etas$Method <- as.character(raw_etas$Method)
-    raw_etas$Machine <- as.character(raw_etas$Machine)
-    raw_etas$Eu.product <- as.character(raw_etas$Eu.product)
-    raw_etas$Quantity <- as.character(raw_etas$Quantity)
-    raw_etas$Year <- as.numeric(raw_etas$Year)
+    raw_etas[[country]] <- as.character(raw_etas[[country]])
+    raw_etas[[energy_type]] <- as.character(raw_etas[[energy_type]])
+    raw_etas[[last_stage]] <- as.character(raw_etas[[last_stage]])
+    raw_etas[[method]] <- as.character(raw_etas[[method]])
+    raw_etas[[machine]] <- as.character(raw_etas[[machine]])
+    raw_etas[[eu_product]] <- as.character(raw_etas[[eu_product]])
+    raw_etas[[quantity]] <- as.character(raw_etas[[quantity]])
+    raw_etas[[year]] <- as.numeric(raw_etas[[year]])
     raw_etas[[.values]] <- as.numeric(raw_etas[[.values]])
 
     # Binds values from individual excel FIN_ETA sheet into etas tibble.
     etas <- etas %>%
       dplyr::bind_rows(raw_etas)
-
   }
 
   return(etas)

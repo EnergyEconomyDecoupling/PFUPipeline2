@@ -69,15 +69,11 @@ list(
 
   # The following diagram shows the dependencies among IEA targets:
   #
-  # AllIEAData             IEAData -----> BalancedIEAData -----> SpecifiedIEAData
-  #  ^                      ^
-  #  |                      |
-  #  |                      |
-  # AllIEADataLocal -----> IEADataLocal
-  #  ^
-  #  |
-  #  |
-  # IEADataPath
+  #                    AllIEAData             IEAData -----> BalancedIEAData -----> SpecifiedIEAData
+  #                     ^                      ^
+  #                     |                      |
+  #                     |                      |
+  # IEADataPath -----> AllIEADataLocal -----> IEADataLocal
 
   ## IEADataPath
   targets::tar_target_raw(
@@ -157,7 +153,15 @@ list(
     pattern = map(BalancedIEAData)),
 
 
-  # Machine data ---------------------------------------------------------------
+  # Machine data (efficiencies) ------------------------------------------------
+
+  # The following diagram shows the dependencies among MachineData targets:
+  #
+  #                        AllMachineData
+  #                         ^
+  #                         |
+  #                         |
+  # MachineDataPath -----> AllMachineDataLocal
 
   ## MachineDataPath
   targets::tar_target_raw(
@@ -165,11 +169,22 @@ list(
     clpfu_setup_paths[["machine_data_folder"]],
     format = "file"),
 
+  ## AllMachineDataLocal
+  targets::tar_target(
+    AllMachineDataLocal,
+    read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath),
+                       version = paste0("CLPFU", clpfu_version))),
+
   ## AllMachineData
   targets::tar_target(
     AllMachineData,
-    read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath))
-  )
+    AllMachineDataLocal |>
+      PFUPipelineTools::pl_upsert(db_table_name = "AllMachineData",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables))
+
 
 
 

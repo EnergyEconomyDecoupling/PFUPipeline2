@@ -24,7 +24,8 @@ load_iea_data <- function(iea_data_path,
                           specify_non_energy_flows = TRUE,
                           apply_fixes = TRUE,
                           iea_countries = c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> unlist(),
-                          country = IEATools::iea_cols$country) {
+                          country = IEATools::iea_cols$country,
+                          dataset_colname = "Dataset") {
 
   iea_data_path |>
     IEATools::load_tidy_iea_df(override_df = override_df,
@@ -32,7 +33,7 @@ load_iea_data <- function(iea_data_path,
                                apply_fixes = apply_fixes) |>
     dplyr::filter(.data[[country]] %in% iea_countries) |>
     dplyr::mutate(
-      Dataset = dataset
+      "{dataset_colname}" := dataset
     )
 }
 
