@@ -154,7 +154,22 @@ list(
     SpecifiedIEAData,
     BalancedIEAData |>
       specify(conn = conn),
-    pattern = map(BalancedIEAData))
+    pattern = map(BalancedIEAData)),
+
+
+  # Machine data ---------------------------------------------------------------
+
+  ## MachineDataPath
+  targets::tar_target_raw(
+    "MachineDataPath",
+    clpfu_setup_paths[["machine_data_folder"]],
+    format = "file"),
+
+  ## AllMachineData
+  targets::tar_target(
+    AllMachineData,
+    read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath))
+  )
 
 
 

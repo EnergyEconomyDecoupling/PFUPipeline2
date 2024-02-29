@@ -46,7 +46,7 @@ apply_fixes <- TRUE
 # For parallel processing.
 # Set worker_threads equal to or slightly less than
 # the number of high-performance cores on your machine.
-worker_threads <- 8
+worker_threads <- 16
 
 # For parallel processing
 crew_controller <- crew::crew_controller_local(workers = worker_threads)
