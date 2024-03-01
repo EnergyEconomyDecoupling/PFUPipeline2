@@ -62,7 +62,7 @@ is_balanced <- function(.iea_data,
                                      IEATools::iea_cols$product)) {
   .iea_data |>
     # Get data from the database
-    PFUPipelineTools::pl_collect(conn = conn) |>
+    PFUPipelineTools::pl_collect_from_hash(conn = conn) |>
     dplyr::group_by(!!as.name(grp_vars)) |>
     # Check balances
     IEATools::calc_tidy_iea_df_balances() |>
@@ -115,7 +115,7 @@ make_balanced <- function(.iea_data,
                                        IEATools::iea_cols$product)) {
   .iea_data |>
     # Get data from the database
-    PFUPipelineTools::pl_collect(conn = conn) |>
+    PFUPipelineTools::pl_collect_from_hash(conn = conn) |>
     dplyr::group_by(!!as.name(grp_vars)) |>
     IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) |>
     dplyr::ungroup() |>
@@ -142,7 +142,7 @@ specify <- function(BalancedIEAData,
                     conn,
                     specified_table_name = "SpecifiedIEAData") {
   BalancedIEAData |>
-    PFUPipelineTools::pl_collect(conn = conn) |>
+    PFUPipelineTools::pl_collect_from_hash(conn = conn) |>
     IEATools::specify_all() |>
     PFUPipelineTools::pl_upsert(conn = conn,
                                 db_table_name = specified_table_name,

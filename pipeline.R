@@ -35,40 +35,10 @@ list(
     SetDMAndFKTables[["dm"]]),
 
   ## SimpleFKTables
+  #  Extract the foreign key tables
   targets::tar_target(
     SimpleFKTables,
     SetDMAndFKTables[["simple_fk_tables"]]),
-
-
-
-
-  # ## SchemaTable
-  # # Load the schema table from the schema file.
-  # targets::tar_target(
-  #   SchemaTable,
-  #   PFUPipelineTools::load_schema_table(schema_path = SchemaFilePath)),
-  #
-  # ## SimpleFKTables
-  # # Store a list of foreign key tables available in SchemaFilePath.
-  # # Additions will be made later.
-  # targets::tar_target(
-  #   SimpleFKTables,
-  #   PFUPipelineTools::load_fk_tables(simple_tables_path = SchemaFilePath)),
-  #
-  # ## DM
-  # # Create the data model (dm object) from the SchemaTable.
-  # targets::tar_target(
-  #   DM,
-  #   PFUPipelineTools::schema_dm(SchemaTable)),
-  #
-  # ## UploadDM
-  # # Upload the data model and SimpleFKTables to the database.
-  # targets::tar_target(
-  #   UploadDM,
-  #   PFUPipelineTools::pl_upload_schema_and_simple_tables(schema = DM,
-  #                                                        simple_tables = SimpleFKTables,
-  #                                                        conn = conn,
-  #                                                        drop_db_tables = TRUE)),
 
 
   # Country concordance --------------------------------------------------------
@@ -125,7 +95,7 @@ list(
   tarchetypes::tar_group_by(
     IEADataLocal,
     AllIEADataLocal |>
-      dplyr::filter(Country %in% countries, Year %in% years),
+      dplyr::filter(Country %in% AllocAndEffCountries, Year %in% years),
     Country),
 
   ## IEAData
@@ -177,11 +147,11 @@ list(
 
   # Dependencies among MachineData targets:
   #
-  #                        AllMachineData
-  #                         ^
-  #                         |
-  #                         |
-  # MachineDataPath -----> AllMachineDataLocal
+  #                        AllMachineData             MachineData
+  #                         ^                          ^
+  #                         |                          |
+  #                         |                          |
+  # MachineDataPath -----> AllMachineDataLocal -----> MachineDataLocal
 
   ## MachineDataPath
   targets::tar_target_raw(
@@ -203,7 +173,37 @@ list(
                                   conn = conn,
                                   in_place = TRUE,
                                   schema = DM,
-                                  fk_parent_tables = SimpleFKTables))
+                                  fk_parent_tables = SimpleFKTables)),
+
+  ## MachineDataLocal
+  tarchetypes::tar_group_by(
+    MachineDataLocal,
+    AllMachineDataLocal |>
+      dplyr::filter(Country %in% AllocAndEffCountries, Year %in% years),
+    Country),
+
+  ## MachineData
+  targets::tar_target(
+    MachineData,
+    MachineDataLocal |>
+      PFUPipelineTools::pl_upsert(db_table_name = "MachineData",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables),
+    pattern = map(MachineDataLocal)),
+
+
+  # Allocation tables ----------------------------------------------------------
+
+  # IncompleteAllocationTables
+  targets::tar_target(
+    IncompleteAllocationTables,
+    load_fu_allocation_tables(FUAnalysisFolder,
+                              specified_iea_data = SpecifiedIEAData,
+                              countries = AllocAndEffCountries))
+
+
 
 
 
