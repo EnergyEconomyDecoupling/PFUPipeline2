@@ -22,33 +22,53 @@ list(
     clpfu_setup_paths[["schema_path"]],
     format = "file"),
 
-  ## SchemaTable
-  # Load the schema table from the schema file.
+  ## SetDMAndFKTables
+  #  Create and upload the schema from SchemaFilePath
   targets::tar_target(
-    SchemaTable,
-    PFUPipelineTools::load_schema_table(schema_path = SchemaFilePath)),
-
-  ## SimpleFKTables
-  # Store a list of foreign key tables available in SchemaFilePath.
-  # Additions will be made later.
-  targets::tar_target(
-    SimpleFKTables,
-    PFUPipelineTools::load_fk_tables(simple_tables_path = SchemaFilePath)),
+    SetDMAndFKTables,
+    set_dm_fk_tables(SchemaFilePath, conn = conn)),
 
   ## DM
-  # Create the data model (dm object) from the SchemaTable.
+  #  Extract the data model
   targets::tar_target(
     DM,
-    PFUPipelineTools::schema_dm(SchemaTable)),
+    SetDMAndFKTables[["dm"]]),
 
-  ## UploadDM
-  # Upload the data model and SimpleFKTables to the database.
+  ## SimpleFKTables
   targets::tar_target(
-    UploadDM,
-    PFUPipelineTools::pl_upload_schema_and_simple_tables(schema = DM,
-                                                         simple_tables = SimpleFKTables,
-                                                         conn = conn,
-                                                         drop_db_tables = TRUE)),
+    SimpleFKTables,
+    SetDMAndFKTables[["simple_fk_tables"]]),
+
+
+
+
+  # ## SchemaTable
+  # # Load the schema table from the schema file.
+  # targets::tar_target(
+  #   SchemaTable,
+  #   PFUPipelineTools::load_schema_table(schema_path = SchemaFilePath)),
+  #
+  # ## SimpleFKTables
+  # # Store a list of foreign key tables available in SchemaFilePath.
+  # # Additions will be made later.
+  # targets::tar_target(
+  #   SimpleFKTables,
+  #   PFUPipelineTools::load_fk_tables(simple_tables_path = SchemaFilePath)),
+  #
+  # ## DM
+  # # Create the data model (dm object) from the SchemaTable.
+  # targets::tar_target(
+  #   DM,
+  #   PFUPipelineTools::schema_dm(SchemaTable)),
+  #
+  # ## UploadDM
+  # # Upload the data model and SimpleFKTables to the database.
+  # targets::tar_target(
+  #   UploadDM,
+  #   PFUPipelineTools::pl_upload_schema_and_simple_tables(schema = DM,
+  #                                                        simple_tables = SimpleFKTables,
+  #                                                        conn = conn,
+  #                                                        drop_db_tables = TRUE)),
 
 
   # Country concordance --------------------------------------------------------
@@ -67,7 +87,7 @@ list(
 
   # IEA data -------------------------------------------------------------------
 
-  # The following diagram shows the dependencies among IEA targets:
+  # Dependencies among IEA targets:
   #
   #                    AllIEAData             IEAData -----> BalancedIEAData -----> SpecifiedIEAData
   #                     ^                      ^
@@ -155,7 +175,7 @@ list(
 
   # Machine data (efficiencies) ------------------------------------------------
 
-  # The following diagram shows the dependencies among MachineData targets:
+  # Dependencies among MachineData targets:
   #
   #                        AllMachineData
   #                         ^

@@ -20,11 +20,9 @@
 #' @export
 set_dm_fk_tables <- function(schema_file_path, conn) {
   # Read the schema table
-  schema_table <- schema_file_path |>
-    PFUPipelineTools::load_schema_table()
+  schema_table <- PFUPipelineTools::load_schema_table(schema_path = schema_file_path)
   # Read the simple foreign key tables
-  simple_fk_tables <- schema_file_path |>
-    PFUPipelineTools::load_fk_tables()
+  simple_fk_tables <- PFUPipelineTools::load_fk_tables(simple_tables_path = schema_file_path)
   # Create the data model
   this_data_model <- schema_table |>
     PFUPipelineTools::schema_dm()
