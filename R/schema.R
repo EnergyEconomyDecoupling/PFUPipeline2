@@ -5,7 +5,7 @@
 #' The simple foreign key tables are read from `schema_file_path`
 #' and uploaded to the database at `conn`.
 #' Both the data model and foreign tables are returned in a list
-#' for futher extraction into separate targets.
+#' for further extraction into separate targets.
 #'
 #' @param schema_file_path The path to the schema file.
 #' @param conn The connection to the database.
