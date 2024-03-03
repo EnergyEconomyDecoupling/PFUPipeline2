@@ -44,6 +44,16 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     }
     if (!fexists & generate_missing_fu_allocation_template) {
       # Create and write the template
+
+
+
+
+      # Change this to use pl_nat_filter() and
+      # download based on filtering on coun.
+      # Get the name of the table from the
+      # specified_iea_data argument.
+      # Maybe add a table name column argument to this function.
+
       iea_data <- specified_iea_data %>%
         dplyr::filter(.data[[IEATools::iea_cols$country]] == coun)
       # Writing the allocation table is pointless if we don't have any IEA
