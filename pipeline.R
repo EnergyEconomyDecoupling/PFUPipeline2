@@ -196,12 +196,21 @@ list(
 
   # Allocation tables ----------------------------------------------------------
 
+  # FUAnalysisFolder
+  targets::tar_target_raw(
+    "FUAnalysisFolder",
+    clpfu_setup_paths$fu_allocation_folder,
+    format = "file"),
+
   # IncompleteAllocationTables
   targets::tar_target(
     IncompleteAllocationTables,
     load_fu_allocation_tables(FUAnalysisFolder,
                               specified_iea_data = SpecifiedIEAData,
-                              countries = AllocAndEffCountries))
+                              countries = AllocAndEffCountries,
+                              conn = conn,
+                              schema = DM,
+                              fk_parent_tables = SimpleFKTables))
 
 
 

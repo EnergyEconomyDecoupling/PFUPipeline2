@@ -109,7 +109,8 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 tar_option_set(
   # packages that your targets need to run
-  packages = c("Matrix",
+  packages = c("IEATools",
+               "Matrix",
                "PFUPipelineTools",
                "qs",
                "tibble"),

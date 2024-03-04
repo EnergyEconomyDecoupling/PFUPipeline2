@@ -19,7 +19,18 @@
 #' @param file_suffix The suffix for the FU analysis files. Default is "`r IEATools::fu_analysis_file_info$fu_analysis_file_suffix`".
 #' @param use_subfolders Tells whether to look for files in subfolders named by `countries`. Default is `TRUE`.
 #' @param generate_missing_fu_allocation_template Tells whether to generate a missing final-to-useful allocation template from `specified_iea_data`. Default is `TRUE`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
 #' @param fu_allocations_tab_name The name of the tab for final-to-useful allocations in the Excel file containing final-to-useful allocation data. Default is "`r IEATools::fu_analysis_file_info$fu_allocation_tab_name`".
+#' @param country The string name of the country column.
+#'                Default is `IEATools::iea_cols$country`.
+#' @param table_name_colname The name of a column in `specified_iea_data` that gives
+#'                           the table in the database in which specified IEA data are to be found.
+#'                           Default is `PFUPipelineTools::hashed_table_colnames$db_table_name`.
 #'
 #' @export
 #'
@@ -34,7 +45,12 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
                                       file_suffix = IEATools::fu_analysis_file_info$fu_analysis_file_suffix,
                                       use_subfolders = TRUE,
                                       generate_missing_fu_allocation_template = TRUE,
-                                      fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name) {
+                                      conn,
+                                      schema = schema_from_conn(conn = conn),
+                                      fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema),
+                                      fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name,
+                                      country_colname = IEATools::iea_cols$country,
+                                      table_name_colname = PFUPipelineTools::hashed_table_colnames$db_table_name) {
   out <- lapply(countries, FUN = function(coun) {
     folder <- ifelse(use_subfolders, file.path(fu_analysis_folder, coun), fu_analysis_folder)
     fpath <- file.path(folder, paste0(coun, file_suffix))
@@ -45,17 +61,16 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     if (!fexists & generate_missing_fu_allocation_template) {
       # Create and write the template
 
+      table_name <- specified_iea_data |>
+        magrittr::extract2(table_name_colname) |>
+        unique()
+      assertthat::assert_that(length(table) == 1)
+      iea_data <- PFUPipelineTools::pl_filter_collect(table_name,
+                                                      Country == coun,
+                                                      conn = conn,
+                                                      schema = schema,
+                                                      fk_parent_tables = fk_parent_tables)
 
-
-
-      # Change this to use pl_nat_filter() and
-      # download based on filtering on coun.
-      # Get the name of the table from the
-      # specified_iea_data argument.
-      # Maybe add a table name column argument to this function.
-
-      iea_data <- specified_iea_data %>%
-        dplyr::filter(.data[[IEATools::iea_cols$country]] == coun)
       # Writing the allocation table is pointless if we don't have any IEA
       # data for that country.
       # So only write a template file if we have a non-zero number

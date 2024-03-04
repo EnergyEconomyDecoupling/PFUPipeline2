@@ -51,7 +51,7 @@ worker_threads <- 16
 # For parallel processing
 crew_controller <- crew::crew_controller_local(workers = worker_threads)
 # For debugging in a single thread
-# crew_controller <- NULL
+crew_controller <- NULL
 
 
 #
@@ -131,7 +131,7 @@ clpfu_setup_paths <- list(
   aggregation_mapping_path = file.path(input_data_path, "aggregation_mapping.xlsx"),
   phi_constants_path = file.path(input_data_path, "phi_constants.xlsx"),
   exemplar_table_path = file.path(input_data_path, "Exemplar_Table.xlsx"),
-  fu_analysis_folder = file.path(input_data_path, "FU analysis data"),
+  fu_allocation_folder = file.path(input_data_path, "FU allocation data"),
   machine_data_folder = file.path(input_data_path, "Machines - Data"),
   ceda_data_folder = file.path(input_data_path, "CEDA Data"),
   exiobase_energy_flows_path = file.path(input_data_path, "exiobase_energy_flows_concordance.xlsx"),
