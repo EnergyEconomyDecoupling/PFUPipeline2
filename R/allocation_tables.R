@@ -66,7 +66,30 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
         unique()
       assertthat::assert_that(length(table) == 1)
       iea_data <- PFUPipelineTools::pl_filter_collect(table_name,
+
+
+
+
+
+
+
+
+
+                                                      # Find a way to insert country_colname here!
                                                       Country == coun,
+
+
+
+
+
+
+
+
+
+
+
+
+
                                                       conn = conn,
                                                       schema = schema,
                                                       fk_parent_tables = fk_parent_tables)
