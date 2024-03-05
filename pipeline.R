@@ -108,6 +108,15 @@ list(
                                   schema = DM,
                                   fk_parent_tables = SimpleFKTables),
     pattern = map(IEADataLocal)),
+  # targets::tar_target(
+  #   IEAData,
+  #   filter_all_iea_data(source_table = "AllIEAData",
+  #                       dest_table = "IEAData",
+  #                       countries = AllocAndEffCountries,
+  #                       years = Years,
+  #                       conn = conn,
+  #                       schema = DM)),
+
 
   ## BalancedBeforeIEA
   targets::tar_target(
@@ -162,7 +171,58 @@ list(
     pattern = map(AllocAndEffCountries)),
 
 
-  # Machine data (efficiencies) ------------------------------------------------
+  # Allocation tables ----------------------------------------------------------
+
+  # Dependencies among AllocationTable targets:
+  #
+  #                         IncompleteAllocationTables             CompletedAllocationTables
+  #                          ^                                      ^
+  #                          |                                      |
+  #                          |                                      |
+  # FUAnalysisFolder -----> IncompleteAllocationTablesLocal -----> CompletedAllocationTablesLocal
+
+  ## FUAnalysisFolder
+  targets::tar_target_raw(
+    "FUAnalysisFolder",
+    clpfu_setup_paths$fu_allocation_folder,
+    format = "file"),
+
+  ## IncompleteAllocationTablesLocal
+  tarchetypes::tar_group_by(
+    IncompleteAllocationTablesLocal,
+    load_fu_allocation_tables(FUAnalysisFolder,
+                              specified_iea_data = SpecifiedIEAData,
+                              countries = AllocAndEffCountries,
+                              conn = conn,
+                              schema = DM,
+                              fk_parent_tables = SimpleFKTables),
+    Country),
+
+  targets::tar_target(
+    IncompleteAllocationTables,
+    IncompleteAllocationTablesLocal |>
+      PFUPipelineTools::pl_upsert(db_table_name = "IncompleteAllocationTables",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables),
+    pattern = map(IncompleteAllocationTablesLocal)
+  ),
+
+  ## CompletedAllocationTablesLocal
+  targets::tar_target(
+    CompletedAllocationTablesLocal,
+      assemble_fu_allocation_tables(tidy_incomplete_allocation_tables = IncompleteAllocationTablesLocal,
+                                    exemplar_lists = ExemplarLists,
+                                    specified_iea_data = SpecifiedIEAData |>
+                                      PFUPipelineTools::tar_ungroup(),
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = SimpleFKTables),
+      pattern = map(IncompleteAllocationTablesLocal)),
+
+
+  # Machine data (Efficiencies) ------------------------------------------------
 
   # Dependencies among MachineData targets:
   #
@@ -210,53 +270,18 @@ list(
                                   in_place = TRUE,
                                   schema = DM,
                                   fk_parent_tables = SimpleFKTables),
-    pattern = map(MachineDataLocal)),
+    pattern = map(MachineDataLocal))
 
-
-  # Allocation tables ----------------------------------------------------------
-
-  # Dependencies among AllocationTable targets:
-  #
-  #                                                                CompletedAllocationTables
-  #                                                                 ^
-  #                                                                 |
-  #                                                                 |
-  # FUAnalysisFolder -----> IncompleteAllocationTablesLocal -----> CompletedAllocationTablesLocal
-
-  ## FUAnalysisFolder
-  targets::tar_target_raw(
-    "FUAnalysisFolder",
-    clpfu_setup_paths$fu_allocation_folder,
-    format = "file"),
-
-  ## IncompleteAllocationTablesLocal
-  tarchetypes::tar_group_by(
-    IncompleteAllocationTablesLocal,
-    load_fu_allocation_tables(FUAnalysisFolder,
-                              specified_iea_data = SpecifiedIEAData,
-                              countries = AllocAndEffCountries,
-                              conn = conn,
-                              schema = DM,
-                              fk_parent_tables = SimpleFKTables),
-    Country)
-
-    # ## CompletedAllocationTablesLocal
-    # targets::tar_target(
-    #   CompletedAllocationTablesLocal,
-    #   targets::tar_target(
-    #     CompletedAllocationTables,
-    #     assemble_fu_allocation_tables(incomplete_allocation_tables = IncompleteAllocationTablesLocal,
-    #                                   exemplar_lists = ExemplarLists,
-    #                                   specified_iea_data = SpecifiedIEAData |>
-    #                                     PFUPipelineTools::tar_ungroup(),
-    #                                   countries = Countries,
-    #                                   years = Years),
-    #     pattern = map(IncompleteAllocationTablesLocal),
-    #
-    # )
-
-
-
+  # ## CompletedEfficiencyTables
+  # targets::tar_target(
+  #   CompletedEfficiencyTables,
+  #   assemble_eta_fu_tables(incomplete_eta_fu_tables = MachineData,
+  #                          exemplar_lists = ExemplarLists,
+  #                          completed_fu_allocation_tables = CompletedAllocationTables,
+  #                          countries = Countries,
+  #                          years = Years,
+  #                          which_quantity = IEATools::template_cols$eta_fu),
+  #   pattern = quote(map(Countries)))
 
 
 

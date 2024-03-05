@@ -4,7 +4,7 @@
 #' that stores all efficiencies..
 #'
 #' @param filepath A file path to the folder containing all machine folders.
-#' @param efficiency_tab_name See `PFUPipeline::machine_constants`.
+#' @param efficiency_tab_name See `PFUPipelineTools::machine_constants`.
 #' @param hidden_excel_file_prefix The prefix for hidden Excel files.
 #'                                 These files appear when an Excel file is open
 #'                                 and should be ignored.
@@ -14,7 +14,7 @@
 #'
 #' @export
 get_eta_filepaths <- function(filepath,
-                              efficiency_tab_name = "FIN_ETA",
+                              efficiency_tab_name = PFUPipelineTools::machine_constants$efficiency_tab_name,
                               hidden_excel_file_prefix = "~$") {
 
   if (!file.exists(filepath)) {
@@ -70,7 +70,7 @@ get_eta_filepaths <- function(filepath,
 #' @param year See `IEATools::iea_cols`.
 #' @param .values See `IEATools::template_cols`.
 #' @param dataset_colname The name of the dataset column in the output file.
-#'                        Default is "Dataset"
+#'                        Default is `PFUPipelineTools::dataset_info$dataset_colname`.
 #' @param hidden_excel_file_prefix The prefix for hidden Excel files.
 #'                                 These files appear when an Excel file is open
 #'                                 and should be ignored.
@@ -84,7 +84,7 @@ get_eta_filepaths <- function(filepath,
 #' @export
 read_all_eta_files <- function(eta_fin_paths,
                                version,
-                               efficiency_tab_name = "FIN_ETA",
+                               efficiency_tab_name = PFUPipelineTools::machine_constants$efficiency_tab_name,
                                country = IEATools::iea_cols$country,
                                energy_type = IEATools::iea_cols$energy_type,
                                last_stage = IEATools::iea_cols$last_stage,
@@ -94,7 +94,7 @@ read_all_eta_files <- function(eta_fin_paths,
                                quantity = IEATools::template_cols$quantity,
                                year = IEATools::iea_cols$year,
                                .values = IEATools::template_cols$.values,
-                               dataset_colname = "Dataset",
+                               dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                hidden_excel_file_prefix = "~$") {
 
   # Check if eta_fin_paths is a directory. If so, call get_eta_filepaths() before loading the files.

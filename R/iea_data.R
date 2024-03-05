@@ -25,7 +25,7 @@ load_iea_data <- function(iea_data_path,
                           apply_fixes = TRUE,
                           iea_countries = c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> unlist(),
                           country = IEATools::iea_cols$country,
-                          dataset_colname = "Dataset") {
+                          dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
   iea_data_path |>
     IEATools::load_tidy_iea_df(override_df = override_df,
@@ -147,4 +147,53 @@ specify <- function(BalancedIEAData,
     PFUPipelineTools::pl_upsert(conn = conn,
                                 db_table_name = specified_table_name,
                                 in_place = TRUE)
+}
+
+
+#' Filter by country and year; copy to a destination table
+#'
+#' It is helpful to do an inboard copy and filter of the IEA data.
+#' This function filters `source_table` and copies
+#' to `dest_table` (after first removing all rows from `dest_table`).
+#'
+#' @param source_table A string identifying the source table.
+#' @param dest_table A string identifying the destination table.
+#' @param countries The countries to keep.
+#' @param years The years to keep.
+#' @param conn The database connection.
+#' @param schema A `dm` object for the database.
+#' @param country The name of the country column.
+#'                Default is `IEATools::iea_cols$country`.
+#' @param year The name of the year column.
+#'             Default is `IEATools::iea_cols$year`.
+#'
+#' @return `TRUE` if successful.
+filter_all_iea_data <- function(source_table,
+                                dest_table,
+                                countries,
+                                years,
+                                conn,
+                                schema = schema_from_conn(conn),
+                                country = IEATools::iea_cols$country,
+                                year = IEATools::iea_cols$year,
+                                pk_col = PFUPipelineTools::dm_pk_colnames$pk_col) {
+
+  by_cols <- schema |>
+    dm::dm_get_all_pks(table = {{dest_table}}) |>
+    magrittr::extract2(pk_col) |>
+    unlist()
+
+  dest_tbl <- dplyr::tbl(conn, dest_table) |>
+    # Clean out all rows from dest_tbl
+    dplyr::filter(FALSE)
+  source_tbl <- dplyr::tbl(conn, source_table) |>
+    # Filter the source table
+    dplyr::filter(.data[[country]] %in% countries, .data[[year]] %in% years)
+
+  dplyr::rows_insert(x = dest_tbl,
+                     y = source_tbl,
+                     by = by_cols,
+                     in_place = FALSE,
+                     conflict = "ignore")
+  return(TRUE)
 }
