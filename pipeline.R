@@ -5,6 +5,7 @@ list(
 
   # Initialize -----------------------------------------------------------------
   targets::tar_target_raw("Countries", list(countries)),
+  targets::tar_target_raw("Years", list(years)),
   targets::tar_target_raw("AdditionalExemplarCountries", list(additional_exemplar_countries)),
   targets::tar_target_raw("SpecifyNonEnergyFlows", list(specify_non_energy_flows)),
   targets::tar_target_raw("ApplyFixes", list(apply_fixes)),
@@ -73,7 +74,6 @@ list(
 
   ## AllIEADataLocal
   targets::tar_target(
-  # targets::tar_target(
     AllIEADataLocal,
     IEADataPath |>
       load_iea_data(override_df = CountryConcordanceTable,
@@ -143,6 +143,25 @@ list(
     pattern = map(BalancedIEAData)),
 
 
+  # Exemplar lists -------------------------------------------------------------
+  # For FU machine allocations and FU machine efficiencies
+
+  ## ExamplarTablePath
+  targets::tar_target_raw(
+    "ExemplarTablePath",
+    clpfu_setup_paths[["exemplar_table_path"]],
+    format = "file"),
+
+  ## ExemplarLists
+  targets::tar_target(
+    ExemplarLists,
+    ExemplarTablePath |>
+      load_exemplar_table(countries = AllocAndEffCountries,
+                          years = Years) |>
+      exemplar_lists(AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries)),
+
+
   # Machine data (efficiencies) ------------------------------------------------
 
   # Dependencies among MachineData targets:
@@ -196,21 +215,45 @@ list(
 
   # Allocation tables ----------------------------------------------------------
 
-  # FUAnalysisFolder
+  # Dependencies among AllocationTable targets:
+  #
+  #                                                                CompletedAllocationTables
+  #                                                                 ^
+  #                                                                 |
+  #                                                                 |
+  # FUAnalysisFolder -----> IncompleteAllocationTablesLocal -----> CompletedAllocationTablesLocal
+
+  ## FUAnalysisFolder
   targets::tar_target_raw(
     "FUAnalysisFolder",
     clpfu_setup_paths$fu_allocation_folder,
     format = "file"),
 
-  # IncompleteAllocationTables
-  targets::tar_target(
-    IncompleteAllocationTables,
+  ## IncompleteAllocationTablesLocal
+  tarchetypes::tar_group_by(
+    IncompleteAllocationTablesLocal,
     load_fu_allocation_tables(FUAnalysisFolder,
                               specified_iea_data = SpecifiedIEAData,
                               countries = AllocAndEffCountries,
                               conn = conn,
                               schema = DM,
-                              fk_parent_tables = SimpleFKTables))
+                              fk_parent_tables = SimpleFKTables),
+    Country)
+
+    # ## CompletedAllocationTablesLocal
+    # targets::tar_target(
+    #   CompletedAllocationTablesLocal,
+    #   targets::tar_target(
+    #     CompletedAllocationTables,
+    #     assemble_fu_allocation_tables(incomplete_allocation_tables = IncompleteAllocationTablesLocal,
+    #                                   exemplar_lists = ExemplarLists,
+    #                                   specified_iea_data = SpecifiedIEAData |>
+    #                                     PFUPipelineTools::tar_ungroup(),
+    #                                   countries = Countries,
+    #                                   years = Years),
+    #     pattern = map(IncompleteAllocationTablesLocal),
+    #
+    # )
 
 
 

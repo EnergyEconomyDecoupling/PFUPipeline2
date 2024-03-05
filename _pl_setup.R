@@ -51,7 +51,7 @@ worker_threads <- 16
 # For parallel processing
 crew_controller <- crew::crew_controller_local(workers = worker_threads)
 # For debugging in a single thread
-crew_controller <- NULL
+# crew_controller <- NULL
 
 
 #
@@ -113,9 +113,6 @@ clpfu_setup_paths <- list(
   project_path = project_path,
   input_data_path = input_data_path,
   output_data_path = output_data_path,
-  # iea_folder_path = file.path(project_path,
-  #                             "IEA extended energy balance data",
-  #                             paste("IEA", iea_year, "energy balance data")),
   iea_data_path = file.path(project_path,
                             "IEA extended energy balance data",
                             paste("IEA", iea_year, "energy balance data"),
