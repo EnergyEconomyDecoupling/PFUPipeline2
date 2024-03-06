@@ -60,11 +60,11 @@ list(
 
   # Dependencies among IEA targets:
   #
-  #                    AllIEAData             IEAData -----> BalancedIEAData -----> SpecifiedIEAData
-  #                     ^                      ^
-  #                     |                      |
-  #                     |                      |
-  # IEADataPath -----> AllIEADataLocal -----> IEADataLocal
+  #                    AllIEAData             IEAData             BalancedIEAData             SpecifiedIEAData
+  #                     ^                      ^                   ^                           ^
+  #                     |                      |                   |                           |
+  #                     |                      |                   |                           |
+  # IEADataPath -----> AllIEADataLocal -----> IEADataLocal -----> BalancedIEADataLocal -----> SpecifiedIEADataLocal
 
   ## IEADataPath
   targets::tar_target_raw(
@@ -108,48 +108,61 @@ list(
                                   schema = DM,
                                   fk_parent_tables = SimpleFKTables),
     pattern = map(IEADataLocal)),
-  # targets::tar_target(
-  #   IEAData,
-  #   filter_all_iea_data(source_table = "AllIEAData",
-  #                       dest_table = "IEAData",
-  #                       countries = AllocAndEffCountries,
-  #                       years = Years,
-  #                       conn = conn,
-  #                       schema = DM)),
-
 
   ## BalancedBeforeIEA
   targets::tar_target(
     BalancedBeforeIEA,
-    IEAData |>
-      is_balanced(conn = conn),
-    pattern = map(IEAData)),
+    IEADataLocal |>
+      is_balanced(),
+    pattern = map(IEADataLocal)),
+
+  ## BalancedIEADataLocal
+  targets::tar_target(
+    BalancedIEADataLocal,
+    IEADataLocal |>
+      make_balanced(),
+    pattern = map(IEADataLocal)),
 
   ## BalancedIEAData
   targets::tar_target(
     BalancedIEAData,
-    IEAData |>
-      make_balanced(conn = conn),
-    pattern = map(IEAData)),
+    BalancedIEADataLocal |>
+      PFUPipelineTools::pl_upsert(db_table_name = "BalancedIEAData",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables),
+    pattern = map(BalancedIEADataLocal)),
 
   ## BalancedAfterIEA
   targets::tar_target(
     BalancedAfterIEA,
-    BalancedIEAData |>
-      is_balanced(conn = conn),
-    pattern = map(BalancedIEAData)),
+    BalancedIEADataLocal |>
+      is_balanced(),
+    pattern = map(BalancedIEADataLocal)),
 
   ## OKToProceedIEA
   targets::tar_target(
     OKToProceedIEA,
     ifelse(is.null(stopifnot(all(BalancedAfterIEA))), yes = TRUE, no = FALSE)),
 
+  ## SpecifiedIEADataLocal
+  targets::tar_target(
+    SpecifiedIEADataLocal,
+    BalancedIEADataLocal |>
+      specify(),
+    pattern = map(BalancedIEADataLocal)),
+
   ## SpecifiedIEAData
   targets::tar_target(
     SpecifiedIEAData,
-    BalancedIEAData |>
-      specify(conn = conn),
-    pattern = map(BalancedIEAData)),
+    SpecifiedIEADataLocal |>
+      PFUPipelineTools::pl_upsert(db_table_name = "SpecifiedIEAData",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables),
+    pattern = map(SpecifiedIEADataLocal)),
 
 
   # Exemplar lists -------------------------------------------------------------
@@ -212,14 +225,26 @@ list(
   ## CompletedAllocationTablesLocal
   targets::tar_target(
     CompletedAllocationTablesLocal,
-      assemble_fu_allocation_tables(tidy_incomplete_allocation_tables = IncompleteAllocationTablesLocal,
-                                    exemplar_lists = ExemplarLists,
-                                    specified_iea_data = SpecifiedIEAData |>
+    IncompleteAllocationTablesLocal |>
+      assemble_fu_allocation_tables(exemplar_lists = ExemplarLists,
+                                    specified_iea_data = SpecifiedIEADataLocal |>
                                       PFUPipelineTools::tar_ungroup(),
-                                    conn = conn,
-                                    schema = DM,
-                                    fk_parent_tables = SimpleFKTables),
-      pattern = map(IncompleteAllocationTablesLocal)),
+                                    version = paste0("CLPFU", clpfu_version),
+                                    countries = Countries,
+                                    years = Years),
+      pattern = map(Countries)),
+
+  ## CompletedAllocationTables
+  targets::tar_target(
+    CompletedAllocationTables,
+    CompletedAllocationTablesLocal |>
+      PFUPipelineTools::pl_upsert(db_table_name = "CompletedAllocationTables",
+                                  conn = conn,
+                                  in_place = TRUE,
+                                  schema = DM,
+                                  fk_parent_tables = SimpleFKTables),
+    pattern = map(CompletedAllocationTablesLocal)
+  ),
 
 
   # Machine data (Efficiencies) ------------------------------------------------

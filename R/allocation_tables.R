@@ -62,21 +62,8 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     }
     if (!fexists & generate_missing_fu_allocation_template) {
       # Create and write the template
-
-      table_name <- specified_iea_data |>
-        magrittr::extract2(table_name_colname) |>
-        unique()
-browser()
-      assertthat::assert_that(length(table_name) == 1)
-      iea_data <- PFUPipelineTools::pl_filter_collect(table_name,
-                                                      # Find a way to insert country_colname here!
-                                                      # This doesn't seem to work.
-                                                      # .data[[country]] == coun,
-                                                      Country %in% coun,
-                                                      conn = conn,
-                                                      schema = schema,
-                                                      fk_parent_tables = fk_parent_tables)
-
+      iea_data <- specified_iea_data %>%
+        dplyr::filter(.data[[IEATools::iea_cols$country]] == coun)
       # Writing the allocation table is pointless if we don't have any IEA
       # data for that country.
       # So only write a template file if we have a non-zero number
@@ -123,20 +110,13 @@ browser()
 #' @param tidy_incomplete_allocation_tables A data frame containing (potentially) incomplete final-to-useful allocation tables.
 #' @param exemplar_lists A data frame containing `country` and `year` columns along with a column of ordered vectors of strings
 #'                       telling which countries should be considered exemplars for the country and year of this row.
-#' @param specified_iea_data_hash A has of the data frame containing specified IEA data.
+#' @param specified_iea_data Specified IEA data.
+#' @param version The version of the database being created.
 #' @param countries A vector of countries for which completed final-to-useful allocation tables are to be assembled.
 #' @param years The years for which analysis is desired.
-#' @param conn The connection to a database; needed to collect the specified IEA data.
-#' @param schema The database schema (a `dm` object).
-#'               Default calls `PFUPipelineTools::schema_from_conn()`, but
-#'               you can supply a pre-computed schema for speed.
-#' @param fk_parent_tables Foreign key parent tables to assist decoding foreign keys.
-#'                         Default calls `PFUPipelineTools::get_all_fk_tables()`.
 #' @param country,year See `IEATools::iea_cols`.
-#' @param exemplars,exemplar_tables,iea_data,incomplete_alloc_tables,complete_alloc_tables See `PFUPipeline::exemplar_names`.
-#' @param table_name_colname The name of a column in `specified_iea_data` that gives
-#'                           the table in the database in which specified IEA data are to be found.
-#'                           Default is `PFUPipelineTools::hashed_table_colnames$db_table_name`.
+#' @param exemplars,exemplar_tables,iea_data,incomplete_alloc_tables,complete_alloc_tables See `PFUPipelineTools::exemplar_names`.
+#' @param dataset See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A tidy data frame containing completed final-to-useful allocation tables.
 #'
@@ -176,50 +156,39 @@ browser()
 #' completed %>%
 #'   dplyr::filter(Country == "GHA" & EfProduct == "Primary solid biofuels" &
 #'     Destination == "Residential")
-assemble_fu_allocation_tables <- function(tidy_incomplete_allocation_tables,
+assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           exemplar_lists,
                                           specified_iea_data,
-                                          conn,
-                                          schema = PFUPipelineTools::schema_from_conn(conn = conn),
-                                          fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
+                                          version,
+                                          countries,
+                                          years,
                                           country = IEATools::iea_cols$country,
                                           year = IEATools::iea_cols$year,
-                                          exemplars = PFUPipeline::exemplar_names$exemplars,
-                                          exemplar_tables = PFUPipeline::exemplar_names$exemplar_tables,
-                                          iea_data = PFUPipeline::exemplar_names$iea_data,
-                                          incomplete_alloc_tables = PFUPipeline::exemplar_names$incomplete_alloc_table,
-                                          complete_alloc_tables = PFUPipeline::exemplar_names$complete_alloc_table,
-                                          table_name_colname = PFUPipelineTools::hashed_table_colnames$db_table_name) {
+                                          exemplars = PFUPipelineTools::exemplar_names$exemplars,
+                                          exemplar_tables = PFUPipelineTools::exemplar_names$exemplar_tables,
+                                          iea_data = PFUPipelineTools::exemplar_names$iea_data,
+                                          incomplete_alloc_tables = PFUPipelineTools::exemplar_names$incomplete_alloc_table,
+                                          complete_alloc_tables = PFUPipelineTools::exemplar_names$complete_alloc_table,
+                                          dataset = PFUPipelineTools::dataset_info$dataset_colname) {
 
-browser()
-
-  # Gather information about countries and years for pulling specified IEA data from the database.
-  countries <- tidy_incomplete_allocation_tables |>
-    magrittr::extract2(country) |>
-    unique()
-  years <- tidy_incomplete_allocation_tables |>
-    magrittr::extract2(year) |>
-    unique()
-  table_name <- specified_iea_data |>
-    magrittr::extract2(table_name_colname) |>
-    unique()
-  assertthat::assert_that(length(table_name) == 1)
-  specified_iea_data <- PFUPipelineTools::pl_filter_collect(table_name,
-                                                            # Find a way to insert country here!
-                                                            # This doesn't seem to work.
-                                                            # .data[[country]] %in% countries,
-                                                            Country %in% countries,
-                                                            # Find a way to insert country here!
-                                                            # This doesn't seem to work.
-                                                            # .data[[year]] %in% years,
-                                                            Year %in% years,
-                                                            conn = conn,
-                                                            schema = schema,
-                                                            fk_parent_tables = fk_parent_tables)
+  # The incomplete tables are easier to deal with when they are tidy.
+  tidy_incomplete_allocation_tables <- IEATools::tidy_fu_allocation_table(incomplete_allocation_tables) |>
+    dplyr::filter(.data[[year]] %in% years) |>
+    dplyr::mutate(
+      # Eliminate the dataset column for now.
+      "{dataset}" := NULL
+    ) |>
+    PFUPipelineTools::tar_ungroup()
+  specified_iea_data <- specified_iea_data |>
+    dplyr::mutate(
+      # Eliminate the dataset column, because it conflicts with the dataset name for the
+      # incomplete_allocation_tables.
+      "{dataset}" := NULL
+    )
 
   completed_tables_by_year <- lapply(countries, FUN = function(coun) {
-    coun_exemplar_strings <- exemplar_lists %>%
-      dplyr::filter(.data[[country]] == coun)
+    coun_exemplar_strings <- exemplar_lists |>
+      dplyr::filter(.data[[country]] == coun, .data[[year]] %in% years)
 
     # For each combination of Country and Year (the rows of coun_exemplar_strings),
     # assemble a list of country allocation tables.
@@ -266,8 +235,14 @@ browser()
   #   dplyr::select(complete_alloc_tables) %>%
   #   tidyr::unnest(cols = .data[[complete_alloc_tables]])
   out <- completed_tables_by_year %>%
-    dplyr::select(complete_alloc_tables) %>%
-    tidyr::unnest(cols = .data[[complete_alloc_tables]])
+    dplyr::select(dplyr::all_of(complete_alloc_tables)) |>
+    tidyr::unnest(cols = .data[[complete_alloc_tables]]) |>
+    dplyr::mutate(
+      # Add back the dataset column
+      "{dataset}" := version
+    ) |>
+    # Move the dataset column to the left.
+    dplyr::relocate(dplyr::all_of(dataset))
   assertthat::assert_that(!(complete_alloc_tables %in% names(out)),
                           msg = paste(paste0(countries, collapse = ", "),
                                       "do (does) not have allocation information in PFUPipeline::assemble_fu_allocation_tables()"))

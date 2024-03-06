@@ -45,7 +45,6 @@ load_iea_data <- function(iea_data_path,
 #' Grouping is doing internal to this function using the value of `grp_vars`.
 #'
 #' @param .iea_data A tidy IEA data frame
-#' @param conn The database connection.
 #' @param grp_vars The groups that should be checked. Default is
 #'                 `c(country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
 #'
@@ -53,7 +52,6 @@ load_iea_data <- function(iea_data_path,
 #'
 #' @export
 is_balanced <- function(.iea_data,
-                        conn,
                         grp_vars = c(IEATools::iea_cols$country,
                                      IEATools::iea_cols$method,
                                      IEATools::iea_cols$energy_type,
@@ -62,7 +60,6 @@ is_balanced <- function(.iea_data,
                                      IEATools::iea_cols$product)) {
   .iea_data |>
     # Get data from the database
-    PFUPipelineTools::pl_collect_from_hash(conn = conn) |>
     dplyr::group_by(!!as.name(grp_vars)) |>
     # Check balances
     IEATools::calc_tidy_iea_df_balances() |>
@@ -91,7 +88,6 @@ combine_countries_exemplars <- function(couns, exempls) {
 #' Grouping is done internal to this function using the value of `grp_vars`.
 #'
 #' @param .iea_data A tidy IEA data frame.
-#' @param conn The database connection.
 #' @param max_fix The maximum allowable energy imbalance to fix.
 #'                Default is `3`.
 #' @param balanced_table_name The name of the table in `conn` where
@@ -104,9 +100,7 @@ combine_countries_exemplars <- function(couns, exempls) {
 #'
 #' @export
 make_balanced <- function(.iea_data,
-                          conn,
                           max_fix = 6,
-                          balanced_table_name = "BalancedIEAData",
                           grp_vars = c(IEATools::iea_cols$country,
                                        IEATools::iea_cols$method,
                                        IEATools::iea_cols$energy_type,
@@ -114,14 +108,9 @@ make_balanced <- function(.iea_data,
                                        IEATools::iea_cols$year,
                                        IEATools::iea_cols$product)) {
   .iea_data |>
-    # Get data from the database
-    PFUPipelineTools::pl_collect_from_hash(conn = conn) |>
     dplyr::group_by(!!as.name(grp_vars)) |>
     IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) |>
-    dplyr::ungroup() |>
-    PFUPipelineTools::pl_upsert(conn = conn,
-                                db_table_name = balanced_table_name,
-                                in_place = TRUE)
+    dplyr::ungroup()
 }
 
 
@@ -131,22 +120,15 @@ make_balanced <- function(.iea_data,
 #' See `IEATools::specify_all()` for details.
 #'
 #' @param BalancedIEAData IEA data that have already been balanced.
-#' @param conn The database connection.
 #' @param specified_table_name The name of the specified IEA data table in `conn`.
 #'                             Default is "SpecifiedIEAData".
 #'
 #' @return A data frame of specified IEA data.
 #'
 #' @export
-specify <- function(BalancedIEAData,
-                    conn,
-                    specified_table_name = "SpecifiedIEAData") {
+specify <- function(BalancedIEAData) {
   BalancedIEAData |>
-    PFUPipelineTools::pl_collect_from_hash(conn = conn) |>
-    IEATools::specify_all() |>
-    PFUPipelineTools::pl_upsert(conn = conn,
-                                db_table_name = specified_table_name,
-                                in_place = TRUE)
+    IEATools::specify_all()
 }
 
 
