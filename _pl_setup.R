@@ -8,8 +8,8 @@
 
 # Countries --------------------------------------------------------------------
 
-# countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
-countries <- "GHA"
+countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+# countries <- "GHA"
 # countries <- "WRLD"
 # countries <- c("USA", "WRLD")
 
@@ -19,9 +19,9 @@ countries <- "GHA"
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-# years <- 1960:2020
+years <- 1960:2020
 # years <- 1971:1972
-years <- 1971
+# years <- 1971
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020

@@ -62,7 +62,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     }
     if (!fexists & generate_missing_fu_allocation_template) {
       # Create and write the template
-      iea_data <- specified_iea_data %>%
+      iea_data <- specified_iea_data |>
         dplyr::filter(.data[[IEATools::iea_cols$country]] == coun)
       # Writing the allocation table is pointless if we don't have any IEA
       # data for that country.
@@ -72,7 +72,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
         # Make sure we have the folder we need
         dir.create(folder, showWarnings = FALSE)
         # Now write the template
-        IEATools::fu_allocation_template(iea_data) %>%
+        IEATools::fu_allocation_template(iea_data) |>
           IEATools::write_fu_allocation_template(fpath)
       }
     }
@@ -83,7 +83,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     } else {
       return(NULL)
     }
-  }) %>%
+  }) |>
     dplyr::bind_rows()
   if (nrow(out) == 0) {
     return(NULL)
@@ -126,15 +126,15 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 #' # Load final-to-useful allocation tables, but eliminate one category of consumption,
 #' # Residential consumption of Primary solid biofuels,
 #' # which will be filled by the exemplar for GHA, ZAF.
-#' incomplete_fu_allocation_tables <- IEATools::load_fu_allocation_data() %>%
+#' incomplete_fu_allocation_tables <- IEATools::load_fu_allocation_data() |>
 #'   dplyr::filter(! (Country == "GHA" & Ef.product == "Primary solid biofuels" &
 #'     Destination == "Residential"))
 #' # Show that those rows are gone.
-#' incomplete_fu_allocation_tables %>%
+#' incomplete_fu_allocation_tables |>
 #'   dplyr::filter(Country == "GHA" & Ef.product == "Primary solid biofuels" &
 #'     Destination == "Residential")
 #' # But the missing rows of GHA are present in allocation data for ZAF.
-#' incomplete_fu_allocation_tables %>%
+#' incomplete_fu_allocation_tables |>
 #'   dplyr::filter(Country == "ZAF" & Ef.product == "Primary solid biofuels" &
 #'     Destination == "Residential")
 #' # Set up exemplar list
@@ -144,7 +144,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 #'   "GHA", 2000, c("ZAF"))
 #' el
 #' # Load IEA data
-#' iea_data <- IEATools::load_tidy_iea_df() %>%
+#' iea_data <- IEATools::load_tidy_iea_df() |>
 #'   IEATools::specify_all()
 #' # Assemble complete allocation tables
 #' completed <- assemble_fu_allocation_tables(incomplete_allocation_tables =
@@ -153,7 +153,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 #'                                            specified_iea_data = iea_data,
 #'                                            countries = "GHA")
 #' # Missing data for GHA has been picked up from ZAF.
-#' completed %>%
+#' completed |>
 #'   dplyr::filter(Country == "GHA" & EfProduct == "Primary solid biofuels" &
 #'     Destination == "Residential")
 assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
@@ -192,7 +192,7 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
 
     # For each combination of Country and Year (the rows of coun_exemplar_strings),
     # assemble a list of country allocation tables.
-    coun_exemplar_strings_and_tables <- coun_exemplar_strings %>%
+    coun_exemplar_strings_and_tables <- coun_exemplar_strings |>
       dplyr::mutate(
         # Create a list column containing lists of exemplar tables
         # corresponding to the countries in the Exemplars column.
@@ -225,18 +225,18 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                          exemplar_fu_allocation_tables = .data[[exemplar_tables]],
                                          tidy_specified_iea_data = .data[[iea_data]])
       )
-  }) %>%
+  }) |>
     dplyr::bind_rows()
 
   # The only information we need to return is the completed allocation tables.
   # Expand (unnest) only the completed allocation table column to give one data frame of all the FU allocations
   # for all years and all countries.
-  # completed_tables_by_year %>%
-  #   dplyr::select(complete_alloc_tables) %>%
+  # completed_tables_by_year |>
+  #   dplyr::select(complete_alloc_tables) |>
   #   tidyr::unnest(cols = .data[[complete_alloc_tables]])
-  out <- completed_tables_by_year %>%
+  out <- completed_tables_by_year |>
     dplyr::select(dplyr::all_of(complete_alloc_tables)) |>
-    tidyr::unnest(cols = .data[[complete_alloc_tables]]) |>
+    tidyr::unnest(cols = dplyr::all_of(complete_alloc_tables)) |>
     dplyr::mutate(
       # Add back the dataset column
       "{dataset}" := version
@@ -251,7 +251,7 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
 
 
 get_one_df_by_coun_and_yr <- function(.df, coun, yr, country_colname, year_colname) {
-  .df %>%
+  .df |>
     dplyr::filter(.data[[country_colname]] %in% coun, .data[[year_colname]] %in% yr)
 }
 
@@ -259,7 +259,7 @@ get_one_df_by_coun_and_yr <- function(.df, coun, yr, country_colname, year_colna
 get_one_exemplar_table_list <- function(tidy_incomplete_tables,
                                         exemplar_strings, yr, country_colname, year_colname) {
   lapply(exemplar_strings, function(exemplar_coun) {
-    tidy_incomplete_tables %>%
+    tidy_incomplete_tables |>
       dplyr::filter(.data[[country_colname]] == exemplar_coun, .data[[year_colname]] == yr)
   })
 }
