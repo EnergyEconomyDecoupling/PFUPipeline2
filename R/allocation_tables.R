@@ -45,7 +45,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
                                       file_suffix = IEATools::fu_analysis_file_info$fu_analysis_file_suffix,
                                       use_subfolders = TRUE,
                                       generate_missing_fu_allocation_template = TRUE,
-                                      version = paste0("CLPFU", clpfu_version),
+                                      version = clpfu_dataset,
                                       dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                       conn,
                                       schema = schema_from_conn(conn = conn),
@@ -107,16 +107,21 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 #' Information from exemplar countries is used to complete incomplete final-to-useful efficiency tables.
 #' See examples for how to construct `exemplar_lists`.
 #'
-#' @param tidy_incomplete_allocation_tables A data frame containing (potentially) incomplete final-to-useful allocation tables.
 #' @param exemplar_lists A data frame containing `country` and `year` columns along with a column of ordered vectors of strings
 #'                       telling which countries should be considered exemplars for the country and year of this row.
 #' @param specified_iea_data Specified IEA data.
 #' @param version The version of the database being created.
 #' @param countries A vector of countries for which completed final-to-useful allocation tables are to be assembled.
 #' @param years The years for which analysis is desired.
-#' @param country,year See `IEATools::iea_cols`.
-#' @param exemplars,exemplar_tables,iea_data,incomplete_alloc_tables,complete_alloc_tables See `PFUPipelineTools::exemplar_names`.
 #' @param dataset See `PFUPipelineTools::dataset_info`.
+#' @param incomplete_allocation_tables
+#' @param country
+#' @param year
+#' @param exemplars
+#' @param exemplar_tables
+#' @param iea_data
+#' @param incomplete_alloc_tables
+#' @param complete_alloc_tables
 #'
 #' @return A tidy data frame containing completed final-to-useful allocation tables.
 #'
@@ -159,7 +164,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           exemplar_lists,
                                           specified_iea_data,
-                                          version,
+                                          dataset,
                                           countries,
                                           years,
                                           country = IEATools::iea_cols$country,
@@ -169,7 +174,7 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           iea_data = PFUPipelineTools::exemplar_names$iea_data,
                                           incomplete_alloc_tables = PFUPipelineTools::exemplar_names$incomplete_alloc_table,
                                           complete_alloc_tables = PFUPipelineTools::exemplar_names$complete_alloc_table,
-                                          dataset = PFUPipelineTools::dataset_info$dataset_colname) {
+                                          dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
   # The incomplete tables are easier to deal with when they are tidy.
   tidy_incomplete_allocation_tables <- IEATools::tidy_fu_allocation_table(incomplete_allocation_tables) |>
@@ -239,13 +244,13 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
     tidyr::unnest(cols = dplyr::all_of(complete_alloc_tables)) |>
     dplyr::mutate(
       # Add back the dataset column
-      "{dataset}" := version
+      "{dataset_colname}" := dataset
     ) |>
     # Move the dataset column to the left.
-    dplyr::relocate(dplyr::all_of(dataset))
+    dplyr::relocate(dplyr::all_of(dataset_colname))
   assertthat::assert_that(!(complete_alloc_tables %in% names(out)),
                           msg = paste(paste0(countries, collapse = ", "),
-                                      "do (does) not have allocation information in PFUPipeline::assemble_fu_allocation_tables()"))
+                                      "do (does) not have allocation information in PFUPipeline2::assemble_fu_allocation_tables()"))
   return(out)
 }
 

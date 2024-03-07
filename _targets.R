@@ -109,13 +109,21 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 tar_option_set(
   # packages that your targets need to run
-  packages = c("IEATools",
+  packages = c("FAOSTAT",
+               "IEATools",
                "Matrix",
+               "MWTools",
                "PFUPipelineTools",
                "qs",
+               "Rilostat",
                "tibble"),
   # Optionally set the default storage format. qs is fast.
   format = "qs",
+
+  # Unload targets from memory when completed
+  memory = "transient",
+  # Worker threads are responsible for saving and loading targets
+  storage = "worker", retrieval = "worker",
 
   # For distributed computing in tar_make(), supply a {crew} controller
   # as discussed at https://books.ropensci.org/targets/crew.html.

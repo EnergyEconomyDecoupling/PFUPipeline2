@@ -6,34 +6,28 @@
 #'
 #' This function gathers (actually, `tidyr::pivot_longer()`) years into a Year column.
 #'
-#' @param exemplar_table_path The path to the Excel file containing an exemplar table.
-#'                            Default is the value of `sample_exemplar_table_path()`.
+#' @param exemplar_table The raw exemplar table.
 #' @param countries The countries for which exemplars are desired. If `NULL`, the default,
 #'                  all countries in the file at `exemplar_table_path` are returned.
 #' @param years The years for which you want the exemplar table, an integer.
 #'              Default is `NULL`, meaning that all years from the file at `exemplar_table_path` are included.
-#' @param exemplar_table_tab_name,prev_names See `PFUPipeline::exemplar_names`.
+#' @param exemplar_table_tab_name,prev_names See `PFUPipelineTools::exemplar_names`.
 #' @param year,country See `IEATools::iea_cols`.
 #'
 #' @return an exemplar table
 #'
 #' @export
-#'
-#' @examples
-#' load_exemplar_table()
-load_exemplar_table <- function(exemplar_table_path = sample_exemplar_table_path(),
+prep_exemplar_table <- function(exemplar_table,
                                 countries = NULL,
                                 years = NULL,
-                                exemplar_table_tab_name = PFUPipeline::exemplar_names$exemplar_tab_name,
-                                prev_names = PFUPipeline::exemplar_names$prev_names,
+                                prev_names = PFUPipelineTools::exemplar_names$prev_names,
                                 country = IEATools::iea_cols$country,
                                 year = IEATools::iea_cols$year) {
 
-  raw <- readxl::read_excel(path = exemplar_table_path, sheet = exemplar_table_tab_name)
   # Figure out year columns.
-  year_columns <- IEATools::year_cols(raw, return_names = TRUE)
-  max_yr_in_exemplar_table <- year_columns %>%
-    as.numeric() %>%
+  year_columns <- IEATools::year_cols(exemplar_table, return_names = TRUE)
+  max_yr_in_exemplar_table <- year_columns |>
+    as.numeric() |>
     max()
   # Figure out the maximum year.
   if (is.null(years)) {
@@ -42,15 +36,15 @@ load_exemplar_table <- function(exemplar_table_path = sample_exemplar_table_path
     max_year <- max(years)
   }
 
-  out <- raw %>%
+  out <- exemplar_table |>
     # Gather columns of alternative names
     tidyr::pivot_longer(cols = dplyr::all_of(year_columns), names_to = year, values_to = prev_names)
   if (!is.null(countries)) {
-    out <- out %>%
+    out <- out |>
       dplyr::filter(.data[[country]] %in% countries)
   }
   if (!is.null(years)) {
-    out <- out %>%
+    out <- out |>
       dplyr::filter(.data[[year]] <= max_year)
   }
   return(out)
@@ -82,7 +76,7 @@ load_exemplar_table <- function(exemplar_table_path = sample_exemplar_table_path
 #'
 #' @param exemplar_table An exemplar table, probably read by `load_exemplar_table()`.
 #' @param countries The countries for which exemplar lists are desired. Default is `NULL`, which returns all known countries.
-#' @param exemplars,prev_names,exemplar_country,region_code,world See `PFUPipeline::exemplar_names`.
+#' @param exemplars,prev_names,exemplar_country,region_code,world See `PFUPipelineTools::exemplar_names`.
 #' @param country,year See `IEATools::iea_cols`.
 #' @param year_temp The name of a temporary year column. Default is ".year_temp".
 #' @param prev_names_list The name of a temporary column in `exemplar_table`. Default is ".prev_names_list".
@@ -107,11 +101,11 @@ load_exemplar_table <- function(exemplar_table_path = sample_exemplar_table_path
 #' el[[4, "Exemplars"]]
 exemplar_lists <- function(exemplar_table,
                            countries = NULL,
-                           prev_names = PFUPipeline::exemplar_names$prev_names,
-                           exemplar_country = PFUPipeline::exemplar_names$exemplar_country,
-                           exemplars = PFUPipeline::exemplar_names$exemplars,
-                           region_code = PFUPipeline::exemplar_names$region_code,
-                           world = PFUPipeline::exemplar_names$world,
+                           prev_names = PFUPipelineTools::exemplar_names$prev_names,
+                           exemplar_country = PFUPipelineTools::exemplar_names$exemplar_country,
+                           exemplars = PFUPipelineTools::exemplar_names$exemplars,
+                           region_code = PFUPipelineTools::exemplar_names$region_code,
+                           world = PFUPipelineTools::exemplar_names$world,
                            country = IEATools::iea_cols$country,
                            year = IEATools::iea_cols$year,
                            year_temp = ".year_temp",
@@ -123,38 +117,38 @@ exemplar_lists <- function(exemplar_table,
   }
 
   # A data frame that consists of all year and country combinations in exemplar_table
-  year_country <- exemplar_table %>%
+  year_country <- exemplar_table |>
     dplyr::select(dplyr::all_of(c(year, country)))
 
   pntable <- exemplar_table %>%
-    dplyr::select(dplyr::all_of(c(country, year, prev_names))) %>%
-    dplyr::rename("{year_temp}" := dplyr::all_of(year)) %>%
+    dplyr::select(dplyr::all_of(c(country, year, prev_names))) |>
+    dplyr::rename("{year_temp}" := dplyr::all_of(year)) |>
     tidyr::nest("{prev_names}" := dplyr::all_of(c(year_temp, prev_names)))
 
   # First step: join the previous names to each country and year
-  with_prev_names_list <- dplyr::left_join(year_country, pntable, by = country) %>%
+  with_prev_names_list <- dplyr::left_join(year_country, pntable, by = country) |>
     # Unnest to get all years.
-    tidyr::unnest(cols = dplyr::all_of(prev_names)) %>%
+    tidyr::unnest(cols = dplyr::all_of(prev_names)) |>
     # Eliminate rows that don't apply, i.e.,
     # those rows where the year of the alternative name is AFTER the year of interest
-    dplyr::filter(.data[[year_temp]] <= .data[[year]]) %>%
+    dplyr::filter(.data[[year_temp]] <= .data[[year]]) |>
     # Eliminate an unneeded column.
-    dplyr::select(!dplyr::all_of(year_temp)) %>%
+    dplyr::select(!dplyr::all_of(year_temp)) |>
     # Keep only the unique name regions.
-    dplyr::group_by(.data[[year]], .data[[country]]) %>%
+    dplyr::group_by(.data[[year]], .data[[country]]) |>
     unique() %>%
     # Eliminate the current name of the country from its list of previous names.
-    dplyr::filter(.data[[country]] != .data[[prev_names]]) %>%
+    dplyr::filter(.data[[country]] != .data[[prev_names]]) |>
     # Build a list column containing all previous names for the given country.
     dplyr::summarise(
-      "{prev_names_list}" := list(.data[[prev_names]] %>% rev())
+      "{prev_names_list}" := list(.data[[prev_names]] |> rev())
     )
 
   out <- exemplar_table %>%
     # Join these lists back to the original data frame
-    dplyr::left_join(with_prev_names_list, by = c(country, year)) %>%
+    dplyr::left_join(with_prev_names_list, by = c(country, year)) |>
     # Do some renaming
-    dplyr::select(!dplyr::all_of(prev_names)) %>%
+    dplyr::select(!dplyr::all_of(prev_names)) |>
     dplyr::rename(
       "{prev_names}" := dplyr::all_of(prev_names_list)
     ) %>%
@@ -166,21 +160,20 @@ exemplar_lists <- function(exemplar_table,
                            exemp = .data[[exemplar_country]],
                            row_region_code = .data[[region_code]],
                            world = world)
-    ) %>%
+    ) |>
     # {exemplars} is a column with entries like list(c(coun1, coun2, ...)).
     # Unnest to get only c(coun1, coun2, ...).
-    # tidyr::unnest(.data[[exemplars]])
     tidyr::unnest(cols = dplyr::all_of(exemplars))
 
   # filter by country, if that was requested.
   if (!is.null(countries)) {
-    out <- out %>%
+    out <- out |>
       dplyr::filter(.data[[country]] %in% countries)
   }
 
   # Eliminate unneeded columns
-  out <- out %>%
-    dplyr::select(dplyr::all_of(c(country, year, exemplars))) %>%
+  out <- out |>
+    dplyr::select(dplyr::all_of(c(country, year, exemplars))) |>
     dplyr::mutate(
       "{year}" := as.numeric(.data[[year]])
     )
@@ -202,11 +195,11 @@ exemplar_lists <- function(exemplar_table,
 #'
 #' @noRd
 build_one_exemplar_list <- function(p_names, exemp, row_region_code, world) {
-  c(unlist(p_names), exemp, row_region_code, world) %>%
+  c(unlist(p_names), exemp, row_region_code, world) |>
     # For countries with row_region_code that matches world,
     # duplicated world codes are included in this list.
     # To avoid duplication, call unique().
-    unique() %>%
+    unique() |>
     # Bundle as a list and return.
     list()
 }

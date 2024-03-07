@@ -64,7 +64,8 @@ crew_controller <- crew::crew_controller_local(workers = worker_threads)
 # This should be a string of the form
 # v2.0a1, v3.0, v4.5b2
 # to indicate major version, minor version, and alpha/beta state.
-clpfu_version <- "v2.0a1"
+version <- "v2.0a1"
+clpfu_dataset <- paste0("CLPFU", version)
 
 
 #
@@ -96,19 +97,19 @@ iea_dataset <- paste0("IEAEWEB", iea_year)
 # Rather, store passwords in the .pgpass file.
 # See https://www.postgresql.org/docs/current/libpq-pgpass.html
 # for details.
-conn_params <- list(dbname = clpfu_version,
+conn_params <- list(dbname = version,
                     user = "postgres",
                     host = "eviz.cs.calvin.edu",
                     port = 5432)
 
-# Calculate input data version from clpfu_version
-# by trimming any alpha or beta information from the clpfu_version string.
-input_data_version <- sub(pattern = "[ab]\\d*$", "", clpfu_version)
+# Calculate input data version from version
+# by trimming any alpha or beta information from the version string.
+input_data_version <- sub(pattern = "[ab]\\d*$", "", version)
 
 
 # Create a list of important paths for the CL-PFU pipeline
 input_data_path <- file.path(project_path, "InputData", input_data_version)
-output_data_path <- file.path(project_path, "OutputData", clpfu_version)
+output_data_path <- file.path(project_path, "OutputData", version)
 
 clpfu_setup_paths <- list(
   project_path = project_path,

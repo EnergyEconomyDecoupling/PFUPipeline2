@@ -42,6 +42,28 @@ list(
     SetDMAndFKTables[["simple_fk_tables"]]),
 
 
+  # ExemplarTable --------------------------------------------------------------
+
+  ## ExemplarTablePath
+  targets::tar_target_raw(
+    "ExemplarTablePath",
+    clpfu_setup_paths[["exemplar_table_path"]],
+    format = "file"),
+
+  ## ExemplarTable
+  targets::tar_target(
+    ExemplarTable,
+    readxl::read_excel(path = ExemplarTablePath)),
+
+  ## ExemplarLists
+  targets::tar_target(
+    ExemplarLists,
+    prep_exemplar_table(exemplar_table = ExemplarTable,
+                        countries = AllocAndEffCountries,
+                        years = Years) |>
+      exemplar_lists(AllocAndEffCountries)),
+
+
   # Country concordance --------------------------------------------------------
 
   ## CountryConcordancePath
@@ -75,70 +97,68 @@ list(
   ## AllIEADataLocal
   targets::tar_target(
     AllIEADataLocal,
-    IEADataPath |>
-      load_iea_data(override_df = CountryConcordanceTable,
-                    dataset = iea_dataset,
-                    specify_non_energy_flows = SpecifyNonEnergyFlows,
-                    apply_fixes = ApplyFixes)),
+    load_iea_data(iea_data_path = IEADataPath,
+                  override_df = CountryConcordanceTable,
+                  dataset = iea_dataset,
+                  specify_non_energy_flows = SpecifyNonEnergyFlows,
+                  apply_fixes = ApplyFixes)),
 
   ## AllIEAData
   targets::tar_target(
     AllIEAData,
-    AllIEADataLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "AllIEAData",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables)),
+    PFUPipelineTools::pl_upsert(AllIEADataLocal,
+                                db_table_name = "AllIEAData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables)),
 
   ## IEADataLocal
   tarchetypes::tar_group_by(
     IEADataLocal,
-    AllIEADataLocal |>
-      dplyr::filter(Country %in% AllocAndEffCountries, Year %in% years),
+    dplyr::filter(AllIEADataLocal,
+                  Country %in% AllocAndEffCountries,
+                  Year %in% years),
     Country),
 
   ## IEAData
   targets::tar_target(
     IEAData,
-    IEADataLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "IEAData",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables),
+    PFUPipelineTools::pl_upsert(IEADataLocal,
+                                db_table_name = "IEAData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables),
     pattern = map(IEADataLocal)),
 
   ## BalancedBeforeIEA
   targets::tar_target(
     BalancedBeforeIEA,
-    IEADataLocal |>
-      is_balanced(),
+    is_balanced(IEADataLocal),
     pattern = map(IEADataLocal)),
 
   ## BalancedIEADataLocal
   targets::tar_target(
     BalancedIEADataLocal,
-    IEADataLocal |>
-      make_balanced(),
+    make_balanced(IEADataLocal),
     pattern = map(IEADataLocal)),
 
   ## BalancedIEAData
   targets::tar_target(
     BalancedIEAData,
-    BalancedIEADataLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "BalancedIEAData",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables),
+    PFUPipelineTools::pl_upsert(BalancedIEADataLocal,
+                                db_table_name = "BalancedIEAData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables),
     pattern = map(BalancedIEADataLocal)),
 
   ## BalancedAfterIEA
   targets::tar_target(
     BalancedAfterIEA,
-    BalancedIEADataLocal |>
-      is_balanced(),
+    is_balanced(BalancedIEADataLocal),
     pattern = map(BalancedIEADataLocal)),
 
   ## OKToProceedIEA
@@ -149,39 +169,116 @@ list(
   ## SpecifiedIEADataLocal
   targets::tar_target(
     SpecifiedIEADataLocal,
-    BalancedIEADataLocal |>
-      specify(),
+    specify(BalancedIEADataLocal),
     pattern = map(BalancedIEADataLocal)),
 
   ## SpecifiedIEAData
   targets::tar_target(
     SpecifiedIEAData,
-    SpecifiedIEADataLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "SpecifiedIEAData",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables),
+    PFUPipelineTools::pl_upsert(SpecifiedIEADataLocal,
+                                db_table_name = "SpecifiedIEAData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables),
     pattern = map(SpecifiedIEADataLocal)),
 
 
-  # Exemplar lists -------------------------------------------------------------
-  # For FU machine allocations and FU machine efficiencies
+  # Animal muscle work data ----------------------------------------------------
 
-  ## ExamplarTablePath
+  ## MWConcordancePath
   targets::tar_target_raw(
-    "ExemplarTablePath",
-    clpfu_setup_paths[["exemplar_table_path"]],
+    "MWConcordancePath",
+    clpfu_setup_paths[["mw_concordance_path"]],
     format = "file"),
 
-  ## ExemplarLists
+  ## AMWAnalysisDataPath
+  targets::tar_target_raw(
+    "AMWAnalysisDataPath",
+    clpfu_setup_paths[["amw_analysis_data_path"]],
+    format = "file"),
+
+  ## FAODataLocal
   targets::tar_target(
-    ExemplarLists,
-    ExemplarTablePath |>
-      load_exemplar_table(countries = AllocAndEffCountries,
-                          years = Years) |>
-      exemplar_lists(AllocAndEffCountries),
-    pattern = map(AllocAndEffCountries)),
+    FAODataLocal,
+    FAOSTAT::get_faostat_bulk(code = "QCL", # Live animals code
+                              data_folder = tempdir())),
+
+  ## AMWPFUDataRawLocal
+  targets::tar_target(
+    AMWPFUDataRawLocal,
+    prep_amw_pfu_data(fao_data = FAODataLocal,
+                      mw_concordance_path = MWConcordancePath,
+                      amw_analysis_data_path = AMWAnalysisDataPath) |>
+      dplyr::filter(Country %in% AllocAndEffCountries,
+                    Year %in% years)),
+
+  ## AMWPFUDataLocal
+  targets::tar_target(
+    AMWPFUDataLocal,
+    aggcountries_mw_to_iea(mw_df = AMWPFUDataRawLocal,
+                           exemplar_table = ExemplarTable,
+                           dataset = clpfu_dataset)),
+
+  ## AMWPFUData
+  targets::tar_target(
+    AMWPFUData,
+    PFUPipelineTools::pl_upsert(AMWPFUDataLocal,
+                                db_table_name = "AMWPFUData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables)),
+
+
+  # Human muscle work data -----------------------------------------------------
+
+  ## HMWAnalysisDataPath
+  targets::tar_target_raw(
+    "HMWAnalysisDataPath",
+    clpfu_setup_paths[["hmw_analysis_data_path"]],
+    format = "file"),
+
+  ## ILOWorkingHoursDataLocal
+  targets::tar_target(
+    ILOWorkingHoursDataLocal,
+    Rilostat::get_ilostat(id = "HOW_TEMP_SEX_ECO_NB_A", # Working hours code
+                          quiet = TRUE) |>
+      Rilostat::label_ilostat(code = c("ref_area"))),
+
+  ## ILOEmploymentDataLocal
+  targets::tar_target(
+    ILOEmploymentDataLocal,
+    Rilostat::get_ilostat(id = "EMP_TEMP_SEX_ECO_NB_A", # Employment code
+                          quiet = TRUE) |>
+      Rilostat::label_ilostat(code = c("ref_area"))),
+
+  ## HMWPFUDataRaw
+  targets::tar_target(
+    HMWPFUDataRawLocal,
+    prep_hmw_pfu_data(ilo_working_hours_data = ILOWorkingHoursDataLocal,
+                      ilo_employment_data = ILOEmploymentDataLocal,
+                      mw_concordance_path = MWConcordancePath,
+                      hmw_analysis_data_path = HMWAnalysisDataPath) |>
+      dplyr::filter(Country %in% AllocAndEffCountries,
+                    Year %in% years)),
+
+  ## HMWPFUDataLocal
+  targets::tar_target(
+    HMWPFUDataLocal,
+    aggcountries_mw_to_iea(mw_df = HMWPFUDataRawLocal,
+                           exemplar_table = ExemplarTable,
+                           dataset = clpfu_dataset)),
+
+  ## HMWPFUData
+  targets::tar_target(
+    HMWPFUData,
+    PFUPipelineTools::pl_upsert(HMWPFUDataLocal,
+                                db_table_name = "HMWPFUData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables)),
 
 
   # Allocation tables ----------------------------------------------------------
@@ -203,7 +300,7 @@ list(
   ## IncompleteAllocationTablesLocal
   tarchetypes::tar_group_by(
     IncompleteAllocationTablesLocal,
-    load_fu_allocation_tables(FUAnalysisFolder,
+    load_fu_allocation_tables(fu_analysis_folder = FUAnalysisFolder,
                               specified_iea_data = SpecifiedIEAData,
                               countries = AllocAndEffCountries,
                               conn = conn,
@@ -213,49 +310,49 @@ list(
 
   targets::tar_target(
     IncompleteAllocationTables,
-    IncompleteAllocationTablesLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "IncompleteAllocationTables",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables),
+    PFUPipelineTools::pl_upsert(IncompleteAllocationTablesLocal,
+                                db_table_name = "IncompleteAllocationTables",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables),
     pattern = map(IncompleteAllocationTablesLocal)
   ),
 
   ## CompletedAllocationTablesLocal
   targets::tar_target(
     CompletedAllocationTablesLocal,
-    IncompleteAllocationTablesLocal |>
-      assemble_fu_allocation_tables(exemplar_lists = ExemplarLists,
-                                    specified_iea_data = SpecifiedIEADataLocal |>
-                                      PFUPipelineTools::tar_ungroup(),
-                                    version = paste0("CLPFU", clpfu_version),
-                                    countries = Countries,
-                                    years = Years),
-      pattern = map(Countries)),
+    assemble_fu_allocation_tables(incomplete_allocation_tables = IncompleteAllocationTablesLocal,
+                                  exemplar_lists = ExemplarLists,
+                                  specified_iea_data = SpecifiedIEADataLocal |>
+                                    PFUPipelineTools::tar_ungroup(),
+                                  dataset = clpfu_dataset,
+                                  countries = Countries,
+                                  years = Years),
+    pattern = map(Countries)),
 
   ## CompletedAllocationTables
   targets::tar_target(
     CompletedAllocationTables,
-    CompletedAllocationTablesLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "CompletedAllocationTables",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables),
+    PFUPipelineTools::pl_upsert(CompletedAllocationTablesLocal,
+                                db_table_name = "CompletedAllocationTables",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables),
     pattern = map(CompletedAllocationTablesLocal)
   ),
 
 
-  # Machine data (Efficiencies) ------------------------------------------------
+  # Efficiency tables ----------------------------------------------------------
 
   # Dependencies among MachineData targets:
   #
-  #                        AllMachineData             MachineData
-  #                         ^                          ^
-  #                         |                          |
-  #                         |                          |
-  # MachineDataPath -----> AllMachineDataLocal -----> MachineDataLocal
+  #                        AllMachineData             MachineData             CompletedEfficiencyTables
+  #                         ^                          ^                       ^
+  #                         |                          |                       |
+  #                         |                          |                       |
+  # MachineDataPath -----> AllMachineDataLocal -----> MachineDataLocal -----> CompletedEfficiencyTablesLocal
 
   ## MachineDataPath
   targets::tar_target_raw(
@@ -267,46 +364,59 @@ list(
   targets::tar_target(
     AllMachineDataLocal,
     read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath),
-                       version = paste0("CLPFU", clpfu_version))),
+                       dataset = clpfu_dataset)),
 
   ## AllMachineData
   targets::tar_target(
     AllMachineData,
-    AllMachineDataLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "AllMachineData",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables)),
+    PFUPipelineTools::pl_upsert(AllMachineDataLocal,
+                                db_table_name = "AllMachineData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables)),
 
   ## MachineDataLocal
   tarchetypes::tar_group_by(
     MachineDataLocal,
-    AllMachineDataLocal |>
-      dplyr::filter(Country %in% AllocAndEffCountries, Year %in% years),
+    dplyr::filter(AllMachineDataLocal,
+                  Country %in% AllocAndEffCountries,
+                  Year %in% years),
     Country),
 
   ## MachineData
   targets::tar_target(
     MachineData,
-    MachineDataLocal |>
-      PFUPipelineTools::pl_upsert(db_table_name = "MachineData",
-                                  conn = conn,
-                                  in_place = TRUE,
-                                  schema = DM,
-                                  fk_parent_tables = SimpleFKTables),
-    pattern = map(MachineDataLocal))
+    PFUPipelineTools::pl_upsert(MachineDataLocal,
+                                db_table_name = "MachineData",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables),
+    pattern = map(MachineDataLocal)),
 
-  # ## CompletedEfficiencyTables
-  # targets::tar_target(
-  #   CompletedEfficiencyTables,
-  #   assemble_eta_fu_tables(incomplete_eta_fu_tables = MachineData,
-  #                          exemplar_lists = ExemplarLists,
-  #                          completed_fu_allocation_tables = CompletedAllocationTables,
-  #                          countries = Countries,
-  #                          years = Years,
-  #                          which_quantity = IEATools::template_cols$eta_fu),
-  #   pattern = quote(map(Countries)))
+  ## CompletedEfficiencyTablesLocal
+  targets::tar_target(
+    CompletedEfficiencyTablesLocal,
+    assemble_eta_fu_tables(incomplete_eta_fu_tables = MachineDataLocal,
+                           exemplar_lists = ExemplarLists,
+                           completed_fu_allocation_tables = CompletedAllocationTablesLocal,
+                           dataset = clpfu_dataset,
+                           countries = Countries,
+                           years = Years,
+                           which_quantity = IEATools::template_cols$eta_fu),
+    pattern = map(Countries)),
+
+  ## CompletedEfficiencyTables
+  targets::tar_target(
+    CompletedEfficiencyTables,
+    PFUPipelineTools::pl_upsert(CompletedEfficiencyTablesLocal,
+                                db_table_name = "CompletedEfficiencyTables",
+                                conn = conn,
+                                in_place = TRUE,
+                                schema = DM,
+                                fk_parent_tables = SimpleFKTables))
+
 
 
 
