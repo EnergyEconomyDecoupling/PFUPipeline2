@@ -40,10 +40,12 @@ aggcountries_mw_to_iea <- function(mw_df,
     tidyr::pivot_longer(cols = -dplyr::all_of(c(country)),
                         names_to = year,
                         values_to = agg_code_col) |>
-    dplyr::mutate("{year}" := as.numeric(.data[[year]]))
+    dplyr::mutate(
+      "{year}" := as.numeric(.data[[year]])
+    )
 
   agg_mw_df <- mw_df %>%
-    dplyr::left_join(focused_exemplar_table, by = dplyr::all_of(c(country, year))) |>
+    dplyr::left_join(focused_exemplar_table, by = c(country, year)) |>
     dplyr::select(-dplyr::all_of(country)) |>
     dplyr::group_by(.data[[year]],
                     .data[[species]],
