@@ -192,6 +192,14 @@ list(
     clpfu_setup_paths[["mw_concordance_path"]],
     format = "file"),
 
+  # Dependencies among AMW targets
+
+  #                                                                          AMWPFUData
+  #                                                                           ^
+  #                                                                           |
+  #                                                                           |
+  # AMWAnalysisDataPath -----> FAODataLocal -----> AMWPFUDataRawLocal -----> AMWPFUDataLocal
+
   ## AMWAnalysisDataPath
   targets::tar_target_raw(
     "AMWAnalysisDataPath",
@@ -233,6 +241,19 @@ list(
 
   # Human muscle work data -----------------------------------------------------
 
+  # Dependencies among HMW targets
+
+  #                                                      HMWPFUData
+  #                                                       ^
+  #                                                       |
+  #                                                       |
+  #                            HMWPFUDataRawLocal -----> HMWPFUDataLocal
+  #                             ^  ^  ^
+  #                             |  |  |
+  # ILOEmploymentDataLocal -----|  |  |
+  # ILOWorkingHoursDataLocal ------|  |
+  # HMWAnalysisDataPath --------------|
+
   ## HMWAnalysisDataPath
   targets::tar_target_raw(
     "HMWAnalysisDataPath",
@@ -271,14 +292,15 @@ list(
                            dataset = clpfu_dataset)),
 
   ## HMWPFUData
-  targets::tar_target(
-    HMWPFUData,
-    PFUPipelineTools::pl_upsert(HMWPFUDataLocal,
-                                db_table_name = "HMWPFUData",
-                                conn = conn,
-                                in_place = TRUE,
-                                schema = DM,
-                                fk_parent_tables = SimpleFKTables)),
+  # Not working at this time, due to Sex: Other in India.
+  # targets::tar_target(
+  #   HMWPFUData,
+  #   PFUPipelineTools::pl_upsert(HMWPFUDataLocal,
+  #                               db_table_name = "HMWPFUData",
+  #                               conn = conn,
+  #                               in_place = TRUE,
+  #                               schema = DM,
+  #                               fk_parent_tables = SimpleFKTables)),
 
 
   # Allocation tables ----------------------------------------------------------
