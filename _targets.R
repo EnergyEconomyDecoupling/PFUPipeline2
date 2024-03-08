@@ -103,8 +103,6 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 }
 
 
-
-
 # Set target options -----------------------------------------------------------
 
 tar_option_set(

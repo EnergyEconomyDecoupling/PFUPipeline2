@@ -19,6 +19,8 @@
 #' @param file_suffix The suffix for the FU analysis files. Default is "`r IEATools::fu_analysis_file_info$fu_analysis_file_suffix`".
 #' @param use_subfolders Tells whether to look for files in subfolders named by `countries`. Default is `TRUE`.
 #' @param generate_missing_fu_allocation_template Tells whether to generate a missing final-to-useful allocation template from `specified_iea_data`. Default is `TRUE`.
+#' @param db_table_name The name of the table into which the data should be stored
+#'                      in the database at `conn`.
 #' @param conn The database connection.
 #' @param schema The data model (`dm` object) for the database in `conn`.
 #'               See details.
@@ -45,14 +47,15 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
                                       file_suffix = IEATools::fu_analysis_file_info$fu_analysis_file_suffix,
                                       use_subfolders = TRUE,
                                       generate_missing_fu_allocation_template = TRUE,
-                                      version = clpfu_dataset,
+                                      dataset,
                                       dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                                      db_table_name,
                                       conn,
                                       schema = schema_from_conn(conn = conn),
                                       fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema),
                                       fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name,
-                                      country_colname = IEATools::iea_cols$country,
-                                      table_name_colname = PFUPipelineTools::hashed_table_colnames$db_table_name) {
+                                      country_colname = IEATools::iea_cols$country) {
+
   out <- lapply(countries, FUN = function(coun) {
     folder <- ifelse(use_subfolders, file.path(fu_analysis_folder, coun), fu_analysis_folder)
     fpath <- file.path(folder, paste0(coun, file_suffix))
@@ -88,12 +91,18 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
   if (nrow(out) == 0) {
     return(NULL)
   }
+
   out <- IEATools::tidy_fu_allocation_table(out) |>
     dplyr::mutate(
-      "{dataset_colname}" := version
+      "{dataset_colname}" := dataset
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname))
-  return(out)
+
+  PFUPipelineTools::pl_upsert(out,
+                              db_table_name = db_table_name,
+                              conn = conn,
+                              schema = schema,
+                              fk_parent_tables = fk_parent_tables)
 }
 
 
