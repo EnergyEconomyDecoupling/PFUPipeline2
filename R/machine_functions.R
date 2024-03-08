@@ -286,7 +286,7 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
     dplyr::filter(.data[[year]] %in% years) |>
     dplyr::mutate(
       # Eliminate the dataset column for now.
-      "{dataset}" := NULL
+      "{dataset_colname}" := NULL
     ) |>
     PFUPipelineTools::tar_ungroup()
 

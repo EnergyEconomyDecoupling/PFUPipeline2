@@ -121,7 +121,7 @@ tar_option_set(
   format = "qs",
 
   # Unload targets from memory when completed
-  memory = "transient",
+  memory = "persistent",
   # Worker threads are responsible for saving and loading targets
   storage = "worker", retrieval = "worker",
 

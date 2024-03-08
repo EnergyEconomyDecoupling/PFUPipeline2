@@ -181,14 +181,14 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
     dplyr::filter(.data[[year]] %in% years) |>
     dplyr::mutate(
       # Eliminate the dataset column for now.
-      "{dataset}" := NULL
+      "{dataset_colname}" := NULL
     ) |>
     PFUPipelineTools::tar_ungroup()
   specified_iea_data <- specified_iea_data |>
     dplyr::mutate(
       # Eliminate the dataset column, because it conflicts with the dataset name for the
       # incomplete_allocation_tables.
-      "{dataset}" := NULL
+      "{dataset_colname}" := NULL
     )
 
   completed_tables_by_year <- lapply(countries, FUN = function(coun) {
@@ -267,4 +267,46 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
     tidy_incomplete_tables |>
       dplyr::filter(.data[[country_colname]] == exemplar_coun, .data[[year_colname]] == yr)
   })
+}
+
+
+#' Add allocation matrices to a data frame
+#'
+#' This function adds allocation matrices (`C_Y` and `C_EIOU`) to the previously-created
+#' `CompletedAllocationTables` target.
+#'
+#' @param completed_allocation_tables The completed allocation tables from which allocation (`C`) matrices should be created.
+#'                                    This data frame is most likely to be the `CompletedAllocationTables` target.
+#' @param countries The countries for which `C` matrices should be formed.
+#' @param matrix_class The type of matrix that should be produced.
+#'                     One of "matrix" (the default and not sparse) or "Matrix" (which may be sparse).
+#' @param country,year See `IEATools::iea_cols`.
+#' @param c_source,.values,C_Y,C_EIOU See `IEATools::template_cols`.
+#'
+#' @return A data frame with `C_Y` and `C_EIOU` columns containing allocation matrices.
+#'
+#' @export
+calc_C_mats <- function(completed_allocation_tables,
+                        countries,
+                        matrix_class = c("matrix", "Matrix"),
+                        country = IEATools::iea_cols$country,
+                        year = IEATools::iea_cols$year,
+                        c_source = IEATools::template_cols$c_source,
+                        .values = IEATools::template_cols$.values,
+                        C_Y = IEATools::template_cols$C_Y,
+                        C_EIOU  = IEATools::template_cols$C_eiou) {
+  matrix_class <- match.arg(matrix_class)
+  tables <- completed_allocation_tables %>%
+    dplyr::filter(.data[[country]] %in% countries) %>%
+    dplyr::mutate(
+      # Eliminate the c_source column (if it exists) before sending
+      # the completed_allocation_tables into form_C_mats().
+      # The c_source column applies to individual C values, and we're making matrices out of them.
+      # In other words, form_C_mats() doesn't know what to do with that column.
+      "{c_source}" := NULL
+    )
+  # Need to form C matrices from completed_allocation_tables.
+  # Use the IEATools::form_C_mats() function for this task.
+  # The function accepts a tidy data frame in addition to wide-by-year data frames.
+  IEATools::form_C_mats(tables, matvals = .values, matrix_class = matrix_class)
 }

@@ -13,7 +13,7 @@
 #' @return A list containing two items,
 #'         the data model (a `dm` object named "dm") and
 #'         the simple foreign key tables
-#'         (a list of `tibble`s named "simple_fk_tables",
+#'         (a list of `tibble`s named "fk_tables",
 #'         each `tibble` in the list is named
 #'         by its table name in the database).
 #'
@@ -25,14 +25,14 @@ set_dm_fk_tables <- function(schema_file_path, conn) {
   # Read the schema table
   schema_table <- PFUPipelineTools::load_schema_table(schema_path = schema_file_path)
   # Read the simple foreign key tables
-  simple_fk_tables <- PFUPipelineTools::load_fk_tables(simple_tables_path = schema_file_path)
+  fk_tables <- PFUPipelineTools::load_fk_tables(simple_tables_path = schema_file_path)
   # Create the data model
   this_data_model <- schema_table |>
     PFUPipelineTools::schema_dm()
   PFUPipelineTools::pl_upload_schema_and_simple_tables(schema = this_data_model,
-                                                       simple_tables = simple_fk_tables,
+                                                       simple_tables = fk_tables,
                                                        conn = conn,
                                                        drop_db_tables = TRUE)
   return(list(dm = this_data_model,
-              simple_fk_tables = simple_fk_tables))
+              fk_tables = fk_tables))
 }

@@ -35,11 +35,11 @@ list(
     DM,
     SetDMAndFKTables[["dm"]]),
 
-  ## SimpleFKTables
+  ## FKTables
   #  Extract the foreign key tables
   targets::tar_target(
-    SimpleFKTables,
-    SetDMAndFKTables[["simple_fk_tables"]]),
+    FKTables,
+    SetDMAndFKTables[["fk_tables"]]),
 
 
   # ExemplarTable --------------------------------------------------------------
@@ -111,7 +111,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables)),
+                                fk_parent_tables = FKTables)),
 
   ## IEADataLocal
   tarchetypes::tar_group_by(
@@ -129,7 +129,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables),
+                                fk_parent_tables = FKTables),
     pattern = map(IEADataLocal)),
 
   ## BalancedBeforeIEA
@@ -152,7 +152,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables),
+                                fk_parent_tables = FKTables),
     pattern = map(BalancedIEADataLocal)),
 
   ## BalancedAfterIEA
@@ -180,7 +180,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables),
+                                fk_parent_tables = FKTables),
     pattern = map(SpecifiedIEADataLocal)),
 
 
@@ -236,7 +236,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables)),
+                                fk_parent_tables = FKTables)),
 
 
   # Human muscle work data -----------------------------------------------------
@@ -300,7 +300,7 @@ list(
   #                               conn = conn,
   #                               in_place = TRUE,
   #                               schema = DM,
-  #                               fk_parent_tables = SimpleFKTables)),
+  #                               fk_parent_tables = FKTables)),
 
 
   # Allocation tables ----------------------------------------------------------
@@ -327,7 +327,7 @@ list(
                               countries = AllocAndEffCountries,
                               conn = conn,
                               schema = DM,
-                              fk_parent_tables = SimpleFKTables),
+                              fk_parent_tables = FKTables),
     Country),
 
   targets::tar_target(
@@ -337,7 +337,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables),
+                                fk_parent_tables = FKTables),
     pattern = map(IncompleteAllocationTablesLocal)
   ),
 
@@ -361,9 +361,18 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables),
+                                fk_parent_tables = FKTables),
     pattern = map(CompletedAllocationTablesLocal)
   ),
+
+  ## Cmats
+  targets::tar_target(
+    Cmats,
+    calc_C_mats(completed_allocation_tables = CompletedAllocationTablesLocal,
+                countries = Countries,
+                matrix_class = "Matrix"),
+    pattern = map(Countries)),
+
 
 
   # Efficiency tables ----------------------------------------------------------
@@ -396,7 +405,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables)),
+                                fk_parent_tables = FKTables)),
 
   ## MachineDataLocal
   tarchetypes::tar_group_by(
@@ -414,7 +423,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables),
+                                fk_parent_tables = FKTables),
     pattern = map(MachineDataLocal)),
 
   ## CompletedEfficiencyTablesLocal
@@ -437,7 +446,7 @@ list(
                                 conn = conn,
                                 in_place = TRUE,
                                 schema = DM,
-                                fk_parent_tables = SimpleFKTables))
+                                fk_parent_tables = FKTables))
 
 
 
