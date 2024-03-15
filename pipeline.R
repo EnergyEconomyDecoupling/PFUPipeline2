@@ -94,8 +94,8 @@ list(
     clpfu_setup_paths[["iea_data_path"]],
     format = "file"),
 
-  ## AllIEADataLocal
-  tarchetypes::tar_group_by(
+  ## AllIEAData
+  targets::tar_target(
     AllIEAData,
     load_iea_data(iea_data_path = IEADataPath,
                   override_df = CountryConcordanceTable,
@@ -105,8 +105,7 @@ list(
                   db_table_name = "AllIEAData",
                   conn = conn,
                   schema = DM,
-                  fk_parent_tables = FKTables),
-    Country),
+                  fk_parent_tables = FKTables)),
 
   # ## AllIEAData
   # targets::tar_target(
@@ -129,12 +128,14 @@ list(
   ## IEAData
   targets::tar_target(
     IEAData,
-    PFUPipelineTools::inboard_filter_copy(conn,
-                                          source = "AllIEAData",
+    PFUPipelineTools::inboard_filter_copy(source = "AllIEAData",
                                           dest = "IEAData",
                                           countries = Countries,
                                           years = Years,
-                                          empty_dest = TRUE))
+                                          empty_dest = TRUE,
+                                          in_place = TRUE,
+                                          dependencies = AllIEAData,
+                                          conn = conn))
   #
   # ## BalancedBeforeIEA
   # targets::tar_target(
