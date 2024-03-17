@@ -210,8 +210,9 @@ make_balanced <- function(.iea_data,
 specify <- function(BalancedIEAData,
                     db_table_name,
                     conn,
-                    schema = schema_from_conn(conn),
-                    fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
+                    schema = PFUPipelineTools::schema_from_conn(conn),
+                    fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)) {
+  browser()
   BalancedIEAData |>
     PFUPipelineTools::pl_collect_from_hash(conn = conn,
                                            schema = schema,

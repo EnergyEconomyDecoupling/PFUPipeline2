@@ -191,33 +191,32 @@ list(
   targets::tar_target(
     FAODataLocal,
     FAOSTAT::get_faostat_bulk(code = "QCL", # Live animals code
-                              data_folder = tempdir()))
+                              data_folder = tempdir())),
 
-  # ## AMWPFUDataRawLocal
-  # targets::tar_target(
-  #   AMWPFUDataRawLocal,
-  #   prep_amw_pfu_data(fao_data = FAODataLocal,
-  #                     mw_concordance_path = MWConcordancePath,
-  #                     amw_analysis_data_path = AMWAnalysisDataPath) |>
-  #     dplyr::filter(Country %in% AllocAndEffCountries,
-  #                   Year %in% years)),
-  #
-  # ## AMWPFUDataLocal
-  # targets::tar_target(
-  #   AMWPFUDataLocal,
-  #   aggcountries_mw_to_iea(mw_df = AMWPFUDataRawLocal,
-  #                          exemplar_table = ExemplarTable,
-  #                          dataset = clpfu_dataset)),
-  #
-  # ## AMWPFUData
-  # targets::tar_target(
-  #   AMWPFUData,
-  #   PFUPipelineTools::pl_upsert(AMWPFUDataLocal,
-  #                               db_table_name = "AMWPFUData",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables)),
+  ## AMWPFUDataRaw
+  targets::tar_target(
+    AMWPFUDataRaw,
+    prep_amw_pfu_data(fao_data = FAODataLocal,
+                      mw_concordance_path = MWConcordancePath,
+                      amw_analysis_data_path = AMWAnalysisDataPath,
+                      db_table_name = db_table_name,
+                      countries = AllocAndEffCountries,
+                      years = Years,
+                      dataset = clpfu_dataset,
+                      conn = conn,
+                      schema = DM,
+                      fk_parent_tables = FKTables)),
+
+  ## AMWPFUData
+  targets::tar_target(
+    AMWPFUData,
+    aggcountries_mw_to_iea(mw_df = AMWPFUDataRaw,
+                           exemplar_table = ExemplarTable,
+                           db_table_name = db_table_name,
+                           dataset = clpfu_dataset,
+                           conn = conn,
+                           schema = DM,
+                           fk_parent_tables = FKTables))
 
 
   # Human muscle work data -----------------------------------------------------
