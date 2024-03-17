@@ -162,37 +162,37 @@ list(
             conn = conn,
             schema = DM,
             fk_parent_tables = FKTables),
-    pattern = map(BalancedIEAData))
+    pattern = map(BalancedIEAData)),
 
 
-  # # Animal muscle work data ----------------------------------------------------
-  #
-  # ## MWConcordancePath
-  # targets::tar_target_raw(
-  #   "MWConcordancePath",
-  #   clpfu_setup_paths[["mw_concordance_path"]],
-  #   format = "file"),
-  #
-  # # Dependencies among AMW targets
-  #
-  # #                                                                          AMWPFUData
-  # #                                                                           ^
-  # #                                                                           |
-  # #                                                                           |
-  # # AMWAnalysisDataPath -----> FAODataLocal -----> AMWPFUDataRawLocal -----> AMWPFUDataLocal
-  #
-  # ## AMWAnalysisDataPath
-  # targets::tar_target_raw(
-  #   "AMWAnalysisDataPath",
-  #   clpfu_setup_paths[["amw_analysis_data_path"]],
-  #   format = "file"),
-  #
-  # ## FAODataLocal
-  # targets::tar_target(
-  #   FAODataLocal,
-  #   FAOSTAT::get_faostat_bulk(code = "QCL", # Live animals code
-  #                             data_folder = tempdir())),
-  #
+  # Animal muscle work data ----------------------------------------------------
+
+  ## MWConcordancePath
+  targets::tar_target_raw(
+    "MWConcordancePath",
+    clpfu_setup_paths[["mw_concordance_path"]],
+    format = "file"),
+
+  # Dependencies among AMW targets
+
+  #                                                                          AMWPFUData
+  #                                                                           ^
+  #                                                                           |
+  #                                                                           |
+  # AMWAnalysisDataPath -----> FAODataLocal -----> AMWPFUDataRawLocal -----> AMWPFUDataLocal
+
+  ## AMWAnalysisDataPath
+  targets::tar_target_raw(
+    "AMWAnalysisDataPath",
+    clpfu_setup_paths[["amw_analysis_data_path"]],
+    format = "file"),
+
+  ## FAODataLocal
+  targets::tar_target(
+    FAODataLocal,
+    FAOSTAT::get_faostat_bulk(code = "QCL", # Live animals code
+                              data_folder = tempdir()))
+
   # ## AMWPFUDataRawLocal
   # targets::tar_target(
   #   AMWPFUDataRawLocal,
