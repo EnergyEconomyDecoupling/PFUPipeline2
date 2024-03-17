@@ -62,6 +62,22 @@ load_iea_data <- function(iea_data_path,
 #' Internally, this function uses `IEATools::calc_tidy_iea_df_balances()`.
 #' Grouping is doing internal to this function using the value of `grp_vars`.
 #'
+#' `schema` is a data model (`dm` object) for the CL-PFU database.
+#' It can be obtained from calling `schema_from_conn()`.
+#' The default is `schema_from_conn(conn = conn)`,
+#' which downloads the `dm` object from `conn`.
+#' To save time, pre-compute the `dm` object and
+#' supply in the `schema` argument.
+#'
+#' `fk_parent_tables` is a named list of tables,
+#' some of which are foreign key (fk) parent tables for `db_table_name`
+#' containing the mapping between fk values (usually strings)
+#' and fk keys (usually integers).
+#' `fk_parent_tables` is treated as a store from which foreign key tables
+#' are retrieved by name when needed.
+#' An appropriate value for `fk_parent_tables` can be obtained
+#' from `get_all_fk_tables()`.
+#'
 #' @param .iea_data A tidy IEA data frame
 #' @param grp_vars The groups that should be checked. Default is
 #'                 `c(country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
@@ -117,7 +133,24 @@ combine_countries_exemplars <- function(couns, exempls) {
 #' Internally, this function uses `IEATools::fix_tidy_iea_df_balances()`.
 #' Grouping is done internal to this function using the value of `grp_vars`.
 #'
+#' `schema` is a data model (`dm` object) for the CL-PFU database.
+#' It can be obtained from calling `schema_from_conn()`.
+#' The default is `schema_from_conn(conn = conn)`,
+#' which downloads the `dm` object from `conn`.
+#' To save time, pre-compute the `dm` object and
+#' supply in the `schema` argument.
+#'
+#' `fk_parent_tables` is a named list of tables,
+#' some of which are foreign key (fk) parent tables for `db_table_name`
+#' containing the mapping between fk values (usually strings)
+#' and fk keys (usually integers).
+#' `fk_parent_tables` is treated as a store from which foreign key tables
+#' are retrieved by name when needed.
+#' An appropriate value for `fk_parent_tables` can be obtained
+#' from `get_all_fk_tables()`.
+#'
 #' @param .iea_data A tidy IEA data frame.
+#' @param result_table_name The name of the table in `conn` where the result will be stored.
 #' @param max_fix The maximum allowable energy imbalance to fix.
 #'                Default is `3`.
 #' @param balanced_table_name The name of the table in `conn` where
@@ -130,17 +163,29 @@ combine_countries_exemplars <- function(couns, exempls) {
 #'
 #' @export
 make_balanced <- function(.iea_data,
+                          db_table_name,
                           max_fix = 6,
                           grp_vars = c(IEATools::iea_cols$country,
                                        IEATools::iea_cols$method,
                                        IEATools::iea_cols$energy_type,
                                        IEATools::iea_cols$last_stage,
                                        IEATools::iea_cols$year,
-                                       IEATools::iea_cols$product)) {
+                                       IEATools::iea_cols$product),
+                          conn,
+                          schema = schema_from_conn(conn),
+                          fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
   .iea_data |>
+    PFUPipelineTools::pl_collect_from_hash(conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::group_by(!!as.name(grp_vars)) |>
     IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) |>
-    dplyr::ungroup()
+    dplyr::ungroup() |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
 }
 
 
