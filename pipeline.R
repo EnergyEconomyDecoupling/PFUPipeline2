@@ -82,11 +82,11 @@ list(
 
   # Dependencies among IEA targets:
   #
-  #                 AllIEAData ---> IEAData ---> BalancedIEAData ---> SpecifiedIEAData
-  #                  ^
-  #                  |
-  #                  |
-  # IEADataPath -----
+  # AllIEAData ---> IEAData ---> BalancedIEAData ---> SpecifiedIEAData
+  #  ^
+  #  |
+  #  |
+  # IEADataPath
 
   ## IEADataPath
   targets::tar_target_raw(
@@ -112,7 +112,7 @@ list(
   tarchetypes::tar_group_by(
     IEAData,
     PFUPipelineTools::inboard_filter_copy(source = "AllIEAData",
-                                          dest = "IEAData",
+                                          dest = db_table_name,
                                           countries = Countries,
                                           years = Years,
                                           empty_dest = TRUE,
@@ -138,19 +138,22 @@ list(
                   conn = conn,
                   schema = DM,
                   fk_parent_tables = FKTables),
-    pattern = map(IEAData))
+    pattern = map(IEAData)),
 
-  # ## BalancedAfterIEA
-  # targets::tar_target(
-  #   BalancedAfterIEA,
-  #   is_balanced(BalancedIEADataLocal),
-  #   pattern = map(BalancedIEADataLocal)),
-  #
-  # ## OKToProceedIEA
-  # targets::tar_target(
-  #   OKToProceedIEA,
-  #   ifelse(is.null(stopifnot(all(BalancedAfterIEA))), yes = TRUE, no = FALSE)),
-  #
+  ## BalancedAfterIEA
+  targets::tar_target(
+    BalancedAfterIEA,
+    is_balanced(BalancedIEAData,
+                conn = conn,
+                schema = DM,
+                fk_parent_tables = FKTables),
+    pattern = map(BalancedIEAData)),
+
+  ## OKToProceedIEA
+  targets::tar_target(
+    OKToProceedIEA,
+    ifelse(is.null(stopifnot(all(BalancedAfterIEA))), yes = TRUE, no = FALSE))
+
   # ## SpecifiedIEADataLocal
   # targets::tar_target(
   #   SpecifiedIEADataLocal,
