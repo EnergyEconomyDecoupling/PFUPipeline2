@@ -152,24 +152,17 @@ list(
   ## OKToProceedIEA
   targets::tar_target(
     OKToProceedIEA,
-    ifelse(is.null(stopifnot(all(BalancedAfterIEA))), yes = TRUE, no = FALSE))
+    ifelse(is.null(stopifnot(all(BalancedAfterIEA))), yes = TRUE, no = FALSE)),
 
-  # ## SpecifiedIEADataLocal
-  # targets::tar_target(
-  #   SpecifiedIEADataLocal,
-  #   specify(BalancedIEADataLocal),
-  #   pattern = map(BalancedIEADataLocal)),
-  #
-  # ## SpecifiedIEAData
-  # targets::tar_target(
-  #   SpecifiedIEAData,
-  #   PFUPipelineTools::pl_upsert(SpecifiedIEADataLocal,
-  #                               db_table_name = "SpecifiedIEAData",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables),
-  #   pattern = map(SpecifiedIEADataLocal)),
+  ## SpecifiedIEAData
+  targets::tar_target(
+    SpecifiedIEAData,
+    specify(BalancedIEAData,
+            db_table_name = db_table_name,
+            conn = conn,
+            schema = DM,
+            fk_parent_tables = FKTables),
+    pattern = map(BalancedIEAData))
 
 
   # # Animal muscle work data ----------------------------------------------------

@@ -150,7 +150,7 @@ combine_countries_exemplars <- function(couns, exempls) {
 #' from `get_all_fk_tables()`.
 #'
 #' @param .iea_data A tidy IEA data frame.
-#' @param result_table_name The name of the table in `conn` where the result will be stored.
+#' @param db_table_name The name of the table in `conn` where the result will be stored.
 #' @param max_fix The maximum allowable energy imbalance to fix.
 #'                Default is `3`.
 #' @param balanced_table_name The name of the table in `conn` where
@@ -195,15 +195,33 @@ make_balanced <- function(.iea_data,
 #' See `IEATools::specify_all()` for details.
 #'
 #' @param BalancedIEAData IEA data that have already been balanced.
-#' @param specified_table_name The name of the specified IEA data table in `conn`.
-#'                             Default is "SpecifiedIEAData".
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#'                      Default is "SpecifiedIEAData".
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
 #'
 #' @return A data frame of specified IEA data.
 #'
 #' @export
-specify <- function(BalancedIEAData) {
+specify <- function(BalancedIEAData,
+                    db_table_name,
+                    conn,
+                    schema = schema_from_conn(conn),
+                    fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
   BalancedIEAData |>
-    IEATools::specify_all()
+    PFUPipelineTools::pl_collect_from_hash(conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables) |>
+    IEATools::specify_all() |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
 }
 
 
