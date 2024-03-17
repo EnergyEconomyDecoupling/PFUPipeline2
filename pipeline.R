@@ -175,11 +175,11 @@ list(
 
   # Dependencies among AMW targets
 
-  #                                                                          AMWPFUData
-  #                                                                           ^
-  #                                                                           |
-  #                                                                           |
-  # AMWAnalysisDataPath -----> FAODataLocal -----> AMWPFUDataRawLocal -----> AMWPFUDataLocal
+  #                          AMWPFUDataRaw ---> AMWPFUData
+  #                           ^
+  #                           |
+  #                           |
+  # AMWAnalysisDataPath ---> FAODataLocal
 
   ## AMWAnalysisDataPath
   targets::tar_target_raw(
