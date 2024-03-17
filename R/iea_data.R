@@ -65,6 +65,12 @@ load_iea_data <- function(iea_data_path,
 #' @param .iea_data A tidy IEA data frame
 #' @param grp_vars The groups that should be checked. Default is
 #'                 `c(country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
 #'
 #' @return a logical stating whether all products are balanced for the country of interest
 #'
@@ -75,8 +81,14 @@ is_balanced <- function(.iea_data,
                                      IEATools::iea_cols$energy_type,
                                      IEATools::iea_cols$last_stage,
                                      IEATools::iea_cols$year,
-                                     IEATools::iea_cols$product)) {
+                                     IEATools::iea_cols$product),
+                        conn,
+                        schema = schema_from_conn(conn),
+                        fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
   .iea_data |>
+    PFUPipelineTools::pl_collect_from_hash(conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables) |>
     # Get data from the database
     dplyr::group_by(!!as.name(grp_vars)) |>
     # Check balances

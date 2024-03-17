@@ -126,7 +126,8 @@ list(
   #   Country),
   #
   ## IEAData
-  targets::tar_target(
+  # targets::tar_target(
+  tarchetypes::tar_group_by(
     IEAData,
     PFUPipelineTools::inboard_filter_copy(source = "AllIEAData",
                                           dest = "IEAData",
@@ -135,14 +136,18 @@ list(
                                           empty_dest = TRUE,
                                           in_place = TRUE,
                                           dependencies = AllIEAData,
-                                          conn = conn))
-  #
-  # ## BalancedBeforeIEA
-  # targets::tar_target(
-  #   BalancedBeforeIEA,
-  #   is_balanced(IEADataLocal),
-  #   pattern = map(IEADataLocal)),
-  #
+                                          conn = conn),
+    Country),
+
+  ## BalancedBeforeIEA
+  targets::tar_target(
+    BalancedBeforeIEA,
+    is_balanced(IEAData,
+                conn = conn,
+                schema = DM,
+                fk_parent_tables = FKTables),
+    pattern = map(IEAData))
+
   # ## BalancedIEADataLocal
   # targets::tar_target(
   #   BalancedIEADataLocal,
