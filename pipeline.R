@@ -82,11 +82,11 @@ list(
 
   # Dependencies among IEA targets:
   #
-  #                    AllIEAData             IEAData             BalancedIEAData             SpecifiedIEAData
-  #                     ^                      ^                   ^                           ^
-  #                     |                      |                   |                           |
-  #                     |                      |                   |                           |
-  # IEADataPath -----> AllIEADataLocal -----> IEADataLocal -----> BalancedIEADataLocal -----> SpecifiedIEADataLocal
+  #                 AllIEAData ---> IEAData ---> BalancedIEAData ---> SpecifiedIEAData
+  #                  ^
+  #                  |
+  #                  |
+  # IEADataPath -----
 
   ## IEADataPath
   targets::tar_target_raw(
@@ -102,29 +102,11 @@ list(
                   dataset = iea_dataset,
                   specify_non_energy_flows = SpecifyNonEnergyFlows,
                   apply_fixes = ApplyFixes,
-                  db_table_name = "AllIEAData",
+                  db_table_name = db_table_name,
                   conn = conn,
                   schema = DM,
                   fk_parent_tables = FKTables)),
 
-  # ## AllIEAData
-  # targets::tar_target(
-  #   AllIEAData,
-  #   PFUPipelineTools::pl_upsert(AllIEADataLocal,
-  #                               db_table_name = "AllIEAData",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables)),
-  #
-  # ## IEADataLocal
-  # tarchetypes::tar_group_by(
-  #   IEADataLocal,
-  #   dplyr::filter(AllIEADataLocal,
-  #                 Country %in% AllocAndEffCountries,
-  #                 Year %in% years),
-  #   Country),
-  #
   ## IEAData
   # targets::tar_target(
   tarchetypes::tar_group_by(
@@ -146,25 +128,18 @@ list(
                 conn = conn,
                 schema = DM,
                 fk_parent_tables = FKTables),
+    pattern = map(IEAData)),
+
+  ## BalancedIEAData
+  targets::tar_target(
+    BalancedIEAData,
+    make_balanced(IEAData,
+                  db_table_name = db_table_name,
+                  conn = conn,
+                  schema = DM,
+                  fk_parent_tables = FKTables),
     pattern = map(IEAData))
 
-  # ## BalancedIEADataLocal
-  # targets::tar_target(
-  #   BalancedIEADataLocal,
-  #   make_balanced(IEADataLocal),
-  #   pattern = map(IEADataLocal)),
-  #
-  # ## BalancedIEAData
-  # targets::tar_target(
-  #   BalancedIEAData,
-  #   PFUPipelineTools::pl_upsert(BalancedIEADataLocal,
-  #                               db_table_name = "BalancedIEAData",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables),
-  #   pattern = map(BalancedIEADataLocal)),
-  #
   # ## BalancedAfterIEA
   # targets::tar_target(
   #   BalancedAfterIEA,
@@ -454,7 +429,7 @@ list(
 ) |>
 
 
-  # conn tar_hook_before targets -----------------------------------------------
+  # tar_hook_before targets ----------------------------------------------------
 
   tarchetypes::tar_hook_before(
     hook = {
@@ -465,5 +440,12 @@ list(
                              host = conn_params$host,
                              port = conn_params$port,
                              user = conn_params$user)
+      # Make sure that the connection will be closed
+      # after each target completes.
       on.exit(DBI::dbDisconnect(conn))
+      # By default, make the target name available as the name
+      # of the database table in which the result should be stored.
+      # But keep everything before the underscore,
+      # if it exists in the string.
+      db_table_name <- strsplit(targets::tar_name(), "_")[[1]][[1]]
     })
