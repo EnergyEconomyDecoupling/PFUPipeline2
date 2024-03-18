@@ -322,18 +322,6 @@ list(
                                   fk_parent_tables = FKTables),
     pattern = map(Countries))
 
-  # ## CompletedAllocationTables
-  # targets::tar_target(
-  #   CompletedAllocationTables,
-  #   PFUPipelineTools::pl_upsert(CompletedAllocationTablesLocal,
-  #                               db_table_name = "CompletedAllocationTables",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables),
-  #   pattern = map(CompletedAllocationTablesLocal)
-  # ),
-  #
   # ## Cmats
   # targets::tar_target(
   #   Cmats,
