@@ -189,6 +189,5 @@ prep_hmw_pfu_data <- function(ilo_working_hours_data,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
-
 }
 

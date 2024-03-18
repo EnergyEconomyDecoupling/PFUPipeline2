@@ -171,9 +171,13 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           exemplar_lists,
                                           specified_iea_data,
-                                          dataset,
                                           countries,
                                           years,
+                                          dataset,
+                                          db_table_name,
+                                          conn,
+                                          schema = PFUPipelineTools::schema_from_conn(conn),
+                                          fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                                           country = IEATools::iea_cols$country,
                                           year = IEATools::iea_cols$year,
                                           exemplars = PFUPipelineTools::exemplar_names$exemplars,
@@ -184,19 +188,62 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
   # The incomplete tables are easier to deal with when they are tidy.
-  tidy_incomplete_allocation_tables <- IEATools::tidy_fu_allocation_table(incomplete_allocation_tables) |>
+  # tidy_incomplete_allocation_tables <- IEATools::tidy_fu_allocation_table(incomplete_allocation_tables) |>
+  #   dplyr::filter(.data[[year]] %in% years) |>
+  #   dplyr::mutate(
+  #     # Eliminate the dataset column for now.
+  #     "{dataset_colname}" := NULL
+  #   ) |>
+  #   PFUPipelineTools::tar_ungroup()
+
+  tidy_incomplete_allocation_tables <- incomplete_allocation_tables |>
     dplyr::filter(.data[[year]] %in% years) |>
+    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables)
+  if (is.null(tidy_incomplete_allocation_tables)) {
+    incomplete_allocation_tables_name <-
+      incomplete_allocation_tables[[PFUPipelineTools::hashed_table_colnames$db_table_name]] |>
+      unique()
+    # Get a zero-row version of the table
+    tidy_incomplete_allocation_tables <- schema |>
+      dm::dm_get_tables() |>
+      magrittr::extract2(incomplete_allocation_tables_name) |>
+      # Empty out the rows
+      dplyr::filter(FALSE) |>
+      # This decode step is necessary,
+      # despite the data frame being empty of rows,
+      # to convert data types in the columns.
+      PFUPipelineTools::decode_fks(db_table_name = incomplete_allocation_tables_name,
+                                   conn = conn,
+                                   schema = schema,
+                                   fk_parent_tables = fk_parent_tables)
+  }
+  tidy_incomplete_allocation_tables <- tidy_incomplete_allocation_tables |>
     dplyr::mutate(
       # Eliminate the dataset column for now.
       "{dataset_colname}" := NULL
     ) |>
     PFUPipelineTools::tar_ungroup()
+
+  # specified_iea_data <- specified_iea_data |>
+  #   dplyr::mutate(
+  #     # Eliminate the dataset column, because it conflicts with the dataset name for the
+  #     # incomplete_allocation_tables.
+  #     "{dataset_colname}" := NULL
+  #   )
   specified_iea_data <- specified_iea_data |>
+    dplyr::filter(.data[[country]] %in% countries, .data[[year]] %in% years) |>
+    PFUPipelineTools::pl_collect_from_hash(conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::mutate(
       # Eliminate the dataset column, because it conflicts with the dataset name for the
       # incomplete_allocation_tables.
       "{dataset_colname}" := NULL
-    )
+    ) |>
+    PFUPipelineTools::tar_ungroup()
 
   completed_tables_by_year <- lapply(countries, FUN = function(coun) {
     coun_exemplar_strings <- exemplar_lists |>
@@ -258,7 +305,16 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
   assertthat::assert_that(!(complete_alloc_tables %in% names(out)),
                           msg = paste(paste0(countries, collapse = ", "),
                                       "do (does) not have allocation information in PFUPipeline2::assemble_fu_allocation_tables()"))
-  return(out)
+  out |>
+    dplyr::mutate(
+      "{dataset_colname}" := dataset
+    ) |>
+    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
 }
 
 

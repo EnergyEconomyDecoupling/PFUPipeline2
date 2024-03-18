@@ -85,7 +85,7 @@ list(
   # AllIEAData ---> IEAData ---> BalancedIEAData ---> SpecifiedIEAData
   #  ^               |            |
   #  |               |            |--|
-  #  |               ↓               ↓
+  #  |               v               v
   # IEADataPath  BalancedBeforeIEA  BalancedAfterIEA ---> OKToProceedIEA
 
   ## IEADataPath
@@ -282,11 +282,11 @@ list(
 
   # Dependencies among AllocationTable targets:
   #
-  #                         IncompleteAllocationTables             CompletedAllocationTables
-  #                          ^                                      ^
-  #                          |                                      |
-  #                          |                                      |
-  # FUAnalysisFolder -----> IncompleteAllocationTablesLocal -----> CompletedAllocationTablesLocal
+  # IncompleteAllocationTables ---> CompletedAllocationTables
+  #  ^
+  #  |
+  #  |
+  # FUAnalysisFolder
 
   ## FUAnalysisFolder
   targets::tar_target_raw(
@@ -305,20 +305,23 @@ list(
                               conn = conn,
                               schema = DM,
                               fk_parent_tables = FKTables),
-    Country)
+    Country),
 
-  # ## CompletedAllocationTablesLocal
-  # targets::tar_target(
-  #   CompletedAllocationTablesLocal,
-  #   assemble_fu_allocation_tables(incomplete_allocation_tables = IncompleteAllocationTablesLocal,
-  #                                 exemplar_lists = ExemplarLists,
-  #                                 specified_iea_data = SpecifiedIEADataLocal |>
-  #                                   PFUPipelineTools::tar_ungroup(),
-  #                                 dataset = clpfu_dataset,
-  #                                 countries = Countries,
-  #                                 years = Years),
-  #   pattern = map(Countries)),
-  #
+  ## CompletedAllocationTables
+  targets::tar_target(
+    CompletedAllocationTables,
+    assemble_fu_allocation_tables(incomplete_allocation_tables = IncompleteAllocationTables,
+                                  exemplar_lists = ExemplarLists,
+                                  specified_iea_data = SpecifiedIEAData,
+                                  countries = Countries,
+                                  years = Years,
+                                  dataset = clpfu_dataset,
+                                  db_table_name = db_table_name,
+                                  conn = conn,
+                                  schema = DM,
+                                  fk_parent_tables = FKTables),
+    pattern = map(Countries))
+
   # ## CompletedAllocationTables
   # targets::tar_target(
   #   CompletedAllocationTables,
