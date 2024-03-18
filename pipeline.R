@@ -83,10 +83,10 @@ list(
   # Dependencies among IEA targets:
   #
   # AllIEAData ---> IEAData ---> BalancedIEAData ---> SpecifiedIEAData
-  #  ^
-  #  |
-  #  |
-  # IEADataPath
+  #  ^               |            |
+  #  |               |            |--|
+  #  |               ↓               ↓
+  # IEADataPath  BalancedBeforeIEA  BalancedAfterIEA ---> OKToProceedIEA
 
   ## IEADataPath
   targets::tar_target_raw(
@@ -216,70 +216,66 @@ list(
                            dataset = clpfu_dataset,
                            conn = conn,
                            schema = DM,
-                           fk_parent_tables = FKTables))
+                           fk_parent_tables = FKTables)),
 
 
   # Human muscle work data -----------------------------------------------------
 
   # Dependencies among HMW targets
 
-  #                                                      HMWPFUData
-  #                                                       ^
-  #                                                       |
-  #                                                       |
-  # HMWAnalysisDataPath -----> HMWPFUDataRawLocal -----> HMWPFUDataLocal
-  #                             ^  ^
-  #                             |  |
+  #                         HMWPFUDataRaw ---> HMWPFUData
+  #                          ^  ^  ^
+  #                          |  |  |
+  #                          |  |  |
+  # HMWAnalysisDataPath -----|  |  |
   # ILOEmploymentDataLocal -----|  |
   # ILOWorkingHoursDataLocal ------|
 
-  # ## HMWAnalysisDataPath
-  # targets::tar_target_raw(
-  #   "HMWAnalysisDataPath",
-  #   clpfu_setup_paths[["hmw_analysis_data_path"]],
-  #   format = "file"),
-  #
-  # ## ILOWorkingHoursDataLocal
-  # targets::tar_target(
-  #   ILOWorkingHoursDataLocal,
-  #   Rilostat::get_ilostat(id = "HOW_TEMP_SEX_ECO_NB_A", # Working hours code
-  #                         quiet = TRUE) |>
-  #     Rilostat::label_ilostat(code = c("ref_area"))),
-  #
-  # ## ILOEmploymentDataLocal
-  # targets::tar_target(
-  #   ILOEmploymentDataLocal,
-  #   Rilostat::get_ilostat(id = "EMP_TEMP_SEX_ECO_NB_A", # Employment code
-  #                         quiet = TRUE) |>
-  #     Rilostat::label_ilostat(code = c("ref_area"))),
-  #
-  # ## HMWPFUDataRaw
-  # targets::tar_target(
-  #   HMWPFUDataRawLocal,
-  #   prep_hmw_pfu_data(ilo_working_hours_data = ILOWorkingHoursDataLocal,
-  #                     ilo_employment_data = ILOEmploymentDataLocal,
-  #                     mw_concordance_path = MWConcordancePath,
-  #                     hmw_analysis_data_path = HMWAnalysisDataPath) |>
-  #     dplyr::filter(Country %in% AllocAndEffCountries,
-  #                   Year %in% years)),
-  #
-  # ## HMWPFUDataLocal
-  # targets::tar_target(
-  #   HMWPFUDataLocal,
-  #   aggcountries_mw_to_iea(mw_df = HMWPFUDataRawLocal,
-  #                          exemplar_table = ExemplarTable,
-  #                          dataset = clpfu_dataset)),
+  ## HMWAnalysisDataPath
+  targets::tar_target_raw(
+    "HMWAnalysisDataPath",
+    clpfu_setup_paths[["hmw_analysis_data_path"]],
+    format = "file"),
+
+  ## ILOEmploymentDataLocal
+  targets::tar_target(
+    ILOEmploymentDataLocal,
+    Rilostat::get_ilostat(id = "EMP_TEMP_SEX_ECO_NB_A", # Employment code
+                          quiet = TRUE) |>
+      Rilostat::label_ilostat(code = c("ref_area"))),
+
+  ## ILOWorkingHoursDataLocal
+  targets::tar_target(
+    ILOWorkingHoursDataLocal,
+    Rilostat::get_ilostat(id = "HOW_TEMP_SEX_ECO_NB_A", # Working hours code
+                          quiet = TRUE) |>
+      Rilostat::label_ilostat(code = c("ref_area"))),
+
+  ## HMWPFUDataRaw
+  targets::tar_target(
+    HMWPFUDataRaw,
+    prep_hmw_pfu_data(ilo_working_hours_data = ILOWorkingHoursDataLocal,
+                      ilo_employment_data = ILOEmploymentDataLocal,
+                      mw_concordance_path = MWConcordancePath,
+                      hmw_analysis_data_path = HMWAnalysisDataPath,
+                      db_table_name = db_table_name,
+                      countries = AllocAndEffCountries,
+                      years = Years,
+                      dataset = clpfu_dataset,
+                      conn = conn,
+                      schema = DM,
+                      fk_parent_tables = FKTables)),
 
   ## HMWPFUData
-  # Not working at this time, due to Sex: Other in India.
-  # targets::tar_target(
-  #   HMWPFUData,
-  #   PFUPipelineTools::pl_upsert(HMWPFUDataLocal,
-  #                               db_table_name = "HMWPFUData",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables)),
+  targets::tar_target(
+    HMWPFUData,
+    aggcountries_mw_to_iea(mw_df = HMWPFUDataRaw,
+                           exemplar_table = ExemplarTable,
+                           db_table_name = db_table_name,
+                           dataset = clpfu_dataset,
+                           conn = conn,
+                           schema = DM,
+                           fk_parent_tables = FKTables)),
 
 
   # Allocation tables ----------------------------------------------------------
@@ -292,24 +288,24 @@ list(
   #                          |                                      |
   # FUAnalysisFolder -----> IncompleteAllocationTablesLocal -----> CompletedAllocationTablesLocal
 
-  # ## FUAnalysisFolder
-  # targets::tar_target_raw(
-  #   "FUAnalysisFolder",
-  #   clpfu_setup_paths$fu_allocation_folder,
-  #   format = "file"),
-  #
-  # ## IncompleteAllocationTables
-  # tarchetypes::tar_group_by(
-  #   IncompleteAllocationTables,
-  #   load_fu_allocation_tables(fu_analysis_folder = FUAnalysisFolder,
-  #                             specified_iea_data = SpecifiedIEAData,
-  #                             countries = AllocAndEffCountries,
-  #                             dataset = clpfu_dataset,
-  #                             db_table_name = "IncompleteAllocationTables",
-  #                             conn = conn,
-  #                             schema = DM,
-  #                             fk_parent_tables = FKTables),
-  #   Country)
+  ## FUAnalysisFolder
+  targets::tar_target_raw(
+    "FUAnalysisFolder",
+    clpfu_setup_paths$fu_allocation_folder,
+    format = "file"),
+
+  ## IncompleteAllocationTables
+  tarchetypes::tar_group_by(
+    IncompleteAllocationTables,
+    load_fu_allocation_tables(fu_analysis_folder = FUAnalysisFolder,
+                              specified_iea_data = SpecifiedIEAData,
+                              countries = AllocAndEffCountries,
+                              dataset = clpfu_dataset,
+                              db_table_name = db_table_name,
+                              conn = conn,
+                              schema = DM,
+                              fk_parent_tables = FKTables),
+    Country)
 
   # ## CompletedAllocationTablesLocal
   # targets::tar_target(

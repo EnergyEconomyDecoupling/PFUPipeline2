@@ -212,7 +212,6 @@ specify <- function(BalancedIEAData,
                     conn,
                     schema = PFUPipelineTools::schema_from_conn(conn),
                     fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)) {
-  browser()
   BalancedIEAData |>
     PFUPipelineTools::pl_collect_from_hash(conn = conn,
                                            schema = schema,

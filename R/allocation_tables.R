@@ -55,7 +55,6 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
                                       fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema),
                                       fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name,
                                       country_colname = IEATools::iea_cols$country) {
-
   out <- lapply(countries, FUN = function(coun) {
     folder <- ifelse(use_subfolders, file.path(fu_analysis_folder, coun), fu_analysis_folder)
     fpath <- file.path(folder, paste0(coun, file_suffix))
@@ -91,18 +90,17 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
   if (nrow(out) == 0) {
     return(NULL)
   }
-
-  out <- IEATools::tidy_fu_allocation_table(out) |>
+  out |>
+    IEATools::tidy_fu_allocation_table() |>
     dplyr::mutate(
       "{dataset_colname}" := dataset
     ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname))
-
-  PFUPipelineTools::pl_upsert(out,
-                              db_table_name = db_table_name,
-                              conn = conn,
-                              schema = schema,
-                              fk_parent_tables = fk_parent_tables)
+    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
 }
 
 
