@@ -85,6 +85,7 @@ list(
   # AllIEAData ---> IEAData ---> BalancedIEAData ---> SpecifiedIEAData
   #  ^               |            |
   #  |               |            |--|
+  #  |               |               |
   #  |               v               v
   # IEADataPath  BalancedBeforeIEA  BalancedAfterIEA ---> OKToProceedIEA
 

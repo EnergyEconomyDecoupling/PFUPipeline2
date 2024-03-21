@@ -49,7 +49,16 @@ apply_fixes <- TRUE
 # For parallel processing.
 # Set worker_threads equal to or slightly less than
 # the number of high-performance cores on your machine.
-worker_threads <- 16
+if (parallel::detectCores() == 10) {
+  # M1 Pro
+  worker_threads <- 8
+} else if (parallel::detectCores() == 24) {
+  # M2 Ultra
+  worker_threads <- 16
+} else {
+  # To be safe
+  worker_threads <- 2
+}
 
 # For parallel processing
 crew_controller <- crew::crew_controller_local(workers = worker_threads)
