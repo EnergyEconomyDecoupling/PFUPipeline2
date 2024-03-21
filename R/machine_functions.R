@@ -288,20 +288,6 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
 
   which_quantity <- match.arg(which_quantity, several.ok = FALSE)
 
-  # The FU allocation tables and the incomplete efficiency tables are easier to deal with when they are tidy.
-  # tidy_incomplete_eta_fu_tables <- IEATools::tidy_eta_fu_table(incomplete_eta_fu_tables,
-  #                                                              year = year,
-  #                                                              e_dot_machine = e_dot_machine,
-  #                                                              e_dot_machine_perc = e_dot_machine_perc,
-  #                                                              quantity = quantity,
-  #                                                              maximum_values = maximum_values,
-  #                                                              .values = .values) |>
-  #   dplyr::filter(.data[[year]] %in% years) |>
-  #   dplyr::mutate(
-  #     # Eliminate the dataset column for now.
-  #     "{dataset_colname}" := NULL
-  #   ) |>
-  #   PFUPipelineTools::tar_ungroup()
   tidy_incomplete_eta_fu_tables <- incomplete_eta_fu_tables |>
     dplyr::filter(.data[[year]] %in% years) |>
     PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
@@ -320,22 +306,6 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
     ) |>
     PFUPipelineTools::tar_ungroup()
 
-  # tidy_allocation_tables <- IEATools::tidy_fu_allocation_table(completed_fu_allocation_tables,
-  #                                                              year = year,
-  #                                                              e_dot = e_dot,
-  #                                                              e_dot_perc = e_dot_perc,
-  #                                                              quantity = quantity,
-  #                                                              maximum_values = maximum_values,
-  #                                                              .values = .values) |>
-  #   dplyr::filter(.data[[year]] %in% years) |>
-  #   dplyr::mutate(
-  #     # Eliminate the dataset column for now.
-  #     "{dataset_colname}" := NULL
-  #   ) |>
-  #   PFUPipelineTools::tar_ungroup()
-
-  browser()
-
   tidy_allocation_tables <- completed_fu_allocation_tables |>
     dplyr::filter(.data[[year]] %in% years) |>
     PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
@@ -353,9 +323,6 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
       "{dataset_colname}" := NULL
     ) |>
     PFUPipelineTools::tar_ungroup()
-
-
-
 
   completed_tables_by_year <- lapply(countries, FUN = function(coun) {
     coun_exemplar_strings <- exemplar_lists |>

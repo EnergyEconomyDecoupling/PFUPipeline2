@@ -314,6 +314,9 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
                                 db_table_name = db_table_name,
+                                # We need to keep the table name
+                                additional_hash_group_cols = c(PFUPipelineTools::hashed_table_colnames$db_table_name,
+                                                               PFUPipelineTools::additional_hash_group_cols),
                                 # Don't keep single unique columns,
                                 # because groups may have different columns
                                 # with single unique values.

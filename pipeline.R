@@ -384,20 +384,26 @@ list(
                            schema = DM,
                            fk_parent_tables = FKTables,
                            which_quantity = IEATools::template_cols$eta_fu),
-    pattern = map(Countries))
-
-  # ## CompletedEfficiencyTables
-  # targets::tar_target(
-  #   CompletedEfficiencyTables,
-  #   PFUPipelineTools::pl_upsert(CompletedEfficiencyTablesLocal,
-  #                               db_table_name = "CompletedEfficiencyTables",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables))
+    pattern = map(Countries)),
 
 
+  # Phi values -----------------------------------------------------------------
 
+  ## PhiConstantsPath
+  targets::tar_target_raw(
+    "PhiConstantsPath",
+    clpfu_setup_paths[["phi_constants_path"]],
+    format = "file"),
+
+  ## PhiConstants
+  targets::tar_target(
+    PhiConstants,
+    load_phi_values(phi_constants_path = PhiConstantsPath,
+                    dataset = clpfu_dataset,
+                    db_table_name = db_table_name,
+                    conn = conn,
+                    schema = DM,
+                    fk_parent_tables = FKTables))
 
 ) |>
 

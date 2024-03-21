@@ -19,6 +19,9 @@
 #'
 #' @export
 set_dm_fk_tables <- function(schema_file_path, conn) {
+
+  browser()
+
   # Read the schema table
   schema_table <- PFUPipelineTools::load_schema_table(schema_path = schema_file_path)
   # Read the simple foreign key tables
