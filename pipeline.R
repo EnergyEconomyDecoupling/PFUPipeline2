@@ -108,7 +108,6 @@ list(
                   fk_parent_tables = FKTables)),
 
   ## IEAData
-  # targets::tar_target(
   tarchetypes::tar_group_by(
     IEAData,
     PFUPipelineTools::inboard_filter_copy(source = "AllIEAData",
@@ -320,7 +319,7 @@ list(
                                   conn = conn,
                                   schema = DM,
                                   fk_parent_tables = FKTables),
-    pattern = map(Countries))
+    pattern = map(Countries)),
 
   # ## Cmats
   # targets::tar_target(
@@ -342,47 +341,35 @@ list(
   # #                         |                          |                       |
   # # MachineDataPath -----> AllMachineDataLocal -----> MachineDataLocal -----> CompletedEfficiencyTablesLocal
   #
-  # ## MachineDataPath
-  # targets::tar_target_raw(
-  #   "MachineDataPath",
-  #   clpfu_setup_paths[["machine_data_folder"]],
-  #   format = "file"),
-  #
-  # ## AllMachineDataLocal
-  # targets::tar_target(
-  #   AllMachineDataLocal,
-  #   read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath),
-  #                      dataset = clpfu_dataset)),
-  #
-  # ## AllMachineData
-  # targets::tar_target(
-  #   AllMachineData,
-  #   PFUPipelineTools::pl_upsert(AllMachineDataLocal,
-  #                               db_table_name = "AllMachineData",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables)),
-  #
-  # ## MachineDataLocal
-  # tarchetypes::tar_group_by(
-  #   MachineDataLocal,
-  #   dplyr::filter(AllMachineDataLocal,
-  #                 Country %in% AllocAndEffCountries,
-  #                 Year %in% years),
-  #   Country),
-  #
-  # ## MachineData
-  # targets::tar_target(
-  #   MachineData,
-  #   PFUPipelineTools::pl_upsert(MachineDataLocal,
-  #                               db_table_name = "MachineData",
-  #                               conn = conn,
-  #                               in_place = TRUE,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables),
-  #   pattern = map(MachineDataLocal)),
-  #
+  ## MachineDataPath
+  targets::tar_target_raw(
+    "MachineDataPath",
+    clpfu_setup_paths[["machine_data_folder"]],
+    format = "file"),
+
+  ## AllMachineData
+  targets::tar_target(
+    AllMachineData,
+    read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath),
+                       dataset = clpfu_dataset,
+                       db_table_name = db_table_name,
+                       conn = conn,
+                       schema = DM,
+                       fk_parent_tables = FKTables)),
+
+  ## MachineData
+  tarchetypes::tar_group_by(
+    MachineData,
+    PFUPipelineTools::inboard_filter_copy(source = "AllMachineData",
+                                          dest = db_table_name,
+                                          countries = AllocAndEffCountries,
+                                          years = Years,
+                                          empty_dest = TRUE,
+                                          in_place = TRUE,
+                                          dependencies = AllMachineData,
+                                          conn = conn),
+    Country),
+
   # ## CompletedEfficiencyTablesLocal
   # targets::tar_target(
   #   CompletedEfficiencyTablesLocal,

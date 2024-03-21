@@ -65,7 +65,14 @@ get_eta_filepaths <- function(filepath,
 #' @param eta_fin_paths A list of the file paths to machine excel files containing
 #'                      FIN_ETA front sheets, and therefore usable data.
 #'                      Created by calling the `get_eta_filepaths()` function.
-#' @param version A string containing the version of the database you are creating.
+#' @param dataset The string name of the dataset to which these efficiency data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
 #' @param efficiency_tab_name See `PFUPipelineTools::machine_constants`.
 #' @param year See `IEATools::iea_cols`.
 #' @param .values See `IEATools::template_cols`.
@@ -84,6 +91,10 @@ get_eta_filepaths <- function(filepath,
 #' @export
 read_all_eta_files <- function(eta_fin_paths,
                                dataset,
+                               db_table_name,
+                               conn,
+                               schema = PFUPipelineTools::schema_from_conn(conn),
+                               fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                                efficiency_tab_name = PFUPipelineTools::machine_constants$efficiency_tab_name,
                                country = IEATools::iea_cols$country,
                                energy_type = IEATools::iea_cols$energy_type,
@@ -151,7 +162,12 @@ read_all_eta_files <- function(eta_fin_paths,
       dplyr::bind_rows(raw_etas)
   }
 
-  return(etas)
+  etas |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
 }
 
 
