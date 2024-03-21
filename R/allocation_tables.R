@@ -114,21 +114,23 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 #' Information from exemplar countries is used to complete incomplete final-to-useful efficiency tables.
 #' See examples for how to construct `exemplar_lists`.
 #'
+#' @param incomplete_allocation_tables
 #' @param exemplar_lists A data frame containing `country` and `year` columns along with a column of ordered vectors of strings
 #'                       telling which countries should be considered exemplars for the country and year of this row.
 #' @param specified_iea_data Specified IEA data.
-#' @param version The version of the database being created.
 #' @param countries A vector of countries for which completed final-to-useful allocation tables are to be assembled.
 #' @param years The years for which analysis is desired.
-#' @param dataset See `PFUPipelineTools::dataset_info`.
-#' @param incomplete_allocation_tables
-#' @param country
-#' @param year
-#' @param exemplars
-#' @param exemplar_tables
-#' @param iea_data
-#' @param incomplete_alloc_tables
-#' @param complete_alloc_tables
+#' @param dataset The name of the dataset to which these data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
+#' @param country,year See `IEATools::iea_cols`.
+#' @param exemplars,exemplar_tables,iea_data,incomplete_alloc_tables,complete_alloc_tables See `IEATools::exemplar_names`.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A tidy data frame containing completed final-to-useful allocation tables.
 #'
@@ -312,6 +314,10 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
                                 db_table_name = db_table_name,
+                                # Don't keep single unique columns,
+                                # because groups may have different columns
+                                # with single unique values.
+                                keep_single_unique_cols = FALSE,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)

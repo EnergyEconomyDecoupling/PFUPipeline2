@@ -200,9 +200,16 @@ read_all_eta_files <- function(eta_fin_paths,
 #'                       telling which countries should be considered exemplars for the country and year of this row.
 #' @param completed_fu_allocation_tables A data frame containing completed final-to-useful allocation data,
 #'                                       typically the result of calling `assemble_fu_allocation_tables`.
-#' @param version The version of the database being created.
 #' @param countries A vector of countries for which completed final-to-useful allocation tables are to be assembled.
 #' @param years The years for which analysis is desired. Default is `NULL`, meaning analyze all years.
+#' @param dataset The name of the dataset to which these data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
 #' @param which_quantity A vector of quantities to be completed in the eta_FU table.
 #'                       Default is `c(IEATools::template_cols$eta_fu, IEATools::template_cols$phi_u)`.
 #'                       Must be one or both of the default values.
@@ -242,9 +249,13 @@ read_all_eta_files <- function(eta_fin_paths,
 assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
                                    exemplar_lists,
                                    completed_fu_allocation_tables,
-                                   dataset,
                                    countries,
                                    years = NULL,
+                                   dataset,
+                                   db_table_name,
+                                   conn,
+                                   schema = PFUPipelineTools::schema_from_conn(conn),
+                                   fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                                    which_quantity = c(IEATools::template_cols$eta_fu),
                                    country = IEATools::iea_cols$country,
                                    method = IEATools::iea_cols$method,
@@ -278,36 +289,76 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
   which_quantity <- match.arg(which_quantity, several.ok = FALSE)
 
   # The FU allocation tables and the incomplete efficiency tables are easier to deal with when they are tidy.
-  tidy_incomplete_eta_fu_tables <- IEATools::tidy_eta_fu_table(incomplete_eta_fu_tables,
-                                                               year = year,
-                                                               e_dot_machine = e_dot_machine,
-                                                               e_dot_machine_perc = e_dot_machine_perc,
-                                                               quantity = quantity,
-                                                               maximum_values = maximum_values,
-                                                               .values = .values) |>
+  # tidy_incomplete_eta_fu_tables <- IEATools::tidy_eta_fu_table(incomplete_eta_fu_tables,
+  #                                                              year = year,
+  #                                                              e_dot_machine = e_dot_machine,
+  #                                                              e_dot_machine_perc = e_dot_machine_perc,
+  #                                                              quantity = quantity,
+  #                                                              maximum_values = maximum_values,
+  #                                                              .values = .values) |>
+  #   dplyr::filter(.data[[year]] %in% years) |>
+  #   dplyr::mutate(
+  #     # Eliminate the dataset column for now.
+  #     "{dataset_colname}" := NULL
+  #   ) |>
+  #   PFUPipelineTools::tar_ungroup()
+  tidy_incomplete_eta_fu_tables <- incomplete_eta_fu_tables |>
     dplyr::filter(.data[[year]] %in% years) |>
+    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables) |>
+    IEATools::tidy_eta_fu_table(year = year,
+                                e_dot_machine = e_dot_machine,
+                                e_dot_machine_perc = e_dot_machine_perc,
+                                quantity = quantity,
+                                maximum_values = maximum_values,
+                                .values = .values) |>
     dplyr::mutate(
       # Eliminate the dataset column for now.
       "{dataset_colname}" := NULL
     ) |>
     PFUPipelineTools::tar_ungroup()
 
-  tidy_allocation_tables <- IEATools::tidy_fu_allocation_table(completed_fu_allocation_tables,
-                                                               year = year,
-                                                               e_dot = e_dot,
-                                                               e_dot_perc = e_dot_perc,
-                                                               quantity = quantity,
-                                                               maximum_values = maximum_values,
-                                                               .values = .values) |>
+  # tidy_allocation_tables <- IEATools::tidy_fu_allocation_table(completed_fu_allocation_tables,
+  #                                                              year = year,
+  #                                                              e_dot = e_dot,
+  #                                                              e_dot_perc = e_dot_perc,
+  #                                                              quantity = quantity,
+  #                                                              maximum_values = maximum_values,
+  #                                                              .values = .values) |>
+  #   dplyr::filter(.data[[year]] %in% years) |>
+  #   dplyr::mutate(
+  #     # Eliminate the dataset column for now.
+  #     "{dataset_colname}" := NULL
+  #   ) |>
+  #   PFUPipelineTools::tar_ungroup()
+
+  browser()
+
+  tidy_allocation_tables <- completed_fu_allocation_tables |>
     dplyr::filter(.data[[year]] %in% years) |>
+    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables) |>
+    IEATools::tidy_fu_allocation_table(year = year,
+                                       e_dot = e_dot,
+                                       e_dot_perc = e_dot_perc,
+                                       quantity = quantity,
+                                       maximum_values = maximum_values,
+                                       .values = .values) |>
     dplyr::mutate(
       # Eliminate the dataset column for now.
       "{dataset_colname}" := NULL
     ) |>
     PFUPipelineTools::tar_ungroup()
+
+
+
 
   completed_tables_by_year <- lapply(countries, FUN = function(coun) {
-    coun_exemplar_strings <- exemplar_lists %>%
+    coun_exemplar_strings <- exemplar_lists |>
       dplyr::filter(.data[[country]] == coun)
 
     # For each combination of Country and Year (the rows of coun_exemplar_strings),
@@ -371,11 +422,17 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
   # The only information we need to return is the completed efficiency tables.
   # Expand (un-nest) only the completed efficiency table column to give one data frame of all the FU efficiencies
   # for all years and all countries.
-  completed_tables_by_year %>%
-    dplyr::select(dplyr::all_of(complete_eta_tables)) %>%
+  completed_tables_by_year |>
+    dplyr::select(dplyr::all_of(complete_eta_tables)) |>
     tidyr::unnest(cols = dplyr::all_of(complete_eta_tables)) |>
     dplyr::mutate(
       "{dataset_colname}" := dataset
     ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname))
+    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
+
 }

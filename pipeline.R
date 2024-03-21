@@ -329,19 +329,19 @@ list(
   #               countries = Countries,
   #               matrix_class = "Matrix"),
   #   pattern = map(Countries)),
+
+
+
+  # Efficiency tables ----------------------------------------------------------
+
+  # Dependencies among MachineData targets:
   #
-  #
-  #
-  # # Efficiency tables ----------------------------------------------------------
-  #
-  # # Dependencies among MachineData targets:
-  # #
-  # #                        AllMachineData             MachineData             CompletedEfficiencyTables
-  # #                         ^                          ^                       ^
-  # #                         |                          |                       |
-  # #                         |                          |                       |
-  # # MachineDataPath -----> AllMachineDataLocal -----> MachineDataLocal -----> CompletedEfficiencyTablesLocal
-  #
+  # AllMachineData ---> MachineData ---> CompletedEfficiencyTables
+  #  ^
+  #  |
+  #  |
+  # MachineDataPath
+
   ## MachineDataPath
   targets::tar_target_raw(
     "MachineDataPath",
@@ -359,7 +359,7 @@ list(
                        fk_parent_tables = FKTables)),
 
   ## MachineData
-  tarchetypes::tar_group_by(
+  targets::tar_target(
     MachineData,
     PFUPipelineTools::inboard_filter_copy(source = "AllMachineData",
                                           dest = db_table_name,
@@ -368,21 +368,24 @@ list(
                                           empty_dest = TRUE,
                                           in_place = TRUE,
                                           dependencies = AllMachineData,
-                                          conn = conn),
-    Country),
+                                          conn = conn)),
 
-  # ## CompletedEfficiencyTablesLocal
-  # targets::tar_target(
-  #   CompletedEfficiencyTablesLocal,
-  #   assemble_eta_fu_tables(incomplete_eta_fu_tables = MachineDataLocal,
-  #                          exemplar_lists = ExemplarLists,
-  #                          completed_fu_allocation_tables = CompletedAllocationTablesLocal,
-  #                          dataset = clpfu_dataset,
-  #                          countries = Countries,
-  #                          years = Years,
-  #                          which_quantity = IEATools::template_cols$eta_fu),
-  #   pattern = map(Countries)),
-  #
+  ## CompletedEfficiencyTables
+  targets::tar_target(
+    CompletedEfficiencyTables,
+    assemble_eta_fu_tables(incomplete_eta_fu_tables = MachineData,
+                           exemplar_lists = ExemplarLists,
+                           completed_fu_allocation_tables = CompletedAllocationTables,
+                           countries = Countries,
+                           years = Years,
+                           dataset = clpfu_dataset,
+                           db_table_name = db_table_name,
+                           conn = conn,
+                           schema = DM,
+                           fk_parent_tables = FKTables,
+                           which_quantity = IEATools::template_cols$eta_fu),
+    pattern = map(Countries))
+
   # ## CompletedEfficiencyTables
   # targets::tar_target(
   #   CompletedEfficiencyTables,
