@@ -343,6 +343,14 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 #' @param countries The countries for which **C** matrices should be formed.
 #' @param matrix_class The type of matrix that should be produced.
 #'                     One of "matrix" (the default and not sparse) or "Matrix" (which may be sparse).
+#' @param dataset The name of the dataset to which these data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
 #' @param country,year See `IEATools::iea_cols`.
 #' @param c_source,.values,C_Y,C_EIOU See `IEATools::template_cols`.
 #'
@@ -351,38 +359,50 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 #' @export
 calc_C_mats <- function(completed_allocation_tables,
                         countries,
-                        matrix_class = c("matrix", "Matrix"),
+                        matrix_class = "Matrix",
+                        dataset,
+                        db_table_name,
+                        conn,
+                        schema = PFUPipelineTools::schema_from_conn(conn),
+                        fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                         country = IEATools::iea_cols$country,
                         year = IEATools::iea_cols$year,
                         c_source = IEATools::template_cols$c_source,
                         .values = IEATools::template_cols$.values,
                         C_Y = IEATools::template_cols$C_Y,
-                        C_EIOU  = IEATools::template_cols$C_eiou) {
-  matrix_class <- match.arg(matrix_class)
+                        C_EIOU  = IEATools::template_cols$C_eiou,
+                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+
   tables <- completed_allocation_tables |>
-    # dplyr::filter(.data[[country]] %in% countries) |>
+    dplyr::filter(.data[[country]] %in% countries) |>
+    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::mutate(
       # Eliminate the c_source column (if it exists) before sending
       # the completed_allocation_tables into form_C_mats().
       # The c_source column applies to individual C values, and we're making matrices out of them.
       # In other words, form_C_mats() doesn't know what to do with that column.
-      "{c_source}" := NULL
+      "{c_source}" := NULL,
+      # Remove the Dataset column
+      "{dataset_colname}" := NULL
     ) |>
     # Need to form C matrices from completed_allocation_tables.
     # Use the IEATools::form_C_mats() function for this task.
     # The function accepts a tidy data frame in addition to wide-by-year data frames.
-    IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                # # We need to keep the table name
-                                # additional_hash_group_cols = c(PFUPipelineTools::hashed_table_colnames$db_table_name,
-                                #                                PFUPipelineTools::additional_hash_group_cols),
-                                # # Don't keep single unique columns,
-                                # # because groups may have different columns
-                                # # with single unique values.
-                                # keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class) # |>
+    # PFUPipelineTools::pl_upsert(in_place = TRUE,
+    #                             db_table_name = db_table_name,
+    #                             # # We need to keep the table name
+    #                             # additional_hash_group_cols = c(PFUPipelineTools::hashed_table_colnames$db_table_name,
+    #                             #                                PFUPipelineTools::additional_hash_group_cols),
+    #                             # # Don't keep single unique columns,
+    #                             # # because groups may have different columns
+    #                             # # with single unique values.
+    #                             # keep_single_unique_cols = FALSE,
+    #                             conn = conn,
+    #                             schema = schema,
+    #                             fk_parent_tables = fk_parent_tables)
 
 }
