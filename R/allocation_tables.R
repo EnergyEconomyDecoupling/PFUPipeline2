@@ -335,12 +335,12 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 
 #' Add allocation matrices to a data frame
 #'
-#' This function adds allocation matrices (`C_Y` and `C_EIOU`) to the previously-created
+#' This function adds allocation matrices (**C_Y** and **C_EIOU**) to the previously-created
 #' `CompletedAllocationTables` target.
 #'
-#' @param completed_allocation_tables The completed allocation tables from which allocation (`C`) matrices should be created.
+#' @param completed_allocation_tables The completed allocation tables from which allocation (**C**) matrices should be created.
 #'                                    This data frame is most likely to be the `CompletedAllocationTables` target.
-#' @param countries The countries for which `C` matrices should be formed.
+#' @param countries The countries for which **C** matrices should be formed.
 #' @param matrix_class The type of matrix that should be produced.
 #'                     One of "matrix" (the default and not sparse) or "Matrix" (which may be sparse).
 #' @param country,year See `IEATools::iea_cols`.
@@ -359,17 +359,30 @@ calc_C_mats <- function(completed_allocation_tables,
                         C_Y = IEATools::template_cols$C_Y,
                         C_EIOU  = IEATools::template_cols$C_eiou) {
   matrix_class <- match.arg(matrix_class)
-  tables <- completed_allocation_tables %>%
-    dplyr::filter(.data[[country]] %in% countries) %>%
+  tables <- completed_allocation_tables |>
+    # dplyr::filter(.data[[country]] %in% countries) |>
     dplyr::mutate(
       # Eliminate the c_source column (if it exists) before sending
       # the completed_allocation_tables into form_C_mats().
       # The c_source column applies to individual C values, and we're making matrices out of them.
       # In other words, form_C_mats() doesn't know what to do with that column.
       "{c_source}" := NULL
-    )
-  # Need to form C matrices from completed_allocation_tables.
-  # Use the IEATools::form_C_mats() function for this task.
-  # The function accepts a tidy data frame in addition to wide-by-year data frames.
-  IEATools::form_C_mats(tables, matvals = .values, matrix_class = matrix_class)
+    ) |>
+    # Need to form C matrices from completed_allocation_tables.
+    # Use the IEATools::form_C_mats() function for this task.
+    # The function accepts a tidy data frame in addition to wide-by-year data frames.
+    IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class) |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                # # We need to keep the table name
+                                # additional_hash_group_cols = c(PFUPipelineTools::hashed_table_colnames$db_table_name,
+                                #                                PFUPipelineTools::additional_hash_group_cols),
+                                # # Don't keep single unique columns,
+                                # # because groups may have different columns
+                                # # with single unique values.
+                                # keep_single_unique_cols = FALSE,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
+
 }

@@ -408,5 +408,4 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
-
 }

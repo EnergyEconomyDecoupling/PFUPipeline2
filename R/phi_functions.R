@@ -303,4 +303,14 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
     return(phi_u_table)
   }) |>
     dplyr::bind_rows()
+
+  completed_phi_tables_by_year |>
+    dplyr::mutate(
+      "{dataset_colname}" := dataset
+    ) |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
 }

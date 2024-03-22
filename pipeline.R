@@ -282,7 +282,7 @@ list(
 
   # Dependencies among AllocationTable targets:
   #
-  # IncompleteAllocationTables ---> CompletedAllocationTables
+  # IncompleteAllocationTables ---> CompletedAllocationTables ---> Cmats
   #  ^
   #  |
   #  |
@@ -325,10 +325,10 @@ list(
   # ## Cmats
   # targets::tar_target(
   #   Cmats,
-  #   calc_C_mats(completed_allocation_tables = CompletedAllocationTablesLocal,
+  #   calc_C_mats(completed_allocation_tables = CompletedAllocationTables,
   #               countries = Countries,
   #               matrix_class = "Matrix"),
-  #   pattern = map(Countries)),
+  #   pattern = map(CompletedAllocationTables)),
 
 
 
