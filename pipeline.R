@@ -403,7 +403,23 @@ list(
                     db_table_name = db_table_name,
                     conn = conn,
                     schema = DM,
-                    fk_parent_tables = FKTables))
+                    fk_parent_tables = FKTables)),
+
+  ## CompletedPhiuTables
+  targets::tar_target(
+    CompletedPhiuTables,
+    assemble_phi_u_tables(incomplete_phi_u_table = MachineData,
+                          phi_constants_table = PhiConstants,
+                          completed_efficiency_table = CompletedEfficiencyTables,
+                          countries = Countries,
+                          years = Years,
+                          dataset = clpfu_dataset,
+                          db_table_name = db_table_name,
+                          conn = conn,
+                          schema = DM,
+                          fk_parent_tables = FKTables),
+    pattern = map(Countries))
+
 
 ) |>
 

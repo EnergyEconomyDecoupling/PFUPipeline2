@@ -189,15 +189,6 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           complete_alloc_tables = PFUPipelineTools::exemplar_names$complete_alloc_table,
                                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
-  # The incomplete tables are easier to deal with when they are tidy.
-  # tidy_incomplete_allocation_tables <- IEATools::tidy_fu_allocation_table(incomplete_allocation_tables) |>
-  #   dplyr::filter(.data[[year]] %in% years) |>
-  #   dplyr::mutate(
-  #     # Eliminate the dataset column for now.
-  #     "{dataset_colname}" := NULL
-  #   ) |>
-  #   PFUPipelineTools::tar_ungroup()
-
   tidy_incomplete_allocation_tables <- incomplete_allocation_tables |>
     dplyr::filter(.data[[year]] %in% years) |>
     PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
