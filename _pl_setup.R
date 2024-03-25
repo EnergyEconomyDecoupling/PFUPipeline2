@@ -10,7 +10,7 @@
 
 countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
-# countries <- "GHA"
+countries <- "GHA"
 # countries <- c("GHA", "ZAF")
 # countries <- "WRLD"
 # countries <- c("USA", "WRLD")
@@ -23,7 +23,7 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # Set the years for IEA data analysis
 years <- 1960:2020
 # years <- 1971:1972
-# years <- 1971
+years <- 1971
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -63,7 +63,7 @@ if (parallel::detectCores() == 10) {
 # For parallel processing
 crew_controller <- crew::crew_controller_local(workers = worker_threads)
 # For debugging in a single thread
-# crew_controller <- NULL
+crew_controller <- NULL
 
 
 #
