@@ -130,7 +130,7 @@ clpfu_setup_paths <- list(
                             "IEA extended energy balance data",
                             paste("IEA", iea_year, "energy balance data"),
                             paste("IEA Extended Energy Balances", iea_year, "(TJ).csv")),
-  schema_path = file.path(input_data_path, "SchemaAndSimpleTables.xlsx"),
+  schema_path = file.path(input_data_path, "SchemaAndFKTables.xlsx"),
   fao_data_path = file.path(input_data_path, "fao_qcl_data.rds"),
   ilo_employment_data_path = file.path(input_data_path, "ilo_employment_data.rds"),
   ilo_working_hours_data_path = file.path(input_data_path, "ilo_working_hours_data.rds"),
