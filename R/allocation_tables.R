@@ -353,6 +353,8 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 #'                         See details.
 #' @param country,year See `IEATools::iea_cols`.
 #' @param c_source,.values,C_Y,C_EIOU See `IEATools::template_cols`.
+#' @param industry_type,product_type See `IEATools::row_col_types`.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A data frame with `C_Y` and `C_EIOU` columns containing allocation matrices.
 #'
@@ -371,6 +373,8 @@ calc_C_mats <- function(completed_allocation_tables,
                         .values = IEATools::template_cols$.values,
                         C_Y = IEATools::template_cols$C_Y,
                         C_EIOU  = IEATools::template_cols$C_eiou,
+                        industry_type = IEATools::row_col_types$industry,
+                        product_type = IEATools::row_col_types$product,
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
   tables <- completed_allocation_tables |>
@@ -392,6 +396,16 @@ calc_C_mats <- function(completed_allocation_tables,
     # Use the IEATools::form_C_mats() function for this task.
     # The function accepts a tidy data frame in addition to wide-by-year data frames.
     IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class) |>
+    dplyr::mutate(
+      # Rowtype is Product -> Industry; coltype is Industry -> Product.
+      # That's accurate, but it will not pick up the Industry and Product types
+      # stored in the database.
+      # Electricity -> Residential (a row name) is stored in the Product table.
+      # Electric lamps -> L (a column name) is stored in the Industry table.
+      # Change rowtype to Product and coltype to Industry to enable indexing.
+      "{C_Y}" := .data[[C_Y]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
+      "{C_EIOU}" := .data[[C_EIOU]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type)
+    ) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
                                 db_table_name = db_table_name,
                                 # # We need to keep the table name
