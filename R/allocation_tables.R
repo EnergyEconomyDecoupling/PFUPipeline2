@@ -400,12 +400,17 @@ calc_C_mats <- function(completed_allocation_tables,
       # Rowtype is Product -> Industry; coltype is Industry -> Product.
       # That's accurate, but it will not pick up the Industry and Product types
       # stored in the database.
-      # Electricity -> Residential (a row name) is stored in the Product table.
-      # Electric lamps -> L (a column name) is stored in the Industry table.
-      # Change rowtype to Product and coltype to Industry to enable indexing.
+      # Electricity -> Residential (a row name) is stored in the Product table of the database.
+      # Electric lamps -> L (a column name) is stored in the Industry table of the database.
+      # Change rowtype to Product and coltype to Industry to enable indexing
+      # and upload to the database.
       "{C_Y}" := .data[[C_Y]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
-      "{C_EIOU}" := .data[[C_EIOU]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type)
+      "{C_EIOU}" := .data[[C_EIOU]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
+      # Set the dataset column
+      "{dataset_colname}" := dataset
     ) |>
+    # Move the dataset column to the front
+    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
                                 db_table_name = db_table_name,
                                 # # We need to keep the table name
@@ -418,5 +423,4 @@ calc_C_mats <- function(completed_allocation_tables,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
-
 }
