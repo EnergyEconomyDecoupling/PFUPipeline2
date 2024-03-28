@@ -377,7 +377,9 @@ calc_C_mats <- function(completed_allocation_tables,
                         product_type = IEATools::row_col_types$product,
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
-  tables <- completed_allocation_tables |>
+  browser()
+
+  Cmats <- completed_allocation_tables |>
     dplyr::filter(.data[[country]] %in% countries) |>
     PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
                                            conn = conn,
@@ -395,23 +397,38 @@ calc_C_mats <- function(completed_allocation_tables,
     # Need to form C matrices from completed_allocation_tables.
     # Use the IEATools::form_C_mats() function for this task.
     # The function accepts a tidy data frame in addition to wide-by-year data frames.
-    IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class) |>
+    IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class)
+
+  # Rowtype of C_Y and C_EIOU is Product -> Industry; coltype is Industry -> Product.
+  # That's accurate, but it will not pick up the Industry and Product types
+  # stored in the database.
+  # Electricity -> Residential (a row name) is stored in the Product table of the database.
+  # Electric lamps -> L (a column name) is stored in the Industry table of the database.
+  # Change rowtype to Product and coltype to Industry to enable indexing
+  # and upload to the database.
+  # But only change the types if the column exists.
+  # Some countries never have any EIOU, for example, and C_EIOU will be missing.
+  if (C_Y %in% colnames(Cmats)) {
+    Cmats <- Cmats |>
+      dplyr::mutate(
+        "{C_Y}" := .data[[C_Y]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
+      )
+  }
+  if (C_EIOU %in% colnames(Cmats)) {
+    Cmats <- Cmats |>
+      dplyr::mutate(
+        "{C_EIOU}" := .data[[C_EIOU]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
+      )
+  }
+  Cmats |>
     dplyr::mutate(
-      # Rowtype is Product -> Industry; coltype is Industry -> Product.
-      # That's accurate, but it will not pick up the Industry and Product types
-      # stored in the database.
-      # Electricity -> Residential (a row name) is stored in the Product table of the database.
-      # Electric lamps -> L (a column name) is stored in the Industry table of the database.
-      # Change rowtype to Product and coltype to Industry to enable indexing
-      # and upload to the database.
-      "{C_Y}" := .data[[C_Y]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
-      "{C_EIOU}" := .data[[C_EIOU]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
       # Set the dataset column
       "{dataset_colname}" := dataset
     ) |>
     # Move the dataset column to the front
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                keep_single_unique_cols = FALSE,
                                 db_table_name = db_table_name,
                                 conn = conn,
                                 schema = schema,
