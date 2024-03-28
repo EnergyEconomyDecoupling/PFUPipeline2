@@ -41,6 +41,17 @@ list(
     FKTables,
     SetDMAndFKTables[["fk_tables"]]),
 
+  ## matnameRCType
+  #  Get the mapping between matrix names and row/col types
+  #  for later downloading matsindf data frames
+  targets::tar_target(
+    MatnameRCType,
+    PFUPipelineTools::pl_filter_collect("matnameRCType",
+                                        conn = conn,
+                                        collect = TRUE,
+                                        schema = DM,
+                                        fk_parent_tables = FKTables)),
+
 
   # ExemplarTable --------------------------------------------------------------
 
