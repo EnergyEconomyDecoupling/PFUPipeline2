@@ -216,7 +216,7 @@ read_all_eta_files <- function(eta_fin_paths,
 #' @param country,method,energy_type,last_stage,year,unit,e_dot See `IEATools::iea_cols`.
 #' @param machine,eu_product,eta_fu,phi_u,c_source,eta_fu_source,e_dot_machine,e_dot_machine_perc,quantity,maximum_values,e_dot_perc,.values See `IEATools::template_cols`.
 #' @param exemplars,exemplar_tables,alloc_data,incomplete_eta_tables,complete_eta_tables See `PFUPipelineTools::exemplar_names`.
-#' @param dataset See `PFUPipelineTools::dataset_info`.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A tidy data frame containing completed final-to-useful efficiency tables.
 #'

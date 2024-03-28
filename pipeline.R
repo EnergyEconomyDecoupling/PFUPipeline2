@@ -433,7 +433,25 @@ list(
                           conn = conn,
                           schema = DM,
                           fk_parent_tables = FKTables),
+    pattern = map(Countries)),
+
+
+  # eta and phi vectors --------------------------------------------------------
+
+  ## EtafuPhiuvecs
+  targets::tar_target(
+    EtafuPhiuvecs,
+    calc_eta_fu_phi_u_vecs(completed_efficiency_tables = CompletedEfficiencyTables,
+                           completed_phi_tables = CompletedPhiuTables,
+                           countries = Countries,
+                           dataset = clpfu_dataset,
+                           db_table_name = db_table_name,
+                           conn = conn,
+                           schema = DM,
+                           fk_parent_tables = FKTables,
+                           matrix_class = matrix_class),
     pattern = map(Countries))
+
 
 
 ) |>
