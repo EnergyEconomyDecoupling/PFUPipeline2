@@ -26,6 +26,7 @@
 #' @param country,year See `IEATools::ieacols`.
 #' @param c_source,eta_fu_source,.values,eta_fu,phi_u See `IEATools::template_cols`.
 #' @param phi_u_source See `IEATools::phi_constants_names`.
+#' @param industry_type,product_type,other_type See `IEATools::row_col_types`.
 #' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A data frame with `eta_fu` and `phi_u` vectors added as columns.
@@ -39,7 +40,7 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                    conn,
                                    schema = PFUPipelineTools::schema_from_conn(conn),
                                    fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
-                                   matrix_class = c("matrix", "Matrix"),
+                                   matrix_class = "Matrix",
                                    country = IEATools::iea_cols$country,
                                    year = IEATools::iea_cols$year,
                                    c_source = IEATools::template_cols$c_source,
@@ -48,8 +49,10 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                    eta_fu = IEATools::template_cols$eta_fu,
                                    phi_u = IEATools::template_cols$phi_u,
                                    phi_u_source = IEATools::phi_constants_names$phi_source_colname,
+                                   industry_type = IEATools::row_col_types$industry,
+                                   product_type = IEATools::row_col_types$product,
+                                   other_type = IEATools::row_col_types$other,
                                    dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
-  matrix_class <- match.arg(matrix_class)
 
   # Filter the incoming hash tables by country and
   # collect from the database
@@ -64,9 +67,11 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                            schema = schema,
                                            fk_parent_tables = fk_parent_tables)
 
+  browser()
+
+
   lapply(list(completed_efficiency_tables, completed_phi_tables), function(t) {
     t |>
-      dplyr::filter(.data[[country]] %in% countries) |>
       dplyr::mutate(
         # Eliminate the c_source, eta_fu_source, and phi_u_source columns
         # (if they exists) before sending
@@ -86,15 +91,27 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
     # Use the IEATools::form_eta_fu_phi_u_vecs() function for this task.
     # The function accepts a tidy data frame in addition to wide-by-year data frames.
     IEATools::form_eta_fu_phi_u_vecs(matvals = .values, matrix_class = matrix_class) |>
-    # Add the dataset column
     dplyr::mutate(
+      # Rowtype of etafu is Industry -> Product; coltype is etafu.
+      # Coltype of phiu is phiu.
+      # That's accurate, but it will not pick up the Industry and Product types
+      # stored in the database.
+      # For example,
+      # Electric lamps -> L (a row name) in etafu is stored in the Industry table of the database.
+      # Electricity -> Residential (a row name) in phiu is stored in the Product table of the database.
+      # Change rowtype to Industry for etafu.
+      # Coltype for both should be "Other", because these are column vectors.
+      # Doing so enables indexing in the database.
+      "{eta_fu}" := .data[[eta_fu]] |> matsbyname::setrowtype(industry_type) |> matsbyname::setcoltype(other_type),
+      "{phi_u}" := .data[[phi_u]] |> matsbyname::setcoltype(other_type),
+      # Add the dataset column
       "{dataset_colname}" := dataset
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                keep_single_unique_cols = FALSE,
                                 db_table_name = db_table_name,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
-
 }
