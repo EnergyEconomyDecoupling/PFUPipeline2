@@ -377,8 +377,6 @@ calc_C_mats <- function(completed_allocation_tables,
                         product_type = IEATools::row_col_types$product,
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
-  browser()
-
   Cmats <- completed_allocation_tables |>
     dplyr::filter(.data[[country]] %in% countries) |>
     PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
@@ -402,6 +400,7 @@ calc_C_mats <- function(completed_allocation_tables,
   # Rowtype of C_Y and C_EIOU is Product -> Industry; coltype is Industry -> Product.
   # That's accurate, but it will not pick up the Industry and Product types
   # stored in the database.
+  # For example,
   # Electricity -> Residential (a row name) is stored in the Product table of the database.
   # Electric lamps -> L (a column name) is stored in the Industry table of the database.
   # Change rowtype to Product and coltype to Industry to enable indexing
