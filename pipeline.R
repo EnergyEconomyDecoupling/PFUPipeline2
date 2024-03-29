@@ -449,6 +449,32 @@ list(
                            conn = conn,
                            schema = DM,
                            fk_parent_tables = FKTables),
+    pattern = map(Countries)),
+
+  ## Etafuvecs
+  targets::tar_target(
+    Etafuvecs,
+    sep_eta_fu_phi_u(EtafuPhiuvecs,
+                     keep = IEATools::template_cols$eta_fu,
+                     countries = Countries,
+                     dataset = clpfu_dataset,
+                     db_table_name = db_table_name,
+                     conn = conn,
+                     schema = DM,
+                     fk_parent_tables = FKTables),
+    pattern = map(Countries)),
+
+  ## Phiuvecs
+  targets::tar_target(
+    Phiuvecs,
+    sep_eta_fu_phi_u(EtafuPhiuvecs,
+                     keep = IEATools::template_cols$phi_u,
+                     countries = Countries,
+                     dataset = clpfu_dataset,
+                     db_table_name = db_table_name,
+                     conn = conn,
+                     schema = DM,
+                     fk_parent_tables = FKTables),
     pattern = map(Countries))
 
 

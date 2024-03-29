@@ -389,6 +389,7 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
   # The only information we need to return is the completed efficiency tables.
   # Expand (un-nest) only the completed efficiency table column to give one data frame of all the FU efficiencies
   # for all years and all countries.
+
   completed_tables_by_year |>
     dplyr::select(dplyr::all_of(complete_eta_tables)) |>
     tidyr::unnest(cols = dplyr::all_of(complete_eta_tables)) |>
@@ -397,9 +398,6 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                # We need to keep the table name
-                                additional_hash_group_cols = c(PFUPipelineTools::hashed_table_colnames$db_table_name,
-                                                               PFUPipelineTools::additional_hash_group_cols),
                                 # Don't keep single unique columns,
                                 # because groups may have different columns
                                 # with single unique values.

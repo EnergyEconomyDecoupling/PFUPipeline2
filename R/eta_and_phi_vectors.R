@@ -67,9 +67,6 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                            schema = schema,
                                            fk_parent_tables = fk_parent_tables)
 
-  browser()
-
-
   lapply(list(completed_efficiency_tables, completed_phi_tables), function(t) {
     t |>
       dplyr::mutate(
@@ -109,9 +106,81 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                keep_single_unique_cols = FALSE,
                                 db_table_name = db_table_name,
+                                # Don't keep single unique columns,
+                                # because groups may have different columns
+                                # with single unique values.
+                                keep_single_unique_cols = FALSE,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
+}
+
+
+#' Choose etafu or phiu columns from a data frame of etafu and phiu vectors
+#'
+#' @param eta_fu_phi_u_vecs A hashed data frame containing metadata columns and columns for
+#'                          etafu (final to useful efficiency) and
+#'                          phiu (exergy-to-energy efficiency ratios).
+#' @param keep Tells which column to keep, etafu or phiu.
+#'             Must be one of `IEATools::template_cols$eta_fu` or `IEATools::template_cols$phi_u`.
+#' @param countries The countries on which this operation should be accomplished.
+#' @param dataset The name of the dataset to which these data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
+#' @param country The name of the Country column.
+#'                Default is `IEATools::iea_cols$country`.
+#' @param eta_fu_colname,phi_u_colname See `IEATools::template_cols`.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
+#'
+#' @return A data frame of metadata and either an eta_fu column or a phi_u column
+#'
+#' @export
+sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
+                             keep = c(IEATools::template_cols$eta_fu,
+                                      IEATools::template_cols$phi_u),
+                             countries,
+                             dataset,
+                             db_table_name,
+                             conn,
+                             schema = PFUPipelineTools::schema_from_conn(conn),
+                             fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
+                             country = IEATools::iea_cols$country,
+                             eta_fu_colname = IEATools::template_cols$eta_fu,
+                             phi_u_colname = IEATools::template_cols$phi_u,
+                             dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+
+  keep <- match.arg(keep, several.ok = FALSE)
+  out <- eta_fu_phi_u_vecs |>
+    dplyr::filter(.data[[country]] %in% countries) |>
+    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables)
+  if (keep == IEATools::template_cols$eta_fu) {
+    col_to_delete <- phi_u_colname
+  } else {
+    col_to_delete <- eta_fu_colname
+  }
+  out |>
+    dplyr::mutate(
+      "{col_to_delete}" := NULL,
+      "{dataset_colname}" := dataset
+    ) |>
+    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                # Don't keep single unique columns,
+                                # because groups may have different columns
+                                # with single unique values.
+                                keep_single_unique_cols = FALSE,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
+
 }
