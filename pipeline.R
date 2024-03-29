@@ -448,8 +448,7 @@ list(
                            db_table_name = db_table_name,
                            conn = conn,
                            schema = DM,
-                           fk_parent_tables = FKTables,
-                           matrix_class = matrix_class),
+                           fk_parent_tables = FKTables),
     pattern = map(Countries))
 
 
