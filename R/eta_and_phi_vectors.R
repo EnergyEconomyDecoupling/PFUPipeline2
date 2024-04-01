@@ -13,6 +13,7 @@
 #'                             should be created.
 #'                             This data frame is most likely to be the `CompletedPhiTables` target.
 #' @param countries The countries for which `eta_fu` and `phi_u` vectors should be formed.
+#' @param index_map A data frame of row and column indices.
 #' @param dataset The name of the dataset to which these data belong.
 #' @param db_table_name The name of the specified IEA data table in `conn`.
 #' @param conn The database connection.
@@ -35,6 +36,7 @@
 calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                    completed_phi_tables,
                                    countries,
+                                   index_map,
                                    dataset,
                                    db_table_name,
                                    conn,
@@ -105,7 +107,8 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
       "{dataset_colname}" := dataset
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
+    PFUPipelineTools::pl_upsert(index_map = index_map,
+                                in_place = TRUE,
                                 db_table_name = db_table_name,
                                 # Don't keep single unique columns,
                                 # because groups may have different columns
@@ -183,7 +186,8 @@ sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
       "{dataset_colname}" := dataset
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
+    PFUPipelineTools::pl_upsert(index_map = index_map,
+                                in_place = TRUE,
                                 db_table_name = db_table_name,
                                 # Don't keep single unique columns,
                                 # because groups may have different columns
@@ -302,7 +306,7 @@ calc_phi_pf_vecs <- function(phi_constants,
         "{phi_pf_colname}" := list()
       )
   } else {
-    out <- trimmed_phi_u_vecs %>%
+    out <- trimmed_phi_u_vecs |>
       dplyr::mutate(
         # Add a column of phi_pf vectors
         "{phi_pf_colname}" := RCLabels::make_list(phi_pf_vec,
@@ -316,6 +320,231 @@ calc_phi_pf_vecs <- function(phi_constants,
       "{dataset_colname}" := dataset
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                index_map = index_map,
+                                # Don't keep single unique columns,
+                                # because groups may have different columns
+                                # with single unique values.
+                                keep_single_unique_cols = FALSE,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
+}
+
+
+#' Sums phi_pf and phi_u vectors
+#'
+#' This function verifies that there are no rows in common between the
+#' two input vectors.
+#'
+#' @param phi_pf_vecs A data frame of phi_pf vectors.
+#' @param phi_u_vecs A data frame of phi_u vectors.
+#' @param countries The countries for which you want to perform this task.
+#' @param dataset The name of the dataset to which these data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param index_map A list of data frames to assist with decoding matrices.
+#'                  Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
+#'                  but otherwise not needed.
+#' @param rctypes A data frame of row and column types.
+#'                Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
+#'                but otherwise not needed.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
+#' @param matrix_class A string that tells which type of matrix to create,
+#'                     a "matrix" (the built-in type) or a "Matrix" (could be sparse).
+#'                     Default is "matrix".
+#' @param country,last_stage,energy_type,method See `IEATools::iea_cols`.
+#' @param phi_pf_colname,phi_u_colname See `IEATools::template_cols`.
+#' @param phi_colname See `IEATools::phi_constants_names`.
+#' @param .nrow_diffs,.phi_shape_OK,.phi_names_OK,.phi_cols_OK,.phi_sum_OK,.phi_pf_colnames,.phi_u_colnames Names of temporary error-checking columns created internally.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
+#'
+#' @return A data frame of summed phi_pf and phi_u vectors.
+#'
+#' @export
+#'
+#' @examples
+#' phi_pf_vec <- matrix(c(1.1,
+#'                        1.05), nrow = 2, ncol = 1,
+#'                      dimnames = list(c("Coal", "Oil"), "phi"))
+#' # Make a data frame of phi_pf vectors
+#' phi_pf <- tibble::tibble(phi.pf = RCLabels::make_list(phi_pf_vec, n = 2, lenx = 1),
+#'                          Country = "GHA",
+#'                          Year = c(1971, 2000))
+#' phi_u_vec <- matrix(c(0.8,
+#'                       0.9,
+#'                       0.7), nrow = 3, ncol = 1,
+#'                     dimnames = list(c("Light", "MD", "Propulsion"), "phi"))
+#' phi_u <- tibble::tibble(phi.u = RCLabels::make_list(phi_u_vec, n = 2, lenx = 1),
+#'                         Country = "GHA",
+#'                         Year = c(1971, 2000))
+#' sum_phi_vecs(phi_pf, phi_u, countries = "GHA")
+sum_phi_vecs <- function(phi_pf_vecs,
+                         phi_u_vecs,
+                         countries,
+                         dataset,
+                         db_table_name,
+                         index_map,
+                         rctypes,
+                         conn,
+                         schema = PFUPipelineTools::schema_from_conn(conn),
+                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
+                         matrix_class = "Matrix",
+                         country = IEATools::iea_cols$country,
+                         last_stage = IEATools::iea_cols$last_stage,
+                         energy_type = IEATools::iea_cols$energy_type,
+                         method = IEATools::iea_cols$method,
+                         phi_pf_colname = IEATools::template_cols$phi_pf,
+                         phi_u_colname = IEATools::template_cols$phi_u,
+                         phi_colname = IEATools::phi_constants_names$phi_colname,
+                         .nrow_diffs = ".nrow_diffs",
+                         .phi_shape_OK = ".phi_shape_OK",
+                         .phi_names_OK = ".phi_names_OK",
+                         .phi_cols_OK = ".phi_cols_OK",
+                         .phi_sum_OK = ".phi_sum_OK",
+                         .phi_pf_colnames = ".phi_pf_colnames",
+                         .phi_u_colnames = ".phi_u_colnames",
+                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+
+  # Download the phi_pf_vecs and phi_u_vecs data frames from the database
+  phi_pf_vecs <- phi_pf_vecs |>
+    dplyr::filter(.data[[country]] %in% countries) |>
+    PFUPipelineTools::pl_collect_from_hash(index_map = index_map,
+                                           rctypes = rctypes,
+                                           set_tar_group = FALSE,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables)
+  phi_u_vecs <- phi_u_vecs |>
+    dplyr::filter(.data[[country]] %in% countries) |>
+    PFUPipelineTools::pl_collect_from_hash(index_map = index_map,
+                                           rctypes = rctypes,
+                                           set_tar_group = FALSE,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables)
+
+  temp <- dplyr::full_join(phi_pf_vecs,
+                           phi_u_vecs,
+                           by = matsindf::everything_except(phi_pf_vecs, phi_pf_colname) |>
+                             as.character()) |>
+    dplyr::filter(.data[[country]] %in% countries)
+  if (nrow(temp) == 0) {
+    out <- temp |>
+      # Add an empty list column that would otherwise contain vectors.
+      dplyr::mutate(
+        "{phi_colname}" := list()
+      )
+  } else {
+    # This line works around a weird bug that prevents
+    # ncol_byname from working correctly.
+    # Seemingly, the Matrix class needs to be pinged
+    # before the following code works correctly.
+    m <- matsbyname::Matrix(42)
+
+    phi_df <- temp |>
+      dplyr::mutate(
+        # Check that all phi vectors have 1 column.
+        "{.phi_shape_OK}" := (matsbyname::ncol_byname(.data[[phi_pf_colname]]) == 1) &
+          (matsbyname::ncol_byname(.data[[phi_u_colname]]) == 1)
+      )
+    if (! all(phi_df[[.phi_shape_OK]])) {
+      # Prepare an error message.
+      bad_rows <- phi_df |>
+        dplyr::filter(!.data[[.phi_shape_OK]])
+      err_msg <- paste("In sum_phi_vecs(), need phi vectors with one column only. These vectors are bad:", matsindf::df_to_msg(bad_rows))
+      stop(err_msg)
+    }
+
+    out <- phi_df |>
+      dplyr::mutate(
+        "{phi_colname}" := matsbyname::sum_byname(.data[[phi_pf_colname]], .data[[phi_u_colname]]),
+        "{.phi_shape_OK}" := NULL
+      )
+
+    # Check that the length of each phi vector is the sum of the lengths of the phi_pf and phi_u vectors.
+    # If not, there are duplicate rows in the vectors, which should be an error.
+    # There should be no primary-final energy carriers that are also useful energy carriers.
+    # Also check that the result of the sum is a single column.
+    # If we get 2 or more columns, it means that the column names were different for phi_pf and phi_u,
+    # which is an error.
+
+    err_check <- out |>
+      dplyr::mutate(
+        "{.nrow_diffs}" := matsbyname::nrow_byname(.data[[phi_pf_colname]]) |> as.numeric() +
+          matsbyname::nrow_byname(.data[[phi_u_colname]]) |> as.numeric() -
+          matsbyname::nrow_byname(.data[[phi_colname]]) |> as.numeric(),
+        "{.phi_sum_OK}" := matsbyname::iszero_byname(.data[[.nrow_diffs]]),
+        "{.phi_cols_OK}" := matsbyname::ncol_byname(.data[[phi_colname]]) == 1
+      )
+
+    if (!all(err_check[[.phi_sum_OK]])) {
+      # There is a problem.
+      problem_rows <- err_check |>
+        dplyr::filter(!.data[[.phi_sum_OK]]) |>
+        dplyr::mutate(
+          "{.nrow_diffs}" := NULL,
+          "{.phi_sum_OK}" := NULL,
+          "{.phi_cols_OK}" := NULL,
+          "{phi_pf_colname}" := NULL,
+          "{phi_u_colname}" := NULL,
+          "{phi_colname}" := NULL
+        )
+
+      err_msg <- paste("In PFUPipeline::sum_phi_vecs(), the length of the sum of phi_pf and phi_u vectors",
+                       "was not the same as the sum of vector lengths. The rows that failed the test are",
+                       matsindf::df_to_msg(problem_rows))
+      stop(err_msg)
+    }
+    if (!all(err_check[[.phi_cols_OK]])) {
+      # There is a problem.
+      problem_rows <- err_check |>
+        dplyr::filter(!.data[[.phi_cols_OK]]) |>
+        dplyr::mutate(
+          "{phi_pf_colname}" := paste(phi_pf_colname, "=", matsbyname::getcolnames_byname(.data[[phi_pf_colname]])),
+          "{phi_u_colname}" := paste(phi_u_colname, "=", matsbyname::getcolnames_byname(.data[[phi_u_colname]])),
+          "{.nrow_diffs}" := NULL,
+          "{.phi_sum_OK}" := NULL,
+          "{.phi_cols_OK}" := NULL,
+          "{phi_colname}" := NULL
+        )
+      err_msg <- paste("In PFUPipeline::sum_phi_vecs(), the names of the phi.pf and phi.u columns should be the same.",
+                       "Rows that failed the test are",
+                       matsindf::df_to_msg(problem_rows))
+      stop(err_msg)
+    }
+  }
+
+  out |>
+    dplyr::mutate(
+      # Delete the columns we no longer need.
+      # These are not relevant
+      # The output works for energy at all stages of the energy conversion chain,
+      # so we don't need to track last stage.
+      "{last_stage}" := NULL,
+      # This function converts from energy to exergy, so we
+      # should remove dependence on energy type.
+      "{energy_type}" := NULL,
+      # This function work for any method of counting the primary energy of renewable electricity.
+      # Once we have the primary energy of renewable electricity,
+      # this function will have identified the exergy-to-energy ratio associated with that
+      # primary energy carrier.
+      "{method}" := NULL,
+      # These were temporary columns
+      "{phi_pf_colname}" := NULL,
+      "{phi_u_colname}" := NULL
+    ) |>
+    # Add dataset column
+    dplyr::mutate(
+      "{dataset_colname}" := dataset
+    ) |>
+    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    # Upload to the database and return the "ticket"
     PFUPipelineTools::pl_upsert(in_place = TRUE,
                                 db_table_name = db_table_name,
                                 index_map = index_map,

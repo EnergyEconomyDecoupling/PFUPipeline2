@@ -41,12 +41,8 @@ set_dm_fk_tables <- function(schema_file_path, conn) {
 #' The tables given by `*_table_name`
 #' are combined into an appropriate list for the pipeline.
 #'
-#' @param industry_table_name Name of the Industry row/col table in the database.
-#'                            Default is "Industry".
-#' @param product_table_name Name of the product row/col table in the database.
-#'                           Default is "Product".
-#' @param other_table_name Name of the other row/col table in the database.
-#'                         Default is "Other".
+#' @param index_table_name Name of the Index row/col table in the database.
+#'                         Default is "Index".
 #' @param conn The database connection.
 #' @param schema The data model (`dm` object) for the database in `conn`.
 #'               See details.
@@ -57,20 +53,17 @@ set_dm_fk_tables <- function(schema_file_path, conn) {
 #' @return A named list appropriate to be an
 #'         index map for this database.
 #' @export
-create_index_map <- function(industry_table_name = "Industry",
-                             product_table_name = "Product",
-                             other_table_name = "Other",
+create_index_map <- function(index_table_name = "Index",
                              conn,
                              schema = PFUPipelineTools::schema_from_conn(conn),
                              fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)) {
 
-  list(industry_table_name, product_table_name, other_table_name) |>
-    PFUPipelineTools::self_name() |>
-    lapply(FUN = function(t_name) {
-      t_name |>
-        PFUPipelineTools::pl_filter_collect(collect = TRUE,
-                                            conn = conn,
-                                            schema = schema,
-                                            fk_parent_tables = fk_parent_tables)
-    })
+  index_table <- index_table_name |>
+    PFUPipelineTools::pl_filter_collect(collect = TRUE,
+                                        conn = conn,
+                                        schema = schema,
+                                        fk_parent_tables = fk_parent_tables)
+
+  # All row and column types use the same table
+  list(Industry = index_table, Product = index_table, Other = index_table)
 }

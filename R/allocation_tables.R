@@ -338,6 +338,7 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 #' @param completed_allocation_tables The completed allocation tables from which allocation (**C**) matrices should be created.
 #'                                    This data frame is most likely to be the `CompletedAllocationTables` target.
 #' @param countries The countries for which **C** matrices should be formed.
+#' @param index_map The index map for the matrices, used for uploading to the database.
 #' @param matrix_class The type of matrix that should be produced.
 #'                     One of "matrix" (the default and not sparse) or "Matrix" (which may be sparse).
 #' @param dataset The name of the dataset to which these data belong.
@@ -358,6 +359,7 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 #' @export
 calc_C_mats <- function(completed_allocation_tables,
                         countries,
+                        index_map,
                         matrix_class = "Matrix",
                         dataset,
                         db_table_name,
@@ -424,6 +426,7 @@ calc_C_mats <- function(completed_allocation_tables,
     # Move the dataset column to the front
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                index_map = index_map,
                                 keep_single_unique_cols = FALSE,
                                 db_table_name = db_table_name,
                                 conn = conn,

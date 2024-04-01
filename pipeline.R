@@ -346,6 +346,7 @@ list(
     Cmats,
     calc_C_mats(completed_allocation_tables = CompletedAllocationTables,
                 countries = Countries,
+                index_map = IndexMap,
                 dataset = clpfu_dataset,
                 db_table_name = db_table_name,
                 conn = conn,
@@ -467,6 +468,7 @@ list(
     calc_eta_fu_phi_u_vecs(completed_efficiency_tables = CompletedEfficiencyTables,
                            completed_phi_tables = CompletedPhiuTables,
                            countries = Countries,
+                           index_map = IndexMap,
                            dataset = clpfu_dataset,
                            db_table_name = db_table_name,
                            conn = conn,
@@ -502,7 +504,23 @@ list(
                      conn = conn,
                      schema = DM,
                      fk_parent_tables = FKTables),
+    pattern = map(Countries)),
+
+  ## Phivecs
+  targets::tar_target(
+    Phivecs,
+    sum_phi_vecs(phi_pf_vecs = Phipfvecs,
+                 phi_u_vecs = Phiuvecs,
+                 countries = Countries,
+                 index_map = IndexMap,
+                 rctypes = MatnameRCType,
+                 dataset = clpfu_dataset,
+                 db_table_name = db_table_name,
+                 conn = conn,
+                 schema = DM,
+                 fk_parent_tables = FKTables),
     pattern = map(Countries))
+
 
 
 
