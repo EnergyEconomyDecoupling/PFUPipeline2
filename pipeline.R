@@ -52,6 +52,14 @@ list(
                                         schema = DM,
                                         fk_parent_tables = FKTables)),
 
+  ## IndexMap
+  #  Get the map for Industry, Product, and Other indices for matrices
+  targets::tar_target(
+    IndexMap,
+    create_index_map(conn = conn,
+                     schema = DM,
+                     fk_parent_tables = FKTables)),
+
 
   # ExemplarTable --------------------------------------------------------------
 
@@ -435,6 +443,21 @@ list(
                           fk_parent_tables = FKTables),
     pattern = map(Countries)),
 
+  ## Phipfvecs
+  targets::tar_target(
+    Phipfvecs,
+    calc_phi_pf_vecs(phi_constants = PhiConstants,
+                     phi_u_vecs = Phiuvecs,
+                     countries = Countries,
+                     dataset = clpfu_dataset,
+                     db_table_name = db_table_name,
+                     index_map = IndexMap,
+                     rctypes = MatnameRCType,
+                     conn = conn,
+                     schema = DM,
+                     fk_parent_tables = FKTables),
+    pattern = map(Countries)),
+
 
   # eta and phi vectors --------------------------------------------------------
 
@@ -457,6 +480,8 @@ list(
     sep_eta_fu_phi_u(EtafuPhiuvecs,
                      keep = IEATools::template_cols$eta_fu,
                      countries = Countries,
+                     index_map = IndexMap,
+                     rctypes = MatnameRCType,
                      dataset = clpfu_dataset,
                      db_table_name = db_table_name,
                      conn = conn,
@@ -470,12 +495,16 @@ list(
     sep_eta_fu_phi_u(EtafuPhiuvecs,
                      keep = IEATools::template_cols$phi_u,
                      countries = Countries,
+                     index_map = IndexMap,
+                     rctypes = MatnameRCType,
                      dataset = clpfu_dataset,
                      db_table_name = db_table_name,
                      conn = conn,
                      schema = DM,
                      fk_parent_tables = FKTables),
     pattern = map(Countries))
+
+
 
 
 
