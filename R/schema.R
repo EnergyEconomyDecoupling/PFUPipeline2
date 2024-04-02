@@ -65,5 +65,8 @@ create_index_map <- function(index_table_name = "Index",
                                         fk_parent_tables = fk_parent_tables)
 
   # All row and column types use the same table
-  list(Industry = index_table, Product = index_table, Other = index_table)
+  list(Industry = index_table,
+       Product = index_table,
+       Unit = index_table,
+       Other = index_table)
 }

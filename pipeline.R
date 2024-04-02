@@ -110,14 +110,16 @@ list(
 
   ## IEADataPath
   targets::tar_target_raw(
-    "IEADataPath",
-    clpfu_setup_paths[["iea_data_path"]],
+    "IEADataFolder",
+    clpfu_setup_paths[["iea_data_folder"]],
     format = "file"),
 
   ## AllIEAData
   targets::tar_target(
     AllIEAData,
-    load_iea_data(iea_data_path = IEADataPath,
+    load_iea_data(iea_data_path = IEADataFolder,
+                  countries = AllocAndEffCountries,
+                  base_iea_country_filename = clpfu_setup_paths[["base_iea_country_filename"]],
                   override_df = CountryConcordanceTable,
                   dataset = iea_dataset,
                   specify_non_energy_flows = SpecifyNonEnergyFlows,
@@ -132,7 +134,7 @@ list(
     IEAData,
     PFUPipelineTools::inboard_filter_copy(source = "AllIEAData",
                                           dest = db_table_name,
-                                          countries = Countries,
+                                          countries = AllocAndEffCountries,
                                           years = Years,
                                           empty_dest = TRUE,
                                           in_place = TRUE,
@@ -182,6 +184,21 @@ list(
             schema = DM,
             fk_parent_tables = FKTables),
     pattern = map(BalancedIEAData)),
+
+  ## PSUTFinalIEA
+  targets::tar_target(
+    PSUTFinalIEA,
+    make_iea_psut(SpecifiedIEAData,
+                  countries = Countries,
+                  index_map = IndexMap,
+                  rctypes = MatnameRCType,
+                  dataset = clpfu_dataset,
+                  db_table_name = db_table_name,
+                  conn = conn,
+                  schema = DM,
+                  fk_parent_tables = FKTables),
+    pattern = map(Countries)),
+
 
 
   # Animal muscle work data ----------------------------------------------------
@@ -519,7 +536,27 @@ list(
                  conn = conn,
                  schema = DM,
                  fk_parent_tables = FKTables),
-    pattern = map(Countries))
+    pattern = map(Countries)) #,
+
+
+  # Extend to useful stage -----------------------------------------------------
+
+  ## PSUTUsefulIEAWithDetails
+  # targets::tar_target(
+  #   PSUTUsefulIEAWithDetails,
+  #   move_to_useful_with_details(psut_final = PSUTFinalIEA,
+  #                               C_mats = Cmats,
+  #                               eta_phi_vecs = EtafuPhiuvecs,
+  #                               countries = Countries,
+  #                               index_map = IndexMap,
+  #                               rctypes = MatnameRCType,
+  #                               dataset = clpfu_dataset,
+  #                               db_table_name = db_table_name,
+  #                               conn = conn,
+  #                               schema = DM,
+  #                               fk_parent_tables = FKTables),
+  #   pattern = map(Countries))
+
 
 
 
