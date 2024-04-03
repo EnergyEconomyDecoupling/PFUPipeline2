@@ -507,42 +507,46 @@ list(
 ) |>
 
 
-  # tar_hook_before targets ----------------------------------------------------
+# tar_hook_before targets ------------------------------------------------------
 
-  ## Make database connection and table name available to all targets
+## This hook makes
+## * the database connection,
+## * the table name, and
+## * the dataset
+## available to all targets
+tarchetypes::tar_hook_before(
+  hook = {
+    # Ensure each target has access to the database,
+    # using the hint found at https://github.com/ropensci/targets/discussions/1164.
+    conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
+                           dbname = conn_params$dbname,
+                           host = conn_params$host,
+                           port = conn_params$port,
+                           user = conn_params$user)
+    # Make sure that the connection will be closed
+    # after each target completes.
+    on.exit(DBI::dbDisconnect(conn))
 
-  tarchetypes::tar_hook_before(
-    hook = {
-      # Ensure each target has access to the database,
-      # using the hint found at https://github.com/ropensci/targets/discussions/1164.
-      conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
-                             dbname = conn_params$dbname,
-                             host = conn_params$host,
-                             port = conn_params$port,
-                             user = conn_params$user)
-      # Make sure that the connection will be closed
-      # after each target completes.
-      on.exit(DBI::dbDisconnect(conn))
+    # By default, make the target name available as the name
+    # of the database table in which the result should be stored.
+    # But keep everything before the underscore,
+    # if it exists in the string.
+    db_table_name_from_hook_before <- db_table_name_hook(targets::tar_name())
 
-      # By default, make the target name available as the name
-      # of the database table in which the result should be stored.
-      # But keep everything before the underscore,
-      # if it exists in the string.
-      db_table_name_from_hook_before <- db_table_name_hook(targets::tar_name())
-
-      # Now use the db_table_name to decide which dataset is being created
-      if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
-        # Working on the IEA data
-        dataset_from_hook <- iea_dataset
-      } else {
-        # Everything else is in the CL-PFU dataset
-        dataset_from_hook <- clpfu_dataset
-      }
-    }) |>
+    # Now use the db_table_name to decide which dataset is being created
+    if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
+      # Working on the IEA data
+      dataset_from_hook <- iea_dataset
+    } else {
+      # Everything else is in the CL-PFU dataset
+      dataset_from_hook <- clpfu_dataset
+    }}
+) |>
 
 
-  # tar_hook_inner targets -----------------------------------------------------
+# tar_hook_inner targets -------------------------------------------------------
 
+## This hook downloads and reconstitutes dependencies
 tarchetypes::tar_hook_inner(
   hook = download_dependency_hook(.x,
                                   countries = Countries,
@@ -561,30 +565,29 @@ tarchetypes::tar_hook_inner(
 
 
 
-  # tar_hook_outer targets -----------------------------------------------------
+# tar_hook_outer targets -------------------------------------------------------
 
-  ## Upload data frame results to the database
-
-  tarchetypes::tar_hook_outer(
-    hook = {
-      # It would be better to refer to db_table_name_from_hook_before
-      # in this outer hook.
-      # But that doesn't seem to work,
-      # emitting an error from not finding
-      # db_table_name_from_hook_before.
-      db_table_name_from_hook_outer <- db_table_name_hook(targets::tar_name())
-      upsert_hook(.x,
-                  db_table_name = db_table_name_from_hook_outer,
-                  dataset = dataset_from_hook,
-                  index_map = IndexMap,
-                  conn = conn,
-                  schema = DM,
-                  fk_parent_tables = FKTables,
-                  dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
-    },
-    names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
-              "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw",
-              "PhiConstants", "Cmats"))
+## This hook uploads a resulting data frame to the database.
+tarchetypes::tar_hook_outer(
+  hook = {
+    # It would be better to refer to db_table_name_from_hook_before
+    # in this outer hook.
+    # But that doesn't seem to work,
+    # emitting an error from not finding
+    # db_table_name_from_hook_before.
+    db_table_name_from_hook_outer <- db_table_name_hook(targets::tar_name())
+    upsert_hook(.x,
+                db_table_name = db_table_name_from_hook_outer,
+                dataset = dataset_from_hook,
+                index_map = IndexMap,
+                conn = conn,
+                schema = DM,
+                fk_parent_tables = FKTables,
+                dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
+  },
+  names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
+            "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw",
+            "PhiConstants", "Cmats"))
 
 
 

@@ -11,14 +11,6 @@
 #'              work data. Usually retrieved from the `AMWPFUDataRaw` and
 #'              `HMWPFUDataRaw` targets.
 #' @param exemplar_table The exemplar table.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
-#' @param version The version of the databse being created.
 #' @param country,year,unit,e_dot See `IEATools::iea_cols`.
 #' @param agg_code_col,region_code,exemplar_country See `PFUPipelineTools::exemplar_names`.
 #' @param species,stage_col,sector_col See `MWTools::mw_constants`.
