@@ -91,16 +91,16 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     return(NULL)
   }
   out |>
-    IEATools::tidy_fu_allocation_table() |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    IEATools::tidy_fu_allocation_table() # |>
+    # dplyr::mutate(
+    #   "{dataset_colname}" := dataset
+    # ) |>
+    # dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    # PFUPipelineTools::pl_upsert(in_place = TRUE,
+    #                             db_table_name = db_table_name,
+    #                             conn = conn,
+    #                             schema = schema,
+    #                             fk_parent_tables = fk_parent_tables)
 }
 
 

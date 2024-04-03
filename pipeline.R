@@ -587,6 +587,7 @@ tarchetypes::tar_hook_outer(
   },
   names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
             "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
+            "IncompleteAllocationTables",
             "PhiConstants", "Cmats"))
 
 
