@@ -1,64 +1,4 @@
-#' `tarchetypes` hook to upload data frame
-#'
-#' After most targets, the resulting data frame should be
-#' uploaded to the database for storage.
-#' This function provides a `tarchetypes` "hook" to wrap each target
-#' for that purpose.
-#'
-#' @param .df A data frame to be upserted into table `db_table_name`
-#'            in the database at `conn`.
-#' @param db_table_name The name of the table into which `.df` will be upserted.
-#' @param dataset The name of the dataset to which these data belong.
-#' @param index_map The mapping for matrix row and column indices,
-#'                  a two-column data frame with an integer column
-#'                  for indices and a string column for names.
-#' @param conn The database connection.
-#' @param schema A `dm` object, the database schema.
-#'               Default is `PFUPipelineTools::schema_from_conn(conn)`.
-#'               Override the default if you want to avoid the overhead
-#'               of reading the schema with every upsert.
-#' @param fk_parent_tables The foreign key parent tables
-#'                         for the database at `conn.`
-#'                         Default is `PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)`.
-#'                         Override if you want to avoid the overhead
-#'                         of readhing the schema with every upsert.
-#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
-#'
-#' @return A hashed data frame that serves as the "ticket"
-#'         with which the full data frame can be retrieved at a later time.
-#'
-#' @export
-upsert_hook <- function(.df,
-                        db_table_name,
-                        dataset,
-                        index_map,
-                        conn,
-                        schema = PFUPipelineTools::schema_from_conn(conn),
-                        fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
-                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
-
-  .df |>
-    # Add dataset column
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    # Upload to the database and return the "ticket"
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                index_map = index_map,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
-
-}
-
-
-#' Download a target's dependency from the CL-PFU database
+#' `tarchetypes` hook to download a target's dependency
 #'
 #' Many targets depend on previous targets that have been
 #' stored in the CL-PFU database.
@@ -119,7 +59,7 @@ download_dependency_hook <- function(.hashed_dependency,
   }
 
   .hashed_dependency |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
+    PFUPipelineTools::pl_collect_from_hash(set_tar_group = TRUE,
                                            index_map = index_map,
                                            rctypes = rctypes,
                                            conn = conn,
@@ -130,6 +70,64 @@ download_dependency_hook <- function(.hashed_dependency,
     )
 }
 
+
+#' `tarchetypes` hook to upload data frame
+#'
+#' After most targets, the resulting data frame should be
+#' uploaded to the database for storage.
+#' This function provides a `tarchetypes` "hook" to wrap each target
+#' for that purpose.
+#'
+#' @param .df A data frame to be upserted into table `db_table_name`
+#'            in the database at `conn`.
+#' @param db_table_name The name of the table into which `.df` will be upserted.
+#' @param dataset The name of the dataset to which these data belong.
+#' @param index_map The mapping for matrix row and column indices,
+#'                  a two-column data frame with an integer column
+#'                  for indices and a string column for names.
+#' @param conn The database connection.
+#' @param schema A `dm` object, the database schema.
+#'               Default is `PFUPipelineTools::schema_from_conn(conn)`.
+#'               Override the default if you want to avoid the overhead
+#'               of reading the schema with every upsert.
+#' @param fk_parent_tables The foreign key parent tables
+#'                         for the database at `conn.`
+#'                         Default is `PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)`.
+#'                         Override if you want to avoid the overhead
+#'                         of readhing the schema with every upsert.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
+#'
+#' @return A hashed data frame that serves as the "ticket"
+#'         with which the full data frame can be retrieved at a later time.
+#'
+#' @export
+upsert_hook <- function(.df,
+                        db_table_name,
+                        dataset,
+                        index_map,
+                        conn,
+                        schema = PFUPipelineTools::schema_from_conn(conn),
+                        fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
+                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+
+  .df |>
+    # Add dataset column
+    dplyr::mutate(
+      "{dataset_colname}" := dataset
+    ) |>
+    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    # Upload to the database and return the "ticket"
+    PFUPipelineTools::pl_upsert(in_place = TRUE,
+                                db_table_name = db_table_name,
+                                index_map = index_map,
+                                # Don't keep single unique columns,
+                                # because groups may have different columns
+                                # with single unique values.
+                                keep_single_unique_cols = FALSE,
+                                conn = conn,
+                                schema = schema,
+                                fk_parent_tables = fk_parent_tables)
+}
 
 
 #' Extract a table name from a target name

@@ -140,29 +140,32 @@ list(
   ## BalancedBeforeIEA
   targets::tar_target(
     BalancedBeforeIEA,
-    is_balanced(IEAData,
-                conn = conn,
-                schema = DM,
-                fk_parent_tables = FKTables),
+    is_balanced(IEAData #,
+                # conn = conn,
+                # schema = DM,
+                # fk_parent_tables = FKTables
+                ),
     pattern = map(IEAData)),
 
   ## BalancedIEAData
   targets::tar_target(
     BalancedIEAData,
     make_balanced(IEAData,
-                  db_table_name = db_table_name_from_hook_before,
-                  conn = conn,
-                  schema = DM,
-                  fk_parent_tables = FKTables),
+                  db_table_name = db_table_name_from_hook_before #,
+                  # conn = conn,
+                  # schema = DM,
+                  # fk_parent_tables = FKTables
+                  ),
     pattern = map(IEAData)),
 
   ## BalancedAfterIEA
   targets::tar_target(
     BalancedAfterIEA,
-    is_balanced(BalancedIEAData,
-                conn = conn,
-                schema = DM,
-                fk_parent_tables = FKTables),
+    is_balanced(BalancedIEAData #,
+                # conn = conn,
+                # schema = DM,
+                # fk_parent_tables = FKTables
+                ),
     pattern = map(BalancedIEAData)),
 
   ## OKToProceedIEA
@@ -593,9 +596,9 @@ tarchetypes::tar_hook_inner(
                                   schema = DM,
                                   fk_parent_tables = FKTables),
   # The targets in which the dependency hook applies
-  names = c("BalancedIEAData", "Cmats"),
+  names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "Cmats"),
   # The dependencies that are wrapped with download_dependency()
-  names_wrap = c("IEAData", "CompletedAllocationTables")) |>
+  names_wrap = c("IEAData", "BalancedIEAData", "CompletedAllocationTables")) |>
 
 
 

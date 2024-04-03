@@ -105,14 +105,16 @@ is_balanced <- function(.iea_data,
                                      IEATools::iea_cols$energy_type,
                                      IEATools::iea_cols$last_stage,
                                      IEATools::iea_cols$year,
-                                     IEATools::iea_cols$product),
-                        conn,
-                        schema = schema_from_conn(conn),
-                        fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
+                                     IEATools::iea_cols$product) #,
+                        # conn,
+                        # schema = schema_from_conn(conn),
+                        # fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)
+                        ) {
+
   .iea_data |>
-    PFUPipelineTools::pl_collect_from_hash(conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
+    # PFUPipelineTools::pl_collect_from_hash(conn = conn,
+    #                                        schema = schema,
+    #                                        fk_parent_tables = fk_parent_tables) |>
     # Get data from the database
     dplyr::group_by(!!as.name(grp_vars)) |>
     # Check balances
@@ -178,10 +180,11 @@ make_balanced <- function(.iea_data,
                                        IEATools::iea_cols$energy_type,
                                        IEATools::iea_cols$last_stage,
                                        IEATools::iea_cols$year,
-                                       IEATools::iea_cols$product),
-                          conn,
-                          schema = schema_from_conn(conn),
-                          fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
+                                       IEATools::iea_cols$product) #,
+                          # conn,
+                          # schema = schema_from_conn(conn),
+                          # fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)
+                          ) {
 
   .iea_data |>
     dplyr::group_by(!!as.name(grp_vars)) |>
