@@ -215,12 +215,7 @@ list(
   targets::tar_target(
     AMWPFUData,
     aggcountries_mw_to_iea(mw_df = AMWPFUDataRaw,
-                           exemplar_table = ExemplarTable,
-                           db_table_name = db_table_name_from_hook_before,
-                           dataset = clpfu_dataset,
-                           conn = conn,
-                           schema = DM,
-                           fk_parent_tables = FKTables)),
+                           exemplar_table = ExemplarTable)),
 
 
   # Human muscle work data -----------------------------------------------------
@@ -568,9 +563,10 @@ tarchetypes::tar_hook_inner(
                                   fk_parent_tables = FKTables),
   # The targets in which the dependency hook applies
   names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "SpecifiedIEAData", "PSUTFinalIEA",
-            "Cmats"),
+            "AMWPFUData", "Cmats"),
   # The dependencies that are wrapped with download_dependency()
   names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData",
+                 "AMWPFUDataRaw",
                  "CompletedAllocationTables")) |>
 
 
@@ -597,7 +593,7 @@ tarchetypes::tar_hook_inner(
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
     names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
-              "AMWPFUDataRaw",
+              "AMWPFUDataRaw", "AMWPFUData",
               "PhiConstants", "Cmats"))
 
 

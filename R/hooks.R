@@ -51,6 +51,8 @@ download_dependency_hook <- function(.hashed_dependency,
                                      dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                      tar_group_colname = "tar_group") {
 
+  browser()
+
   if (!(tar_group_colname %in% colnames(.hashed_dependency))) {
     # This is not a grouped data frame, so
     # filter by countries.

@@ -28,11 +28,6 @@
 #' @export
 aggcountries_mw_to_iea <- function(mw_df,
                                    exemplar_table,
-                                   db_table_name,
-                                   dataset,
-                                   conn,
-                                   schema = PFUPipelineTools::schema_from_conn(conn),
-                                   fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                                    country = IEATools::iea_cols$country,
                                    year = IEATools::iea_cols$year,
                                    unit = IEATools::iea_cols$unit,
@@ -42,8 +37,7 @@ aggcountries_mw_to_iea <- function(mw_df,
                                    exemplar_country = PFUPipelineTools::exemplar_names$exemplar_country,
                                    species = MWTools::mw_constants$species,
                                    stage_col = MWTools::mw_constants$stage_col,
-                                   sector_col = MWTools::mw_constants$sector_col,
-                                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname){
+                                   sector_col = MWTools::mw_constants$sector_col) {
 
   focused_exemplar_table <- exemplar_table |>
     dplyr::select(-dplyr::all_of(c(region_code, exemplar_country))) |>
@@ -55,9 +49,6 @@ aggcountries_mw_to_iea <- function(mw_df,
     )
 
   agg_mw_df <- mw_df |>
-    PFUPipelineTools::pl_collect_from_hash(conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::left_join(focused_exemplar_table, by = c(country, year)) |>
     dplyr::select(-dplyr::all_of(country)) |>
     dplyr::group_by(.data[[year]],
@@ -68,15 +59,5 @@ aggcountries_mw_to_iea <- function(mw_df,
                     .data[[agg_code_col]]) |>
     dplyr::summarise("{e_dot}" := sum(.data[[e_dot]]),
                      .groups = "drop") |>
-    dplyr::rename("{country}" := !!agg_code_col) |>
-    dplyr::relocate(dplyr::all_of(country)) |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(db_table_name = db_table_name,
-                                in_place = TRUE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    dplyr::rename("{country}" := !!agg_code_col)
 }
