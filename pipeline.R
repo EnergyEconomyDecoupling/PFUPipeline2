@@ -140,32 +140,20 @@ list(
   ## BalancedBeforeIEA
   targets::tar_target(
     BalancedBeforeIEA,
-    is_balanced(IEAData #,
-                # conn = conn,
-                # schema = DM,
-                # fk_parent_tables = FKTables
-                ),
+    is_balanced(IEAData),
     pattern = map(IEAData)),
 
   ## BalancedIEAData
   targets::tar_target(
     BalancedIEAData,
     make_balanced(IEAData,
-                  db_table_name = db_table_name_from_hook_before #,
-                  # conn = conn,
-                  # schema = DM,
-                  # fk_parent_tables = FKTables
-                  ),
+                  db_table_name = db_table_name_from_hook_before),
     pattern = map(IEAData)),
 
   ## BalancedAfterIEA
   targets::tar_target(
     BalancedAfterIEA,
-    is_balanced(BalancedIEAData #,
-                # conn = conn,
-                # schema = DM,
-                # fk_parent_tables = FKTables
-                ),
+    is_balanced(BalancedIEAData),
     pattern = map(BalancedIEAData)),
 
   ## OKToProceedIEA
@@ -176,11 +164,7 @@ list(
   ## SpecifiedIEAData
   targets::tar_target(
     SpecifiedIEAData,
-    specify(BalancedIEAData,
-            db_table_name = db_table_name_from_hook_before,
-            conn = conn,
-            schema = DM,
-            fk_parent_tables = FKTables),
+    specify(BalancedIEAData),
     pattern = map(BalancedIEAData)),
 
   ## PSUTFinalIEA
@@ -596,7 +580,8 @@ tarchetypes::tar_hook_inner(
                                   schema = DM,
                                   fk_parent_tables = FKTables),
   # The targets in which the dependency hook applies
-  names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "Cmats"),
+  names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "SpecifiedIEAData",
+            "Cmats"),
   # The dependencies that are wrapped with download_dependency()
   names_wrap = c("IEAData", "BalancedIEAData", "CompletedAllocationTables")) |>
 
@@ -623,7 +608,7 @@ tarchetypes::tar_hook_inner(
                   fk_parent_tables = FKTables,
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
-    names = c("AllIEAData", "BalancedIEAData", "PhiConstants", "Cmats"))
+    names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PhiConstants", "Cmats"))
 
 
 
