@@ -121,19 +121,14 @@ list(
                   countries = AllocAndEffCountries,
                   base_iea_country_filename = clpfu_setup_paths[["base_iea_country_filename"]],
                   override_df = CountryConcordanceTable,
-                  dataset = iea_dataset,
                   specify_non_energy_flows = SpecifyNonEnergyFlows,
-                  apply_fixes = ApplyFixes,
-                  db_table_name = db_table_name,
-                  conn = conn,
-                  schema = DM,
-                  fk_parent_tables = FKTables)),
+                  apply_fixes = ApplyFixes)),
 
   ## IEAData
   tarchetypes::tar_group_by(
     IEAData,
     PFUPipelineTools::inboard_filter_copy(source = "AllIEAData",
-                                          dest = db_table_name,
+                                          dest = db_table_name_from_hook_before,
                                           countries = AllocAndEffCountries,
                                           years = Years,
                                           empty_dest = TRUE,
@@ -155,7 +150,7 @@ list(
   targets::tar_target(
     BalancedIEAData,
     make_balanced(IEAData,
-                  db_table_name = db_table_name,
+                  db_table_name = db_table_name_from_hook_before,
                   conn = conn,
                   schema = DM,
                   fk_parent_tables = FKTables),
@@ -179,7 +174,7 @@ list(
   targets::tar_target(
     SpecifiedIEAData,
     specify(BalancedIEAData,
-            db_table_name = db_table_name,
+            db_table_name = db_table_name_from_hook_before,
             conn = conn,
             schema = DM,
             fk_parent_tables = FKTables),
@@ -193,12 +188,11 @@ list(
                   index_map = IndexMap,
                   rctypes = MatnameRCType,
                   dataset = clpfu_dataset,
-                  db_table_name = db_table_name,
+                  db_table_name = db_table_name_from_hook_before,
                   conn = conn,
                   schema = DM,
                   fk_parent_tables = FKTables),
     pattern = map(Countries)),
-
 
 
   # Animal muscle work data ----------------------------------------------------
@@ -235,7 +229,7 @@ list(
     prep_amw_pfu_data(fao_data = FAODataLocal,
                       mw_concordance_path = MWConcordancePath,
                       amw_analysis_data_path = AMWAnalysisDataPath,
-                      db_table_name = db_table_name,
+                      db_table_name = db_table_name_from_hook_before,
                       countries = AllocAndEffCountries,
                       years = Years,
                       dataset = clpfu_dataset,
@@ -248,7 +242,7 @@ list(
     AMWPFUData,
     aggcountries_mw_to_iea(mw_df = AMWPFUDataRaw,
                            exemplar_table = ExemplarTable,
-                           db_table_name = db_table_name,
+                           db_table_name = db_table_name_from_hook_before,
                            dataset = clpfu_dataset,
                            conn = conn,
                            schema = DM,
@@ -294,7 +288,7 @@ list(
                       ilo_employment_data = ILOEmploymentDataLocal,
                       mw_concordance_path = MWConcordancePath,
                       hmw_analysis_data_path = HMWAnalysisDataPath,
-                      db_table_name = db_table_name,
+                      db_table_name = db_table_name_from_hook_before,
                       countries = AllocAndEffCountries,
                       years = Years,
                       dataset = clpfu_dataset,
@@ -307,7 +301,7 @@ list(
     HMWPFUData,
     aggcountries_mw_to_iea(mw_df = HMWPFUDataRaw,
                            exemplar_table = ExemplarTable,
-                           db_table_name = db_table_name,
+                           db_table_name = db_table_name_from_hook_before,
                            dataset = clpfu_dataset,
                            conn = conn,
                            schema = DM,
@@ -337,7 +331,7 @@ list(
                               specified_iea_data = SpecifiedIEAData,
                               countries = AllocAndEffCountries,
                               dataset = clpfu_dataset,
-                              db_table_name = db_table_name,
+                              db_table_name = db_table_name_from_hook_before,
                               conn = conn,
                               schema = DM,
                               fk_parent_tables = FKTables),
@@ -352,7 +346,7 @@ list(
                                   countries = Countries,
                                   years = Years,
                                   dataset = clpfu_dataset,
-                                  db_table_name = db_table_name,
+                                  db_table_name = db_table_name_from_hook_before,
                                   conn = conn,
                                   schema = DM,
                                   fk_parent_tables = FKTables),
@@ -363,12 +357,13 @@ list(
     Cmats,
     calc_C_mats(completed_allocation_tables = CompletedAllocationTables,
                 countries = Countries,
-                index_map = IndexMap,
-                dataset = clpfu_dataset,
-                db_table_name = db_table_name,
-                conn = conn,
-                schema = DM,
-                fk_parent_tables = FKTables),
+                # index_map = IndexMap,
+                # dataset = clpfu_dataset,
+                # db_table_name = db_table_name_from_hook_before,
+                # conn = conn,
+                # schema = DM,
+                # fk_parent_tables = FKTables
+                ),
     pattern = map(Countries)),
 
 
@@ -394,7 +389,7 @@ list(
     AllMachineData,
     read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath),
                        dataset = clpfu_dataset,
-                       db_table_name = db_table_name,
+                       db_table_name = db_table_name_from_hook_before,
                        conn = conn,
                        schema = DM,
                        fk_parent_tables = FKTables)),
@@ -403,7 +398,7 @@ list(
   targets::tar_target(
     MachineData,
     PFUPipelineTools::inboard_filter_copy(source = "AllMachineData",
-                                          dest = db_table_name,
+                                          dest = db_table_name_from_hook_before,
                                           countries = AllocAndEffCountries,
                                           years = Years,
                                           empty_dest = TRUE,
@@ -420,7 +415,7 @@ list(
                            countries = Countries,
                            years = Years,
                            dataset = clpfu_dataset,
-                           db_table_name = db_table_name,
+                           db_table_name = db_table_name_from_hook_before,
                            conn = conn,
                            schema = DM,
                            fk_parent_tables = FKTables,
@@ -439,12 +434,7 @@ list(
   ## PhiConstants
   targets::tar_target(
     PhiConstants,
-    load_phi_values(phi_constants_path = PhiConstantsPath,
-                    dataset = clpfu_dataset,
-                    db_table_name = db_table_name,
-                    conn = conn,
-                    schema = DM,
-                    fk_parent_tables = FKTables)),
+    load_phi_values(phi_constants_path = PhiConstantsPath)),
 
   ## CompletedPhiuTables
   targets::tar_target(
@@ -455,7 +445,7 @@ list(
                           countries = Countries,
                           years = Years,
                           dataset = clpfu_dataset,
-                          db_table_name = db_table_name,
+                          db_table_name = db_table_name_from_hook_before,
                           conn = conn,
                           schema = DM,
                           fk_parent_tables = FKTables),
@@ -468,7 +458,7 @@ list(
                      phi_u_vecs = Phiuvecs,
                      countries = Countries,
                      dataset = clpfu_dataset,
-                     db_table_name = db_table_name,
+                     db_table_name = db_table_name_from_hook_before,
                      index_map = IndexMap,
                      rctypes = MatnameRCType,
                      conn = conn,
@@ -487,7 +477,7 @@ list(
                            countries = Countries,
                            index_map = IndexMap,
                            dataset = clpfu_dataset,
-                           db_table_name = db_table_name,
+                           db_table_name = db_table_name_from_hook_before,
                            conn = conn,
                            schema = DM,
                            fk_parent_tables = FKTables),
@@ -502,7 +492,7 @@ list(
                      index_map = IndexMap,
                      rctypes = MatnameRCType,
                      dataset = clpfu_dataset,
-                     db_table_name = db_table_name,
+                     db_table_name = db_table_name_from_hook_before,
                      conn = conn,
                      schema = DM,
                      fk_parent_tables = FKTables),
@@ -517,7 +507,7 @@ list(
                      index_map = IndexMap,
                      rctypes = MatnameRCType,
                      dataset = clpfu_dataset,
-                     db_table_name = db_table_name,
+                     db_table_name = db_table_name_from_hook_before,
                      conn = conn,
                      schema = DM,
                      fk_parent_tables = FKTables),
@@ -532,7 +522,7 @@ list(
                  index_map = IndexMap,
                  rctypes = MatnameRCType,
                  dataset = clpfu_dataset,
-                 db_table_name = db_table_name,
+                 db_table_name = db_table_name_from_hook_before,
                  conn = conn,
                  schema = DM,
                  fk_parent_tables = FKTables),
@@ -568,6 +558,8 @@ list(
 
   # tar_hook_before targets ----------------------------------------------------
 
+  ## Make database connection and table name available to all targets
+
   tarchetypes::tar_hook_before(
     hook = {
       # Ensure each target has access to the database,
@@ -580,9 +572,77 @@ list(
       # Make sure that the connection will be closed
       # after each target completes.
       on.exit(DBI::dbDisconnect(conn))
+
       # By default, make the target name available as the name
       # of the database table in which the result should be stored.
       # But keep everything before the underscore,
       # if it exists in the string.
-      db_table_name <- strsplit(targets::tar_name(), "_")[[1]][[1]]
-    })
+      db_table_name_from_hook_before <- db_table_name_hook(targets::tar_name())
+
+      # Now use the db_table_name to decide which dataset is being created
+      if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
+        # Working on the IEA data
+        dataset_from_hook <- iea_dataset
+      } else {
+        # Everything else is in the CL-PFU dataset
+        dataset_from_hook <- clpfu_dataset
+      }
+    }) |>
+
+
+  # tar_hook_inner targets -----------------------------------------------------
+
+tarchetypes::tar_hook_inner(
+  hook = download_dependency(.x,
+                             countries = Countries,
+                             index_map = IndexMap,
+                             rctypes = MatnameRCType,
+                             conn = conn,
+                             schema = DM,
+                             fk_parent_tables = FKTables),
+  names = "Cmats",
+  names_wrap = "CompletedAllocationTables") |>
+
+
+
+  # tar_hook_outer targets -----------------------------------------------------
+
+  ## Upload data frame results to the database
+
+  tarchetypes::tar_hook_outer(
+    hook = {
+      # It would be better to refer to db_table_name_from_hook_before
+      # in this outer hook.
+      # But that doesn't seem to work,
+      # emitting an error from not finding
+      # db_table_name_from_hook_before.
+      db_table_name_from_hook_outer <- db_table_name_hook(targets::tar_name())
+      upsert_hook(.x,
+                  db_table_name = db_table_name_from_hook_outer,
+                  dataset = dataset_from_hook,
+                  index_map = IndexMap,
+                  conn = conn,
+                  schema = DM,
+                  fk_parent_tables = FKTables,
+                  dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
+    },
+    names = c("AllIEAData", "PhiConstants", "Cmats"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

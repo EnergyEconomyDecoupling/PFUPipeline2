@@ -10,8 +10,8 @@
 
 countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
-countries <- "GHA"
-# countries <- c("GHA", "ZAF")
+# countries <- "GHA"
+countries <- c("GHA", "ZAF")
 # countries <- "WRLD"
 # countries <- c("USA", "WRLD")
 
@@ -114,7 +114,7 @@ conn_params <- list(dbname = version,
                     port = 5432)
 
 # Calculate input data version from version
-# by trimming any alpha or beta information from the version string.
+# by trimming any alpha or beta information from the end of the version string.
 input_data_version <- sub(pattern = "[ab]\\d*$", "", version)
 
 

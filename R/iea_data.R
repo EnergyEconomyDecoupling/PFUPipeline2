@@ -44,16 +44,10 @@ load_iea_data <- function(iea_data_path,
                           countries,
                           base_iea_country_filename,
                           override_df,
-                          dataset,
                           specify_non_energy_flows = TRUE,
                           apply_fixes = TRUE,
                           iea_countries = c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> unlist(),
-                          country = IEATools::iea_cols$country,
-                          dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
-                          db_table_name,
-                          conn,
-                          schema = schema_from_conn(conn = conn),
-                          fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
+                          country = IEATools::iea_cols$country) {
 
   assertthat::assert_that(file.exists(iea_data_path))
   is_dir <- file.info(iea_data_path)[["isdir"]]
@@ -74,16 +68,16 @@ load_iea_data <- function(iea_data_path,
     IEATools::load_tidy_iea_df(override_df = override_df,
                                specify_non_energy_flows = specify_non_energy_flows,
                                apply_fixes = apply_fixes) |>
-    dplyr::filter(.data[[country]] %in% iea_countries) |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(db_table_name = db_table_name,
-                                in_place = TRUE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    dplyr::filter(.data[[country]] %in% iea_countries) # |>
+    # dplyr::mutate(
+    #   "{dataset_colname}" := dataset
+    # ) |>
+    # dplyr::relocate(dplyr::all_of(dataset_colname)) |>
+    # PFUPipelineTools::pl_upsert(db_table_name = db_table_name,
+    #                             in_place = TRUE,
+    #                             conn = conn,
+    #                             schema = schema,
+    #                             fk_parent_tables = fk_parent_tables)
 }
 
 

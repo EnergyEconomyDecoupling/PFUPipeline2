@@ -21,25 +21,9 @@
 #' @return A hashed version of the phi constants table.
 #'
 #' @export
-load_phi_values <- function(phi_constants_path,
-                            dataset,
-                            db_table_name,
-                            conn,
-                            schema = PFUPipelineTools::schema_from_conn(conn),
-                            fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
-                            dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
-
+load_phi_values <- function(phi_constants_path) {
   phi_constants_path |>
-    IEATools::load_phi_constants_table() |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    IEATools::load_phi_constants_table()
 }
 
 

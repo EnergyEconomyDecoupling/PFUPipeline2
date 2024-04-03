@@ -359,37 +359,21 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 #' @export
 calc_C_mats <- function(completed_allocation_tables,
                         countries,
-                        index_map,
                         matrix_class = "Matrix",
-                        dataset,
-                        db_table_name,
-                        conn,
-                        schema = PFUPipelineTools::schema_from_conn(conn),
-                        fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
-                        country = IEATools::iea_cols$country,
-                        year = IEATools::iea_cols$year,
                         c_source = IEATools::template_cols$c_source,
                         .values = IEATools::template_cols$.values,
                         C_Y = IEATools::template_cols$C_Y,
                         C_EIOU  = IEATools::template_cols$C_eiou,
                         industry_type = IEATools::row_col_types$industry,
-                        product_type = IEATools::row_col_types$product,
-                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                        product_type = IEATools::row_col_types$product) {
 
   Cmats <- completed_allocation_tables |>
-    dplyr::filter(.data[[country]] %in% countries) |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::mutate(
       # Eliminate the c_source column (if it exists) before sending
       # the completed_allocation_tables into form_C_mats().
       # The c_source column applies to individual C values, and we're making matrices out of them.
       # In other words, form_C_mats() doesn't know what to do with that column.
-      "{c_source}" := NULL,
-      # Remove the Dataset column
-      "{dataset_colname}" := NULL
+      "{c_source}" := NULL
     ) |>
     # Need to form C matrices from completed_allocation_tables.
     # Use the IEATools::form_C_mats() function for this task.
@@ -418,18 +402,5 @@ calc_C_mats <- function(completed_allocation_tables,
         "{C_EIOU}" := .data[[C_EIOU]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
       )
   }
-  Cmats |>
-    dplyr::mutate(
-      # Set the dataset column
-      "{dataset_colname}" := dataset
-    ) |>
-    # Move the dataset column to the front
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                index_map = index_map,
-                                keep_single_unique_cols = FALSE,
-                                db_table_name = db_table_name,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+  return(Cmats)
 }
