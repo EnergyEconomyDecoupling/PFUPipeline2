@@ -586,7 +586,7 @@ tarchetypes::tar_hook_outer(
                 dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
   },
   names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
-            "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw",
+            "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
             "PhiConstants", "Cmats"))
 
 
