@@ -97,31 +97,16 @@ prep_amw_pfu_data <- function(fao_data,
                               amw_analysis_data_path,
                               countries,
                               years,
-                              dataset,
-                              db_table_name,
-                              conn,
-                              schema = PFUPipelineTools::schema_from_conn(conn),
-                              fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                               country = IEATools::iea_cols$country,
                               year = IEATools::iea_cols$year,
-                              e_dot = IEATools::iea_cols$e_dot,
-                              dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                              e_dot = IEATools::iea_cols$e_dot) {
   fao_data |>
     MWTools::calc_amw_pfu(concordance_path = mw_concordance_path,
                           amw_analysis_data_path = amw_analysis_data_path) |>
     rename_mw_sectors() |>
     dplyr::filter(.data[[country]] %in% countries,
                   .data[[year]] %in% years,
-                  .data[[e_dot]] != 0) |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+                  .data[[e_dot]] != 0)
 }
 
 

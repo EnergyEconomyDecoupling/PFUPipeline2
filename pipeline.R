@@ -208,13 +208,8 @@ list(
     prep_amw_pfu_data(fao_data = FAODataLocal,
                       mw_concordance_path = MWConcordancePath,
                       amw_analysis_data_path = AMWAnalysisDataPath,
-                      db_table_name = db_table_name_from_hook_before,
                       countries = AllocAndEffCountries,
-                      years = Years,
-                      dataset = clpfu_dataset,
-                      conn = conn,
-                      schema = DM,
-                      fk_parent_tables = FKTables)),
+                      years = Years)),
 
   ## AMWPFUData
   targets::tar_target(
@@ -602,6 +597,7 @@ tarchetypes::tar_hook_inner(
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
     names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
+              "AMWPFUDataRaw",
               "PhiConstants", "Cmats"))
 
 
