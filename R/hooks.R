@@ -58,13 +58,19 @@ upsert_hook <- function(.df,
 }
 
 
-
 #' Download a target's dependency from the CL-PFU database
 #'
 #' Many targets depend on previous targets that have been
 #' stored in the CL-PFU database.
 #' This function downloads the dependencies as part of the
 #' tar_hook_inner process.
+#'
+#' If `.hashed_dependency` contains the `tar_group_colname`,
+#' the `countries` argument is ignored, and
+#' no filtering of `.hashed_dependency` is performed;
+#' it is assumed that filtering has already been
+#' accomplished by the target via `map(Countries)`
+#' or something similar.
 #'
 #' @param .hashed_dependency A hashed data frame that is the "ticket"
 #'                           for downloading the real data.
@@ -87,23 +93,32 @@ upsert_hook <- function(.df,
 #'                Default is `IEATools::iea_cols$country`.
 #' @param dataset_colname The name of the dataset column.
 #'                        Default is `PFUPipelineTools::dataset_info$dataset_colname`.
+#' @param tar_group_colname The name of the targets group column name.
+#'                          Default is "tar_group".
 #'
 #' @return The downloaded dependency described by the "ticket"
 #'         supplied in `.hashed_dependency`.
 #'
 #' @export
-download_dependency <- function(.hashed_dependency,
-                                countries,
-                                index_map,
-                                rctypes,
-                                conn,
-                                schema = PFUPipelineTools::schema_from_conn(conn),
-                                fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
-                                country = IEATools::iea_cols$country,
-                                dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+download_dependency_hook <- function(.hashed_dependency,
+                                     countries,
+                                     index_map,
+                                     rctypes,
+                                     conn,
+                                     schema = PFUPipelineTools::schema_from_conn(conn),
+                                     fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
+                                     country = IEATools::iea_cols$country,
+                                     dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                                     tar_group_colname = "tar_group") {
+
+  if (!(tar_group_colname %in% colnames(.hashed_dependency))) {
+    # This is not a grouped data frame, so
+    # filter by countries.
+    .hashed_dependency <- .hashed_dependency |>
+      dplyr::filter(.data[[country]] %in% countries)
+  }
 
   .hashed_dependency |>
-    dplyr::filter(.data[[country]] %in% countries) |>
     PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
                                            index_map = index_map,
                                            rctypes = rctypes,

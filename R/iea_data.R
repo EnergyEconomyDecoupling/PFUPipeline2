@@ -28,14 +28,6 @@
 #'                      Default is `c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> unlist()`.
 #' @param country The name of the country column in the outgoing data frame.
 #'                Default is `IEATools::iea_cols$country`.
-#' @param db_table_name The name of the table into which the data should be stored
-#'                      in the database at `conn`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #'
 #' @return A tidy data frame of IEA extended world energy balance data.
 #'
@@ -68,16 +60,7 @@ load_iea_data <- function(iea_data_path,
     IEATools::load_tidy_iea_df(override_df = override_df,
                                specify_non_energy_flows = specify_non_energy_flows,
                                apply_fixes = apply_fixes) |>
-    dplyr::filter(.data[[country]] %in% iea_countries) # |>
-    # dplyr::mutate(
-    #   "{dataset_colname}" := dataset
-    # ) |>
-    # dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    # PFUPipelineTools::pl_upsert(db_table_name = db_table_name,
-    #                             in_place = TRUE,
-    #                             conn = conn,
-    #                             schema = schema,
-    #                             fk_parent_tables = fk_parent_tables)
+    dplyr::filter(.data[[country]] %in% iea_countries)
 }
 
 
@@ -201,17 +184,9 @@ make_balanced <- function(.iea_data,
                           fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)) {
 
   .iea_data |>
-    PFUPipelineTools::pl_collect_from_hash(conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::group_by(!!as.name(grp_vars)) |>
     IEATools::fix_tidy_iea_df_balances(max_fix = max_fix) |>
-    dplyr::ungroup() |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    dplyr::ungroup()
 }
 
 

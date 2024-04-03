@@ -325,7 +325,7 @@ list(
     format = "file"),
 
   ## IncompleteAllocationTables
-  tarchetypes::tar_group_by(
+  targets::tar_target(
     IncompleteAllocationTables,
     load_fu_allocation_tables(fu_analysis_folder = FUAnalysisFolder,
                               specified_iea_data = SpecifiedIEAData,
@@ -334,8 +334,7 @@ list(
                               db_table_name = db_table_name_from_hook_before,
                               conn = conn,
                               schema = DM,
-                              fk_parent_tables = FKTables),
-    Country),
+                              fk_parent_tables = FKTables)),
 
   ## CompletedAllocationTables
   targets::tar_target(
@@ -356,14 +355,7 @@ list(
   targets::tar_target(
     Cmats,
     calc_C_mats(completed_allocation_tables = CompletedAllocationTables,
-                countries = Countries,
-                # index_map = IndexMap,
-                # dataset = clpfu_dataset,
-                # db_table_name = db_table_name_from_hook_before,
-                # conn = conn,
-                # schema = DM,
-                # fk_parent_tables = FKTables
-                ),
+                countries = Countries),
     pattern = map(Countries)),
 
 
@@ -593,15 +585,17 @@ list(
   # tar_hook_inner targets -----------------------------------------------------
 
 tarchetypes::tar_hook_inner(
-  hook = download_dependency(.x,
-                             countries = Countries,
-                             index_map = IndexMap,
-                             rctypes = MatnameRCType,
-                             conn = conn,
-                             schema = DM,
-                             fk_parent_tables = FKTables),
-  names = "Cmats",
-  names_wrap = "CompletedAllocationTables") |>
+  hook = download_dependency_hook(.x,
+                                  countries = Countries,
+                                  index_map = IndexMap,
+                                  rctypes = MatnameRCType,
+                                  conn = conn,
+                                  schema = DM,
+                                  fk_parent_tables = FKTables),
+  # The targets in which the dependency hook applies
+  names = c("BalancedIEAData", "Cmats"),
+  # The dependencies that are wrapped with download_dependency()
+  names_wrap = c("IEAData", "CompletedAllocationTables")) |>
 
 
 
@@ -626,7 +620,7 @@ tarchetypes::tar_hook_inner(
                   fk_parent_tables = FKTables,
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
-    names = c("AllIEAData", "PhiConstants", "Cmats"))
+    names = c("AllIEAData", "BalancedIEAData", "PhiConstants", "Cmats"))
 
 
 
