@@ -170,16 +170,8 @@ list(
   ## PSUTFinalIEA
   targets::tar_target(
     PSUTFinalIEA,
-    make_iea_psut(SpecifiedIEAData,
-                  countries = Countries,
-                  index_map = IndexMap,
-                  rctypes = MatnameRCType,
-                  dataset = clpfu_dataset,
-                  db_table_name = db_table_name_from_hook_before,
-                  conn = conn,
-                  schema = DM,
-                  fk_parent_tables = FKTables),
-    pattern = map(Countries)),
+    make_iea_psut(SpecifiedIEAData),
+    pattern = map(SpecifiedIEAData)),
 
 
   # Animal muscle work data ----------------------------------------------------
@@ -580,10 +572,11 @@ tarchetypes::tar_hook_inner(
                                   schema = DM,
                                   fk_parent_tables = FKTables),
   # The targets in which the dependency hook applies
-  names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "SpecifiedIEAData",
+  names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "SpecifiedIEAData", "PSUTFinalIEA",
             "Cmats"),
   # The dependencies that are wrapped with download_dependency()
-  names_wrap = c("IEAData", "BalancedIEAData", "CompletedAllocationTables")) |>
+  names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData",
+                 "CompletedAllocationTables")) |>
 
 
 
@@ -608,7 +601,8 @@ tarchetypes::tar_hook_inner(
                   fk_parent_tables = FKTables,
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
-    names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PhiConstants", "Cmats"))
+    names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
+              "PhiConstants", "Cmats"))
 
 
 

@@ -217,53 +217,53 @@ specify <- function(BalancedIEAData) {
 }
 
 
-#' Filter by country and year; copy to a destination table
+#' #' Filter by country and year; copy to a destination table
+#' #'
+#' #' It is helpful to do an inboard copy and filter of the IEA data.
+#' #' This function filters `source_table` and copies
+#' #' to `dest_table` (after first removing all rows from `dest_table`).
+#' #'
+#' #' @param source_table A string identifying the source table.
+#' #' @param dest_table A string identifying the destination table.
+#' #' @param countries The countries to keep.
+#' #' @param years The years to keep.
+#' #' @param conn The database connection.
+#' #' @param schema A `dm` object for the database.
+#' #' @param country The name of the country column.
+#' #'                Default is `IEATools::iea_cols$country`.
+#' #' @param year The name of the year column.
+#' #'             Default is `IEATools::iea_cols$year`.
+#' #'
+#' #' @return `TRUE` if successful.
+#' filter_all_iea_data <- function(source_table,
+#'                                 dest_table,
+#'                                 countries,
+#'                                 years,
+#'                                 conn,
+#'                                 schema = schema_from_conn(conn),
+#'                                 country = IEATools::iea_cols$country,
+#'                                 year = IEATools::iea_cols$year,
+#'                                 pk_col = PFUPipelineTools::dm_pk_colnames$pk_col) {
 #'
-#' It is helpful to do an inboard copy and filter of the IEA data.
-#' This function filters `source_table` and copies
-#' to `dest_table` (after first removing all rows from `dest_table`).
+#'   by_cols <- schema |>
+#'     dm::dm_get_all_pks(table = {{dest_table}}) |>
+#'     magrittr::extract2(pk_col) |>
+#'     unlist()
 #'
-#' @param source_table A string identifying the source table.
-#' @param dest_table A string identifying the destination table.
-#' @param countries The countries to keep.
-#' @param years The years to keep.
-#' @param conn The database connection.
-#' @param schema A `dm` object for the database.
-#' @param country The name of the country column.
-#'                Default is `IEATools::iea_cols$country`.
-#' @param year The name of the year column.
-#'             Default is `IEATools::iea_cols$year`.
+#'   dest_tbl <- dplyr::tbl(conn, dest_table) |>
+#'     # Clean out all rows from dest_tbl
+#'     dplyr::filter(FALSE)
+#'   source_tbl <- dplyr::tbl(conn, source_table) |>
+#'     # Filter the source table
+#'     dplyr::filter(.data[[country]] %in% countries, .data[[year]] %in% years)
 #'
-#' @return `TRUE` if successful.
-filter_all_iea_data <- function(source_table,
-                                dest_table,
-                                countries,
-                                years,
-                                conn,
-                                schema = schema_from_conn(conn),
-                                country = IEATools::iea_cols$country,
-                                year = IEATools::iea_cols$year,
-                                pk_col = PFUPipelineTools::dm_pk_colnames$pk_col) {
-
-  by_cols <- schema |>
-    dm::dm_get_all_pks(table = {{dest_table}}) |>
-    magrittr::extract2(pk_col) |>
-    unlist()
-
-  dest_tbl <- dplyr::tbl(conn, dest_table) |>
-    # Clean out all rows from dest_tbl
-    dplyr::filter(FALSE)
-  source_tbl <- dplyr::tbl(conn, source_table) |>
-    # Filter the source table
-    dplyr::filter(.data[[country]] %in% countries, .data[[year]] %in% years)
-
-  dplyr::rows_insert(x = dest_tbl,
-                     y = source_tbl,
-                     by = by_cols,
-                     in_place = FALSE,
-                     conflict = "ignore")
-  return(TRUE)
-}
+#'   dplyr::rows_insert(x = dest_tbl,
+#'                      y = source_tbl,
+#'                      by = by_cols,
+#'                      in_place = FALSE,
+#'                      conflict = "ignore")
+#'   return(TRUE)
+#' }
 
 
 #' Convert to PSUT matrices
@@ -272,76 +272,15 @@ filter_all_iea_data <- function(source_table,
 #' Internally, `IEATools::prep_psut()` does the conversion to matrices.
 #'
 #' @param specified_iea_data A data frame that has already been specified via `specify()`.
-#' @param countries The countries you want to convert to PSUT matrices.
-#' @param dataset The name of the dataset to which these data belong.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param index_map A list of data frames to assist with decoding matrices.
-#'                  Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
-#'                  but otherwise not needed.
-#' @param rctypes A data frame of row and column types.
-#'                Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
-#'                but otherwise not needed.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #' @param matrix_class The type of matrix to be created.
 #'                     Default is "Matrix" for sparse matrices.
-#' @param country See `IEATools::iea_cols`.
-#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A `matsindf`-style data frame.
 #'
 #' @export
-#'
-#' @examples
-#' IEATools::sample_iea_data_path() %>%
-#'   IEATools::load_tidy_iea_df() %>%
-#'   make_balanced(countries = c("GHA", "ZAF")) %>%
-#'   specify(countries = c("GHA", "ZAF")) %>%
-#'   make_iea_psut(countries = c("GHA", "ZAF"))
 make_iea_psut <- function(specified_iea_data,
-                          countries,
-                          dataset,
-                          db_table_name,
-                          index_map,
-                          rctypes,
-                          conn,
-                          schema = PFUPipelineTools::schema_from_conn(conn),
-                          fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
-                          matrix_class = "Matrix",
-                          country = IEATools::iea_cols$country,
-                          dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
-
+                          matrix_class = "Matrix") {
   specified_iea_data |>
-    dplyr::filter(.data[[country]] %in% countries) |>
-    PFUPipelineTools::pl_collect_from_hash(index_map = index_map,
-                                           rctypes = rctypes,
-                                           set_tar_group = FALSE,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
-    dplyr::mutate(
-      # Eliminate the dataset column (which contains IEAEWEBYYYY)
-      "{dataset_colname}" := NULL
-    ) |>
-    IEATools::prep_psut(matrix_class = matrix_class) |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                index_map = index_map,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
-
+    IEATools::prep_psut(matrix_class = matrix_class)
 }
 
