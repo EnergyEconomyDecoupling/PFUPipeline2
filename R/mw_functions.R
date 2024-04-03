@@ -72,22 +72,12 @@ rename_mw_sectors <- function(.df,
 #' @param amw_analysis_data_path The path the animal muscle work data.
 #' @param countries The countries to retain from `fao_data`.
 #' @param years The years to retain from `fao_data`.
-#' @param dataset The string name of the dataset for this data.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #' @param country The name of the country column in the output data set.
 #'                Default is `IEATools::iea_cols$country`.
 #' @param year The name of the year column in the output data set.
 #'             Default is `IEATools::iea_cols$year`.
 #' @param e_dot The name of the energy column.
 #'              Default is `IEATools::iea_cols$e_dot`.
-#' @param dataset_colname The name of the dataset column in the output.
-#'                        Default is `PFUPipelineTools::dataset_info$dataset_colname`.
 #'
 #' @return A hashed data frame of animal muscle work data.
 #'
@@ -121,22 +111,12 @@ prep_amw_pfu_data <- function(fao_data,
 #' @param hmw_analysis_data_path The path the human muscle work data.
 #' @param countries The countries to retain from `fao_data`.
 #' @param years The years to retain from `fao_data`.
-#' @param dataset The string name of the dataset for this data.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #' @param country The name of the country column in the output data set.
 #'                Default is `IEATools::iea_cols$country`.
 #' @param year The name of the year column in the output data set.
 #'             Default is `IEATools::iea_cols$year`.
 #' @param e_dot The name of the energy column.
 #'              Default is `IEATools::iea_cols$e_dot`.
-#' @param dataset_colname The name of the dataset column in the output.
-#'                        Default is `PFUPipelineTools::dataset_info$dataset_colname`.
 #'
 #' @return A hashed data frame of human muscle work data.
 #'
@@ -147,15 +127,9 @@ prep_hmw_pfu_data <- function(ilo_working_hours_data,
                               hmw_analysis_data_path,
                               countries,
                               years,
-                              dataset,
-                              db_table_name,
-                              conn,
-                              schema = PFUPipelineTools::schema_from_conn(conn),
-                              fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                               country = IEATools::iea_cols$country,
                               year = IEATools::iea_cols$year,
-                              e_dot = IEATools::iea_cols$e_dot,
-                              dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                              e_dot = IEATools::iea_cols$e_dot) {
 
   MWTools::prepareRawILOData(ilo_working_hours_data = ilo_working_hours_data,
                              ilo_employment_data = ilo_employment_data) |>
@@ -164,15 +138,6 @@ prep_hmw_pfu_data <- function(ilo_working_hours_data,
     rename_mw_sectors() |>
     dplyr::filter(.data[[country]] %in% countries,
                   .data[[year]] %in% years,
-                  .data[[e_dot]] != 0) |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+                  .data[[e_dot]] != 0)
 }
 

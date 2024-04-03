@@ -257,24 +257,14 @@ list(
                       ilo_employment_data = ILOEmploymentDataLocal,
                       mw_concordance_path = MWConcordancePath,
                       hmw_analysis_data_path = HMWAnalysisDataPath,
-                      db_table_name = db_table_name_from_hook_before,
                       countries = AllocAndEffCountries,
-                      years = Years,
-                      dataset = clpfu_dataset,
-                      conn = conn,
-                      schema = DM,
-                      fk_parent_tables = FKTables)),
+                      years = Years)),
 
   ## HMWPFUData
   targets::tar_target(
     HMWPFUData,
     aggcountries_mw_to_iea(mw_df = HMWPFUDataRaw,
-                           exemplar_table = ExemplarTable,
-                           db_table_name = db_table_name_from_hook_before,
-                           dataset = clpfu_dataset,
-                           conn = conn,
-                           schema = DM,
-                           fk_parent_tables = FKTables)),
+                           exemplar_table = ExemplarTable)),
 
 
   # Allocation tables ----------------------------------------------------------
@@ -563,10 +553,10 @@ tarchetypes::tar_hook_inner(
                                   fk_parent_tables = FKTables),
   # The targets in which the dependency hook applies
   names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "SpecifiedIEAData", "PSUTFinalIEA",
-            "AMWPFUData", "Cmats"),
+            "AMWPFUData", "HMWPFUData", "Cmats"),
   # The dependencies that are wrapped with download_dependency()
   names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData",
-                 "AMWPFUDataRaw",
+                 "AMWPFUDataRaw", "HMWPFUDataRaw",
                  "CompletedAllocationTables")) |>
 
 
@@ -593,7 +583,7 @@ tarchetypes::tar_hook_inner(
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
     names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
-              "AMWPFUDataRaw", "AMWPFUData",
+              "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw",
               "PhiConstants", "Cmats"))
 
 
