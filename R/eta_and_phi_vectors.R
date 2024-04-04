@@ -111,48 +111,22 @@ sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
                              keep = c(IEATools::template_cols$eta_fu,
                                       IEATools::template_cols$phi_u),
                              countries,
-                             dataset,
-                             db_table_name,
-                             index_map,
-                             rctypes,
-                             conn,
-                             schema = PFUPipelineTools::schema_from_conn(conn),
-                             fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                              country = IEATools::iea_cols$country,
                              eta_fu_colname = IEATools::template_cols$eta_fu,
-                             phi_u_colname = IEATools::template_cols$phi_u,
-                             dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                             phi_u_colname = IEATools::template_cols$phi_u) {
+
+  browser()
 
   keep <- match.arg(keep, several.ok = FALSE)
-  out <- eta_fu_phi_u_vecs |>
-    dplyr::filter(.data[[country]] %in% countries) |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
-                                           index_map = index_map,
-                                           rctypes = rctypes,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables)
   if (keep == IEATools::template_cols$eta_fu) {
     col_to_delete <- phi_u_colname
   } else {
     col_to_delete <- eta_fu_colname
   }
-  out |>
+  eta_fu_phi_u_vecs |>
     dplyr::mutate(
-      "{col_to_delete}" := NULL,
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(index_map = index_map,
-                                in_place = TRUE,
-                                db_table_name = db_table_name,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+      "{col_to_delete}" := NULL
+    )
 }
 
 
@@ -249,20 +223,6 @@ calc_phi_pf_vecs <- function(phi_constants,
 #' @param phi_pf_vecs A data frame of phi_pf vectors.
 #' @param phi_u_vecs A data frame of phi_u vectors.
 #' @param countries The countries for which you want to perform this task.
-#' @param dataset The name of the dataset to which these data belong.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param index_map A list of data frames to assist with decoding matrices.
-#'                  Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
-#'                  but otherwise not needed.
-#' @param rctypes A data frame of row and column types.
-#'                Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
-#'                but otherwise not needed.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #' @param matrix_class A string that tells which type of matrix to create,
 #'                     a "matrix" (the built-in type) or a "Matrix" (could be sparse).
 #'                     Default is "matrix".
@@ -270,7 +230,6 @@ calc_phi_pf_vecs <- function(phi_constants,
 #' @param phi_pf_colname,phi_u_colname See `IEATools::template_cols`.
 #' @param phi_colname See `IEATools::phi_constants_names`.
 #' @param .nrow_diffs,.phi_shape_OK,.phi_names_OK,.phi_cols_OK,.phi_sum_OK,.phi_pf_colnames,.phi_u_colnames Names of temporary error-checking columns created internally.
-#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A data frame of summed phi_pf and phi_u vectors.
 #'
@@ -295,13 +254,6 @@ calc_phi_pf_vecs <- function(phi_constants,
 sum_phi_vecs <- function(phi_pf_vecs,
                          phi_u_vecs,
                          countries,
-                         dataset,
-                         db_table_name,
-                         index_map,
-                         rctypes,
-                         conn,
-                         schema = PFUPipelineTools::schema_from_conn(conn),
-                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                          matrix_class = "Matrix",
                          country = IEATools::iea_cols$country,
                          last_stage = IEATools::iea_cols$last_stage,
@@ -316,32 +268,12 @@ sum_phi_vecs <- function(phi_pf_vecs,
                          .phi_cols_OK = ".phi_cols_OK",
                          .phi_sum_OK = ".phi_sum_OK",
                          .phi_pf_colnames = ".phi_pf_colnames",
-                         .phi_u_colnames = ".phi_u_colnames",
-                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
-
-  # Download the phi_pf_vecs and phi_u_vecs data frames from the database
-  phi_pf_vecs <- phi_pf_vecs |>
-    dplyr::filter(.data[[country]] %in% countries) |>
-    PFUPipelineTools::pl_collect_from_hash(index_map = index_map,
-                                           rctypes = rctypes,
-                                           set_tar_group = FALSE,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables)
-  phi_u_vecs <- phi_u_vecs |>
-    dplyr::filter(.data[[country]] %in% countries) |>
-    PFUPipelineTools::pl_collect_from_hash(index_map = index_map,
-                                           rctypes = rctypes,
-                                           set_tar_group = FALSE,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables)
+                         .phi_u_colnames = ".phi_u_colnames") {
 
   temp <- dplyr::full_join(phi_pf_vecs,
                            phi_u_vecs,
                            by = matsindf::everything_except(phi_pf_vecs, phi_pf_colname) |>
-                             as.character()) |>
-    dplyr::filter(.data[[country]] %in% countries)
+                             as.character())
   if (nrow(temp) == 0) {
     out <- temp |>
       # Add an empty list column that would otherwise contain vectors.
@@ -446,21 +378,5 @@ sum_phi_vecs <- function(phi_pf_vecs,
       # These were temporary columns
       "{phi_pf_colname}" := NULL,
       "{phi_u_colname}" := NULL
-    ) |>
-    # Add dataset column
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    # Upload to the database and return the "ticket"
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                index_map = index_map,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    )
 }

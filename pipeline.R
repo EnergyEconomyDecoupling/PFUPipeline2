@@ -422,14 +422,7 @@ list(
     Etafuvecs,
     sep_eta_fu_phi_u(EtafuPhiuvecs,
                      keep = IEATools::template_cols$eta_fu,
-                     countries = Countries,
-                     index_map = IndexMap,
-                     rctypes = MatnameRCType,
-                     dataset = clpfu_dataset,
-                     db_table_name = db_table_name_from_hook_before,
-                     conn = conn,
-                     schema = DM,
-                     fk_parent_tables = FKTables),
+                     countries = Countries),
     pattern = map(Countries)),
 
   ## Phiuvecs
@@ -437,14 +430,7 @@ list(
     Phiuvecs,
     sep_eta_fu_phi_u(EtafuPhiuvecs,
                      keep = IEATools::template_cols$phi_u,
-                     countries = Countries,
-                     index_map = IndexMap,
-                     rctypes = MatnameRCType,
-                     dataset = clpfu_dataset,
-                     db_table_name = db_table_name_from_hook_before,
-                     conn = conn,
-                     schema = DM,
-                     fk_parent_tables = FKTables),
+                     countries = Countries),
     pattern = map(Countries)),
 
   ## Phivecs
@@ -452,14 +438,15 @@ list(
     Phivecs,
     sum_phi_vecs(phi_pf_vecs = Phipfvecs,
                  phi_u_vecs = Phiuvecs,
-                 countries = Countries,
-                 index_map = IndexMap,
-                 rctypes = MatnameRCType,
-                 dataset = clpfu_dataset,
-                 db_table_name = db_table_name_from_hook_before,
-                 conn = conn,
-                 schema = DM,
-                 fk_parent_tables = FKTables),
+                 countries = Countries #,
+                 # index_map = IndexMap,
+                 # rctypes = MatnameRCType,
+                 # dataset = clpfu_dataset,
+                 # db_table_name = db_table_name_from_hook_before,
+                 # conn = conn,
+                 # schema = DM,
+                 # fk_parent_tables = FKTables
+                 ),
     pattern = map(Countries)) #,
 
 
@@ -558,11 +545,11 @@ list(
                                     schema = DM,
                                     fk_parent_tables = FKTables),
     names = c("Cmats",
-              "CompletedPhiuTables", "Phipfvecs",
-              "EtafuPhiuvecs"),
+              "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
+              "EtafuPhiuvecs", "Etafuvecs", "Phivecs"),
     names_wrap = c("CompletedAllocationTables",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
-                   "CompletedPhiuTables")) |>
+                   "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -623,8 +610,8 @@ list(
               "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
               "IncompleteAllocationTables", "CompletedAllocationTables", "Cmats",
               "AllMachineData", "CompletedEfficiencyTables",
-              "PhiConstants", "CompletedPhiuTables", "Phipfvecs",
-              "EtafuPhiuvecs"))
+              "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
+              "EtafuPhiuvecs", "Etafuvecs", "Phivecs"))
 
 
 
