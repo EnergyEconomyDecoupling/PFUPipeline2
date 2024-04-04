@@ -414,13 +414,7 @@ list(
     EtafuPhiuvecs,
     calc_eta_fu_phi_u_vecs(completed_efficiency_tables = CompletedEfficiencyTables,
                            completed_phi_tables = CompletedPhiuTables,
-                           countries = Countries,
-                           index_map = IndexMap,
-                           dataset = clpfu_dataset,
-                           db_table_name = db_table_name_from_hook_before,
-                           conn = conn,
-                           schema = DM,
-                           fk_parent_tables = FKTables),
+                           countries = Countries),
     pattern = map(Countries)),
 
   ## Etafuvecs
@@ -552,7 +546,8 @@ list(
 
 
   ## An inner hook for targets where Countries
-  ## is the mapped variable
+  ## is the mapped variable.
+  ## This is the typical hook.
   tarchetypes::tar_hook_inner(
     hook = download_dependency_hook(.x,
                                     countries = Countries,
@@ -563,9 +558,11 @@ list(
                                     schema = DM,
                                     fk_parent_tables = FKTables),
     names = c("Cmats",
-              "CompletedPhiuTables", "Phipfvecs"),
+              "CompletedPhiuTables", "Phipfvecs",
+              "EtafuPhiuvecs"),
     names_wrap = c("CompletedAllocationTables",
-                   "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs")) |>
+                   "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
+                   "CompletedPhiuTables")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -626,7 +623,8 @@ list(
               "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
               "IncompleteAllocationTables", "CompletedAllocationTables", "Cmats",
               "AllMachineData", "CompletedEfficiencyTables",
-              "PhiConstants", "CompletedPhiuTables", "Phipfvecs"))
+              "PhiConstants", "CompletedPhiuTables", "Phipfvecs",
+              "EtafuPhiuvecs"))
 
 
 
