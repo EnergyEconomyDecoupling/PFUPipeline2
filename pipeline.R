@@ -1,6 +1,13 @@
 
 # This is the targets pipeline
 
+# Note that this pipeline contains several complicated targets
+# where the main input is processed with one country and/or year
+# in each thread but other inputs need to be included in whole.
+# Thus, this pipeline is *not* compatible with
+# iterating over tar_groups.
+# Iterations should be controlled by `map`ing over appropriate inputs.
+
 list(
 
   # Initialize -----------------------------------------------------------------
@@ -125,7 +132,7 @@ list(
                   apply_fixes = ApplyFixes)),
 
   ## IEAData
-  tarchetypes::tar_group_by(
+  targets::tar_target(
     IEAData,
     PFUPipelineTools::inboard_filter_copy(source = "AllIEAData",
                                           dest = db_table_name_from_hook_before,
@@ -134,27 +141,28 @@ list(
                                           empty_dest = TRUE,
                                           in_place = TRUE,
                                           dependencies = AllIEAData,
-                                          conn = conn),
-    Country),
+                                          conn = conn)),
 
   ## BalancedBeforeIEA
   targets::tar_target(
     BalancedBeforeIEA,
-    is_balanced(IEAData),
-    pattern = map(IEAData)),
+    is_balanced(IEAData,
+                countries = AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries)),
 
   ## BalancedIEAData
   targets::tar_target(
     BalancedIEAData,
     make_balanced(IEAData,
-                  db_table_name = db_table_name_from_hook_before),
-    pattern = map(IEAData)),
+                  countries = AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries)),
 
   ## BalancedAfterIEA
   targets::tar_target(
     BalancedAfterIEA,
-    is_balanced(BalancedIEAData),
-    pattern = map(BalancedIEAData)),
+    is_balanced(BalancedIEAData,
+                countries = AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries)),
 
   ## OKToProceedIEA
   targets::tar_target(
@@ -164,14 +172,16 @@ list(
   ## SpecifiedIEAData
   targets::tar_target(
     SpecifiedIEAData,
-    specify(BalancedIEAData),
-    pattern = map(BalancedIEAData)),
+    specify(BalancedIEAData,
+            countries = AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries)),
 
   ## PSUTFinalIEA
   targets::tar_target(
     PSUTFinalIEA,
-    make_iea_psut(SpecifiedIEAData),
-    pattern = map(SpecifiedIEAData)),
+    make_iea_psut(SpecifiedIEAData,
+                  countries = AllocAndEffCountries),
+    pattern = map(AllocAndEffCountries)),
 
 
   # Animal muscle work data ----------------------------------------------------
@@ -287,13 +297,14 @@ list(
   targets::tar_target(
     IncompleteAllocationTables,
     load_fu_allocation_tables(fu_analysis_folder = FUAnalysisFolder,
-                              specified_iea_data = SpecifiedIEAData,
+                              specified_iea_data = PFUPipelineTools::tar_ungroup(SpecifiedIEAData),
                               countries = AllocAndEffCountries,
-                              dataset = clpfu_dataset,
-                              db_table_name = db_table_name_from_hook_before,
+                              index_map = IndexMap,
+                              rctypes = MatnameRCType,
                               conn = conn,
                               schema = DM,
-                              fk_parent_tables = FKTables)),
+                              fk_parent_tables = FKTables),
+    pattern = map(AllocAndEffCountries)),
 
   ## CompletedAllocationTables
   targets::tar_target(
@@ -338,12 +349,7 @@ list(
   ## AllMachineData
   targets::tar_target(
     AllMachineData,
-    read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath),
-                       dataset = clpfu_dataset,
-                       db_table_name = db_table_name_from_hook_before,
-                       conn = conn,
-                       schema = DM,
-                       fk_parent_tables = FKTables)),
+    read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath))),
 
   ## MachineData
   targets::tar_target(
@@ -365,11 +371,6 @@ list(
                            completed_fu_allocation_tables = CompletedAllocationTables,
                            countries = Countries,
                            years = Years,
-                           dataset = clpfu_dataset,
-                           db_table_name = db_table_name_from_hook_before,
-                           conn = conn,
-                           schema = DM,
-                           fk_parent_tables = FKTables,
                            which_quantity = IEATools::template_cols$eta_fu),
     pattern = map(Countries)),
 
@@ -394,12 +395,7 @@ list(
                           phi_constants_table = PhiConstants,
                           completed_efficiency_table = CompletedEfficiencyTables,
                           countries = Countries,
-                          years = Years,
-                          dataset = clpfu_dataset,
-                          db_table_name = db_table_name_from_hook_before,
-                          conn = conn,
-                          schema = DM,
-                          fk_parent_tables = FKTables),
+                          years = Years),
     pattern = map(Countries)),
 
   ## Phipfvecs
@@ -407,14 +403,7 @@ list(
     Phipfvecs,
     calc_phi_pf_vecs(phi_constants = PhiConstants,
                      phi_u_vecs = Phiuvecs,
-                     countries = Countries,
-                     dataset = clpfu_dataset,
-                     db_table_name = db_table_name_from_hook_before,
-                     index_map = IndexMap,
-                     rctypes = MatnameRCType,
-                     conn = conn,
-                     schema = DM,
-                     fk_parent_tables = FKTables),
+                     countries = Countries),
     pattern = map(Countries)),
 
 
@@ -507,88 +496,137 @@ list(
 ) |>
 
 
-# tar_hook_before targets ------------------------------------------------------
+  # tar_hook_before targets ----------------------------------------------------
 
-## This hook makes
-## * the database connection,
-## * the table name, and
-## * the dataset
-## available to all targets
-tarchetypes::tar_hook_before(
-  hook = {
-    # Ensure each target has access to the database,
-    # using the hint found at https://github.com/ropensci/targets/discussions/1164.
-    conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
-                           dbname = conn_params$dbname,
-                           host = conn_params$host,
-                           port = conn_params$port,
-                           user = conn_params$user)
-    # Make sure that the connection will be closed
-    # after each target completes.
-    on.exit(DBI::dbDisconnect(conn))
+  ## This hook makes
+  ## * the database connection,
+  ## * the table name, and
+  ## * the dataset
+  ## available to all targets
+  tarchetypes::tar_hook_before(
+    hook = {
+      # Ensure each target has access to the database,
+      # using the hint found at https://github.com/ropensci/targets/discussions/1164.
+      conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
+                             dbname = conn_params$dbname,
+                             host = conn_params$host,
+                             port = conn_params$port,
+                             user = conn_params$user)
+      # Make sure that the connection will be closed
+      # after each target completes.
+      on.exit(DBI::dbDisconnect(conn))
 
-    # By default, make the target name available as the name
-    # of the database table in which the result should be stored.
-    # But keep everything before the underscore,
-    # if it exists in the string.
-    db_table_name_from_hook_before <- db_table_name_hook(targets::tar_name())
+      # By default, make the target name available as the name
+      # of the database table in which the result should be stored.
+      # But keep everything before the underscore,
+      # if it exists in the string.
+      db_table_name_from_hook_before <- db_table_name_hook(targets::tar_name())
 
-    # Now use the db_table_name to decide which dataset is being created
-    if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
-      # Working on the IEA data
-      dataset_from_hook <- iea_dataset
-    } else {
-      # Everything else is in the CL-PFU dataset
-      dataset_from_hook <- clpfu_dataset
-    }}
-) |>
-
-
-# tar_hook_inner targets -------------------------------------------------------
-
-## This hook downloads and reconstitutes dependencies
-tarchetypes::tar_hook_inner(
-  hook = download_dependency_hook(.x,
-                                  countries = Countries,
-                                  index_map = IndexMap,
-                                  rctypes = MatnameRCType,
-                                  conn = conn,
-                                  schema = DM,
-                                  fk_parent_tables = FKTables),
-  # The targets in which the dependency hook applies
-  names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA", "SpecifiedIEAData", "PSUTFinalIEA",
-            "AMWPFUData", "HMWPFUData", "Cmats"),
-  # The dependencies that are wrapped with download_dependency()
-  names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData",
-                 "AMWPFUDataRaw", "HMWPFUDataRaw",
-                 "CompletedAllocationTables")) |>
+      # Now use the db_table_name to decide which dataset is being created
+      if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
+        # Working on the IEA data
+        dataset_from_hook <- iea_dataset
+      } else {
+        # Everything else is in the CL-PFU dataset
+        dataset_from_hook <- clpfu_dataset
+      }}
+  ) |>
 
 
+  # tar_hook_inner targets -----------------------------------------------------
 
-# tar_hook_outer targets -------------------------------------------------------
+  ## An inner hook for targets where AllocAndEffCountries
+  ## is the mapped variable
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = AllocAndEffCountries,
+                                    years = Years,
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
+              "SpecifiedIEAData", "PSUTFinalIEA"),
+    names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData")) |>
 
-## This hook uploads a resulting data frame to the database.
-tarchetypes::tar_hook_outer(
-  hook = {
-    # It would be better to refer to db_table_name_from_hook_before
-    # in this outer hook.
-    # But that doesn't seem to work,
-    # emitting an error from not finding
-    # db_table_name_from_hook_before.
-    db_table_name_from_hook_outer <- db_table_name_hook(targets::tar_name())
-    upsert_hook(.x,
-                db_table_name = db_table_name_from_hook_outer,
-                dataset = dataset_from_hook,
-                index_map = IndexMap,
-                conn = conn,
-                schema = DM,
-                fk_parent_tables = FKTables,
-                dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
-  },
-  names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
-            "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
-            "IncompleteAllocationTables",
-            "PhiConstants", "Cmats"))
+
+  ## An inner hook for targets where Countries
+  ## is the mapped variable
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = Countries,
+                                    years = Years,
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("Cmats",
+              "CompletedPhiuTables", "Phipfvecs"),
+    names_wrap = c("CompletedAllocationTables",
+                   "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs")) |>
+
+
+  ## An inner hook to download only relevant countries and years
+  ## of SpecifiedIEAData for the CompletedAllocationTables target
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = Countries,
+                                    years = Years,
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("CompletedAllocationTables"),
+    names_wrap = c("SpecifiedIEAData")) |>
+
+
+  ## An inner hook for downloading IncompleteAllocationTables
+  ## for all countries in the CompletedAllocationTables target
+  ## but only for specific years
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = NULL, # Set NULL to download all data
+                                    years = Years,
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("CompletedAllocationTables",
+              "CompletedEfficiencyTables"),
+    names_wrap = c("IncompleteAllocationTables",
+                   "MachineData", "CompletedAllocationTables",
+                   "PhiConstants")) |>
+
+
+  # tar_hook_outer targets -----------------------------------------------------
+
+  ## This hook uploads a resulting data frame to the database
+  tarchetypes::tar_hook_outer(
+    hook = {
+      # It would be better to refer to db_table_name_from_hook_before
+      # in this outer hook.
+      # But that doesn't seem to work,
+      # emitting an error from not finding
+      # db_table_name_from_hook_before.
+      db_table_name_from_hook_outer <- db_table_name_hook(targets::tar_name())
+      upsert_hook(.x,
+                  db_table_name = db_table_name_from_hook_outer,
+                  dataset = dataset_from_hook,
+                  index_map = IndexMap,
+                  conn = conn,
+                  schema = DM,
+                  fk_parent_tables = FKTables,
+                  dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
+    },
+    names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
+              "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
+              "IncompleteAllocationTables", "CompletedAllocationTables", "Cmats",
+              "AllMachineData", "CompletedEfficiencyTables",
+              "PhiConstants", "CompletedPhiuTables", "Phipfvecs"))
 
 
 

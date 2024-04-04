@@ -54,14 +54,6 @@ load_phi_values <- function(phi_constants_path) {
 #'                                   should be completed.
 #' @param countries A vector of countries for which completed phi tables are to be assembled.
 #' @param years The years for which analysis is desired. Default is `NULL`, meaning analyze all years.
-#' @param dataset The name of the dataset to which these data belong.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #' @param country,year,product See `IEATools::iea_cols`.
 #' @param machine,quantity,phi_u,.values,eu_product,eta_fu_source See `IEATools::template_cols`.
 #' @param phi_colname,phi_source_colname,is_useful See `IEATools::phi_constants_names`.
@@ -110,11 +102,6 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
                                   completed_efficiency_table = NULL,
                                   countries,
                                   years = NULL,
-                                  dataset,
-                                  db_table_name,
-                                  conn,
-                                  schema = PFUPipelineTools::schema_from_conn(conn),
-                                  fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                                   country = IEATools::iea_cols$country,
                                   year = IEATools::iea_cols$year,
                                   product = IEATools::iea_cols$product,
@@ -128,25 +115,9 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
                                   phi_source_colname = IEATools::phi_constants_names$phi_source_colname,
                                   is_useful = IEATools::phi_constants_names$is_useful_colname,
                                   eta_fu_tables = PFUPipelineTools::phi_sources$eta_fu_tables,
-                                  phi_constants = PFUPipelineTools::phi_sources$phi_constants,
-                                  dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                                  phi_constants = PFUPipelineTools::phi_sources$phi_constants) {
 
-  if (!is.null(years)) {
-    incomplete_phi_u_table <- incomplete_phi_u_table |>
-      dplyr::filter(.data[[year]] %in% years)
-  }
-  # Get the appropriate rows from the database based on the "ticket" provided.
-  incomplete_phi_u_table <- incomplete_phi_u_table |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
-    dplyr::mutate(
-      # Remove the Dataset column
-      "{dataset_colname}" := NULL
-    )
-
-  completed_phi_tables_by_year <- lapply(countries, FUN = function(coun) {
+  lapply(countries, FUN = function(coun) {
 
     # Get a data frame of needed phi_u cases.
     # There are two potential sources of the needed phi_u cases.
@@ -160,22 +131,14 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
     # which may contain missing (i.e. NA) values.
     if (is.null(completed_efficiency_table)) {
       needed_phi_u_cases <- incomplete_phi_u_table |>
-        dplyr::filter(.data[[country]] == coun,
+        dplyr::filter(#.data[[country]] == coun,
                       .data[[quantity]] == phi_u) |>
         dplyr::mutate(
           "{.values}" := NULL
         )
     } else {
-      completed_efficiency_table <- completed_efficiency_table |>
-        PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
-                                               conn = conn,
-                                               schema = schema,
-                                               fk_parent_tables = fk_parent_tables) |>
-        dplyr::mutate(
-          "{dataset_colname}" := NULL
-        )
       needed_phi_u_cases <- completed_efficiency_table |>
-        dplyr::filter(.data[[country]] == coun) |>
+        # dplyr::filter(.data[[country]] == coun) |>
         dplyr::mutate(
           # The completed_effiiency_table will have eta_fu for its quantity.
           # We want phi_u
@@ -197,13 +160,11 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
     # Thus, any phi values coming from the efficiency tables or machine data tables
     # will have first priority
     phi_u_from_eta_fu_tables <- incomplete_phi_u_table |>
-      dplyr::filter(.data[[country]] == coun,
+      dplyr::filter(#.data[[country]] == coun,
                     .data[[quantity]] == phi_u,
                     !is.na(.data[[.values]])) |>
       dplyr::mutate(
-        "{phi_source_colname}" := eta_fu_tables,
-        # Remove the dataset column
-        "{dataset_colname}" := NULL
+        "{phi_source_colname}" := eta_fu_tables
       )
     if (!is.null(completed_efficiency_table)) {
       # incomplete_phi_u_table may have more rows than we need.
@@ -228,17 +189,8 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
         "{.values}" := NULL
       )
 
-
     # Fill the missing values
-    phi_constants_table <- phi_constants_table |>
-      PFUPipelineTools::pl_collect_from_hash(retain_table_name_col = FALSE,
-                                             set_tar_group = FALSE,
-                                             conn = conn,
-                                             schema = schema,
-                                             fk_parent_tables = fk_parent_tables) |>
-      dplyr::mutate(
-        "{dataset_colname}" := NULL
-      )
+
     # Third priority will come from the phi_constants data frame.
     phi_u_from_phi_constants <- missing_phi_u_cases |>
       # left_join to pick up the values from phi_constants_table
@@ -253,7 +205,6 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
       # At this point, we have the wrong column name.
       # Rename to match the expected column name.
       dplyr::rename(
-        # "{.values}" := .data[[phi_colname]]
         "{.values}" := dplyr::all_of(phi_colname)
       ) |>
       # Add that these phi values came from the constants table
@@ -264,7 +215,6 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
       dplyr::filter(!is.na(.data[[.values]]))
 
     phi_u_table <- dplyr::bind_rows(phi_u_table, phi_u_from_phi_constants)
-
 
     # Calculate remaining missing values
     still_missing <- dplyr::anti_join(needed_phi_u_cases, phi_u_table, by = names(needed_phi_u_cases)) |>
@@ -277,7 +227,6 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
     if (nrow(still_missing) > 0) {
       err_msg <- paste("Not all useful energy carriers have been assigned phi values in assemble_phi_u_tables(). Missing combinations are:",
                        still_missing |>
-                         # dplyr::select(.data[[country]], .data[[year]], .data[[machine]], .data[[eu_product]]) |>
                          dplyr::select(dplyr::all_of(c(country, year, machine, eu_product))) |>
                          matsindf::df_to_msg())
       stop(err_msg)
@@ -287,18 +236,4 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
     return(phi_u_table)
   }) |>
     dplyr::bind_rows()
-
-  completed_phi_tables_by_year |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
 }

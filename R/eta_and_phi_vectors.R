@@ -213,20 +213,6 @@ sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
 #' @param phi_u_vecs A hashed data frame containing metadata columns and a column of phi_u vectors.
 #'                   A column of phi_pf vectors replaces the column of phi_u vectors on output.
 #' @param countries The countries for which you want to perform this task.
-#' @param dataset The name of the dataset to which these data belong.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param index_map A list of data frames to assist with decoding matrices.
-#'                  Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
-#'                  but otherwise not needed.
-#' @param rctypes A data frame of row and column types.
-#'                Passed to [decode_matsindf()] when `decode_matsindf` is `TRUE`
-#'                but otherwise not needed.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #' @param matrix_class A string that tells which type of matrix to create,
 #'                     a "matrix" (the built-in type) or a "Matrix" (could be sparse).
 #'                     Default is "matrix".
@@ -234,7 +220,6 @@ sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
 #' @param product_type,other_type See `IEATools::row_col_types`.
 #' @param eta_fu,phi_u,phi_pf_colname See `IEATools::template_cols`.
 #' @param phi_colname,is_useful_colname See `IEATools::phi_constants_colnames`.
-#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A version of the `phi_constants` data frame
 #'         with the column of useful phi (useful exergy-to-energy ratio) vectors
@@ -244,13 +229,6 @@ sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
 calc_phi_pf_vecs <- function(phi_constants,
                              phi_u_vecs,
                              countries,
-                             dataset,
-                             db_table_name,
-                             index_map,
-                             rctypes,
-                             conn,
-                             schema = PFUPipelineTools::schema_from_conn(conn),
-                             fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                              matrix_class = "Matrix",
                              country = IEATools::iea_cols$country,
                              product = IEATools::iea_cols$product,
@@ -260,16 +238,11 @@ calc_phi_pf_vecs <- function(phi_constants,
                              phi_u = IEATools::template_cols$phi_u,
                              phi_pf_colname = IEATools::template_cols$phi_pf,
                              phi_colname = IEATools::phi_constants_names$phi_colname,
-                             is_useful_colname = IEATools::phi_constants_names$is_useful_colname,
-                             dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                             is_useful_colname = IEATools::phi_constants_names$is_useful_colname) {
 
   # Pick up non-useful (i.e., primary and final)
   # phi values.
   phi_pf_constants <- phi_constants |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::filter(! .data[[is_useful_colname]])
   # Create a vector from phi_pf_constants
   if (matrix_class == "matrix") {
@@ -284,13 +257,6 @@ calc_phi_pf_vecs <- function(phi_constants,
     matsbyname::setcoltype(other_type)
 
   trimmed_phi_u_vecs <- phi_u_vecs |>
-    dplyr::filter(.data[[country]] %in% countries) |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
-                                           index_map = index_map,
-                                           rctypes = rctypes,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::mutate(
       # We don't need the eta_fu or phi_u column on output.
       "{eta_fu}" := NULL,
@@ -314,22 +280,7 @@ calc_phi_pf_vecs <- function(phi_constants,
                                                   lenx = 1)
       )
   }
-
-  out |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                index_map = index_map,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+  return(out)
 }
 
 

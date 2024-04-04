@@ -41,37 +41,42 @@
 #'
 #' @export
 download_dependency_hook <- function(.hashed_dependency,
-                                     countries,
+                                     countries = NULL,
+                                     years = NULL,
                                      index_map,
                                      rctypes,
                                      conn,
                                      schema = PFUPipelineTools::schema_from_conn(conn),
                                      fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                                      country = IEATools::iea_cols$country,
+                                     year = IEATools::iea_cols$year,
                                      dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                      tar_group_colname = "tar_group") {
 
-  if (!(tar_group_colname %in% colnames(.hashed_dependency))) {
-    # This is not a grouped data frame, so
-    # filter by countries.
+  if (!is.null(countries) & (country %in% colnames(.hashed_dependency))) {
     .hashed_dependency <- .hashed_dependency |>
       dplyr::filter(.data[[country]] %in% countries)
   }
-
+  if (!is.null(years) & (year %in% colnames(.hashed_dependency))) {
+    .hashed_dependency <- .hashed_dependency |>
+      dplyr::filter(.data[[year]] %in% years)
+  }
+  if (nrow(.hashed_dependency) == 0) {
+    return(NULL)
+  }
   .hashed_dependency |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = TRUE,
-                                           index_map = index_map,
-                                           rctypes = rctypes,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
-    dplyr::mutate(
-      "{dataset_colname}" := NULL
-    )
+  PFUPipelineTools::pl_collect_from_hash(set_tar_group = TRUE,
+                                         index_map = index_map,
+                                         rctypes = rctypes,
+                                         conn = conn,
+                                         schema = schema,
+                                         fk_parent_tables = fk_parent_tables) |>
+  dplyr::mutate(
+    "{dataset_colname}" := NULL
+  )
 }
 
 
-#' `tarchetypes` hook to upload data frame
 #'
 #' After most targets, the resulting data frame should be
 #' uploaded to the database for storage.
@@ -109,6 +114,10 @@ upsert_hook <- function(.df,
                         schema = PFUPipelineTools::schema_from_conn(conn),
                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+
+  if (is.null(.df)) {
+    return(NULL)
+  }
 
   .df |>
     # Add dataset column

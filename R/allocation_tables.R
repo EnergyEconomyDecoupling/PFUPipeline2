@@ -14,29 +14,16 @@
 #' This behavior can be modified by setting argument `generate_missing_fu_allocation_template` to `FALSE`.
 #'
 #' @param fu_analysis_folder The folder from which final-to-useful analyses will be loaded.
-#' @param specified_iea_data A data frame of specified IEA data for `countries`.
+#' @param specified_iea_data A ticket to recover a data frame of specified IEA data for `countries`.
 #' @param countries The countries for which allocation tables should be loaded.
 #' @param file_suffix The suffix for the FU analysis files. Default is "`r IEATools::fu_analysis_file_info$fu_analysis_file_suffix`".
 #' @param use_subfolders Tells whether to look for files in subfolders named by `countries`. Default is `TRUE`.
 #' @param generate_missing_fu_allocation_template Tells whether to generate a missing final-to-useful allocation template from `specified_iea_data`. Default is `TRUE`.
-#' @param db_table_name The name of the table into which the data should be stored
-#'                      in the database at `conn`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
-#' @param fu_allocations_tab_name The name of the tab for final-to-useful allocations in the Excel file containing final-to-useful allocation data. Default is "`r IEATools::fu_analysis_file_info$fu_allocation_tab_name`".
-#' @param country The string name of the country column.
-#'                Default is `IEATools::iea_cols$country`.
-#' @param table_name_colname The name of a column in `specified_iea_data` that gives
-#'                           the table in the database in which specified IEA data are to be found.
-#'                           Default is `PFUPipelineTools::hashed_table_colnames$db_table_name`.
 #'
 #' @export
 #'
-#' @return A data frame of tidy FU Allocation tables read by `IEATools::load_fu_allocation_data()`.
+#' @return A ticket to recover a
+#'         data frame of tidy FU Allocation tables read by `IEATools::load_fu_allocation_data()`.
 #'         If no FU Allocation data are found and `generate_missing_fu_allocation_template` is `TRUE`,
 #'         an empty template written to disk and the empty template is returned.
 #'         If no FU Allocation data are found and `generate_missing_fu_allocation_template` is `FALSE`,
@@ -47,14 +34,13 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
                                       file_suffix = IEATools::fu_analysis_file_info$fu_analysis_file_suffix,
                                       use_subfolders = TRUE,
                                       generate_missing_fu_allocation_template = TRUE,
-                                      dataset,
-                                      dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
-                                      db_table_name,
-                                      conn,
-                                      schema = schema_from_conn(conn = conn),
-                                      fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema),
                                       fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name,
-                                      country_colname = IEATools::iea_cols$country) {
+                                      index_map,
+                                      rctypes,
+                                      conn,
+                                      schema,
+                                      fk_parent_tables) {
+
   out <- lapply(countries, FUN = function(coun) {
     folder <- ifelse(use_subfolders, file.path(fu_analysis_folder, coun), fu_analysis_folder)
     fpath <- file.path(folder, paste0(coun, file_suffix))
@@ -65,7 +51,16 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     if (!fexists & generate_missing_fu_allocation_template) {
       # Create and write the template
       iea_data <- specified_iea_data |>
-        dplyr::filter(.data[[IEATools::iea_cols$country]] == coun)
+        download_dependency(countries = coun,
+                            index_map =  index_map,
+                            rctypes = rctypes,
+                            conn = conn,
+                            schema = schema,
+                            fk_parent_tables = fk_parent_tables)
+      # If there is no iea_data for coun, simply return NULL.
+      if (is.null(iea_data)) {
+        return(NULL)
+      }
       # Writing the allocation table is pointless if we don't have any IEA
       # data for that country.
       # So only write a template file if we have a non-zero number
@@ -91,16 +86,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     return(NULL)
   }
   out |>
-    IEATools::tidy_fu_allocation_table() # |>
-    # dplyr::mutate(
-    #   "{dataset_colname}" := dataset
-    # ) |>
-    # dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    # PFUPipelineTools::pl_upsert(in_place = TRUE,
-    #                             db_table_name = db_table_name,
-    #                             conn = conn,
-    #                             schema = schema,
-    #                             fk_parent_tables = fk_parent_tables)
+    IEATools::tidy_fu_allocation_table()
 }
 
 
@@ -189,12 +175,7 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           complete_alloc_tables = PFUPipelineTools::exemplar_names$complete_alloc_table,
                                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
-  tidy_incomplete_allocation_tables <- incomplete_allocation_tables |>
-    dplyr::filter(.data[[year]] %in% years) |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = FALSE,
-                                           conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables)
+  tidy_incomplete_allocation_tables <- incomplete_allocation_tables
   if (is.null(tidy_incomplete_allocation_tables)) {
     incomplete_allocation_tables_name <-
       incomplete_allocation_tables[[PFUPipelineTools::hashed_table_colnames$db_table_name]] |>
@@ -220,17 +201,7 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
     ) |>
     PFUPipelineTools::tar_ungroup()
 
-  # specified_iea_data <- specified_iea_data |>
-  #   dplyr::mutate(
-  #     # Eliminate the dataset column, because it conflicts with the dataset name for the
-  #     # incomplete_allocation_tables.
-  #     "{dataset_colname}" := NULL
-  #   )
   specified_iea_data <- specified_iea_data |>
-    dplyr::filter(.data[[country]] %in% countries, .data[[year]] %in% years) |>
-    PFUPipelineTools::pl_collect_from_hash(conn = conn,
-                                           schema = schema,
-                                           fk_parent_tables = fk_parent_tables) |>
     dplyr::mutate(
       # Eliminate the dataset column, because it conflicts with the dataset name for the
       # incomplete_allocation_tables.
@@ -298,20 +269,7 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
   assertthat::assert_that(!(complete_alloc_tables %in% names(out)),
                           msg = paste(paste0(countries, collapse = ", "),
                                       "do (does) not have allocation information in PFUPipeline2::assemble_fu_allocation_tables()"))
-  out |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname)) |>
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+  return(out)
 }
 
 

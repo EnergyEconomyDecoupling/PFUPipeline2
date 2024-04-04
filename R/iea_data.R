@@ -87,35 +87,27 @@ load_iea_data <- function(iea_data_path,
 #' from `get_all_fk_tables()`.
 #'
 #' @param .iea_data A tidy IEA data frame
+#' @param countries The countries to be checked for energy balance.
 #' @param grp_vars The groups that should be checked. Default is
 #'                 `c(country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
 #'
-#' @return a logical stating whether all products are balanced for the country of interest
+#' @return A logical stating whether all products are balanced for the country of interest
 #'
 #' @export
 is_balanced <- function(.iea_data,
+                        countries,
                         grp_vars = c(IEATools::iea_cols$country,
                                      IEATools::iea_cols$method,
                                      IEATools::iea_cols$energy_type,
                                      IEATools::iea_cols$last_stage,
                                      IEATools::iea_cols$year,
-                                     IEATools::iea_cols$product) #,
-                        # conn,
-                        # schema = schema_from_conn(conn),
-                        # fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)
-                        ) {
+                                     IEATools::iea_cols$product)) {
 
+  if (is.null(.iea_data)) {
+    # Found now rows of data for this country.
+    return(NULL)
+  }
   .iea_data |>
-    # PFUPipelineTools::pl_collect_from_hash(conn = conn,
-    #                                        schema = schema,
-    #                                        fk_parent_tables = fk_parent_tables) |>
-    # Get data from the database
     dplyr::group_by(!!as.name(grp_vars)) |>
     # Check balances
     IEATools::calc_tidy_iea_df_balances() |>
@@ -160,31 +152,29 @@ combine_countries_exemplars <- function(couns, exempls) {
 #' from `get_all_fk_tables()`.
 #'
 #' @param .iea_data A tidy IEA data frame.
-#' @param db_table_name The name of the table in `conn` where the result will be stored.
+#' @param countries The countries to be balanced.
 #' @param max_fix The maximum allowable energy imbalance to fix.
 #'                Default is `3`.
-#' @param balanced_table_name The name of the table in `conn` where
-#'                            balanced IEA data should be uploaded.
 #' @param grp_vars the groups that should be checked.
 #'                 Default is
 #'                 `c(IEATools::iea_cols$country, IEATools::iea_cols$method, IEATools::iea_cols$energy_type, IEATools::iea_cols$last_stage, IEATools::iea_cols$product)`.
 #'
-#' @return A hash of the balanced data frame. See `pl_upsert()`.
+#' @return A ticket to recover the balanced data frame.
 #'
 #' @export
 make_balanced <- function(.iea_data,
-                          db_table_name,
+                          countries,
                           max_fix = 6,
                           grp_vars = c(IEATools::iea_cols$country,
                                        IEATools::iea_cols$method,
                                        IEATools::iea_cols$energy_type,
                                        IEATools::iea_cols$last_stage,
                                        IEATools::iea_cols$year,
-                                       IEATools::iea_cols$product) #,
-                          # conn,
-                          # schema = schema_from_conn(conn),
-                          # fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema)
-                          ) {
+                                       IEATools::iea_cols$product)) {
+
+  if (is.null(.iea_data)) {
+    return(NULL)
+  }
 
   .iea_data |>
     dplyr::group_by(!!as.name(grp_vars)) |>
@@ -198,72 +188,21 @@ make_balanced <- function(.iea_data,
 #' Specifies the IEA data in a way that is amenable to targets parallelization
 #' See `IEATools::specify_all()` for details.
 #'
-#' @param BalancedIEAData IEA data that have already been balanced.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#'                      Default is "SpecifiedIEAData".
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
+#' @param balanced_iea_data IEA data that have already been balanced.
+#' @param countries The countries to specify.
 #'
-#' @return A data frame of specified IEA data.
+#' @return A ticket to recover a data frame of specified IEA data.
 #'
 #' @export
-specify <- function(BalancedIEAData) {
-  BalancedIEAData |>
+specify <- function(balanced_iea_data,
+                    countries) {
+
+  if (is.null(balanced_iea_data)) {
+    return(NULL)
+  }
+  balanced_iea_data |>
     IEATools::specify_all()
 }
-
-
-#' #' Filter by country and year; copy to a destination table
-#' #'
-#' #' It is helpful to do an inboard copy and filter of the IEA data.
-#' #' This function filters `source_table` and copies
-#' #' to `dest_table` (after first removing all rows from `dest_table`).
-#' #'
-#' #' @param source_table A string identifying the source table.
-#' #' @param dest_table A string identifying the destination table.
-#' #' @param countries The countries to keep.
-#' #' @param years The years to keep.
-#' #' @param conn The database connection.
-#' #' @param schema A `dm` object for the database.
-#' #' @param country The name of the country column.
-#' #'                Default is `IEATools::iea_cols$country`.
-#' #' @param year The name of the year column.
-#' #'             Default is `IEATools::iea_cols$year`.
-#' #'
-#' #' @return `TRUE` if successful.
-#' filter_all_iea_data <- function(source_table,
-#'                                 dest_table,
-#'                                 countries,
-#'                                 years,
-#'                                 conn,
-#'                                 schema = schema_from_conn(conn),
-#'                                 country = IEATools::iea_cols$country,
-#'                                 year = IEATools::iea_cols$year,
-#'                                 pk_col = PFUPipelineTools::dm_pk_colnames$pk_col) {
-#'
-#'   by_cols <- schema |>
-#'     dm::dm_get_all_pks(table = {{dest_table}}) |>
-#'     magrittr::extract2(pk_col) |>
-#'     unlist()
-#'
-#'   dest_tbl <- dplyr::tbl(conn, dest_table) |>
-#'     # Clean out all rows from dest_tbl
-#'     dplyr::filter(FALSE)
-#'   source_tbl <- dplyr::tbl(conn, source_table) |>
-#'     # Filter the source table
-#'     dplyr::filter(.data[[country]] %in% countries, .data[[year]] %in% years)
-#'
-#'   dplyr::rows_insert(x = dest_tbl,
-#'                      y = source_tbl,
-#'                      by = by_cols,
-#'                      in_place = FALSE,
-#'                      conflict = "ignore")
-#'   return(TRUE)
-#' }
 
 
 #' Convert to PSUT matrices
@@ -274,13 +213,18 @@ specify <- function(BalancedIEAData) {
 #' @param specified_iea_data A data frame that has already been specified via `specify()`.
 #' @param matrix_class The type of matrix to be created.
 #'                     Default is "Matrix" for sparse matrices.
+#' @param countries The countries to convert to PSUT format.
 #'
-#' @return A `matsindf`-style data frame.
+#' @return A ticket to recover the PSUT data frame.
 #'
 #' @export
 make_iea_psut <- function(specified_iea_data,
-                          matrix_class = "Matrix") {
+                          countries) {
+
+  if (is.null(specified_iea_data)) {
+    return(NULL)
+  }
   specified_iea_data |>
-    IEATools::prep_psut(matrix_class = matrix_class)
+    IEATools::prep_psut(matrix_class = "Matrix")
 }
 
