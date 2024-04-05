@@ -310,11 +310,9 @@ calc_C_mats <- function(completed_allocation_tables,
                         c_source = IEATools::template_cols$c_source,
                         .values = IEATools::template_cols$.values,
                         C_Y = IEATools::template_cols$C_Y,
-                        C_EIOU  = IEATools::template_cols$C_eiou,
-                        industry_type = IEATools::row_col_types$industry,
-                        product_type = IEATools::row_col_types$product) {
+                        C_EIOU  = IEATools::template_cols$C_eiou) {
 
-  Cmats <- completed_allocation_tables |>
+  completed_allocation_tables |>
     dplyr::mutate(
       # Eliminate the c_source column (if it exists) before sending
       # the completed_allocation_tables into form_C_mats().
@@ -326,28 +324,4 @@ calc_C_mats <- function(completed_allocation_tables,
     # Use the IEATools::form_C_mats() function for this task.
     # The function accepts a tidy data frame in addition to wide-by-year data frames.
     IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class)
-
-  # Rowtype of C_Y and C_EIOU is Product -> Industry; coltype is Industry -> Product.
-  # That's accurate, but it will not pick up the Industry and Product types
-  # stored in the database.
-  # For example,
-  # Electricity -> Residential (a row name) is stored in the Product table of the database.
-  # Electric lamps -> L (a column name) is stored in the Industry table of the database.
-  # Change rowtype to Product and coltype to Industry to enable indexing
-  # and upload to the database.
-  # But only change the types if the column exists.
-  # Some countries never have any EIOU, for example, and C_EIOU will be missing.
-  if (C_Y %in% colnames(Cmats)) {
-    Cmats <- Cmats |>
-      dplyr::mutate(
-        "{C_Y}" := .data[[C_Y]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
-      )
-  }
-  if (C_EIOU %in% colnames(Cmats)) {
-    Cmats <- Cmats |>
-      dplyr::mutate(
-        "{C_EIOU}" := .data[[C_EIOU]] |> matsbyname::setrowtype(product_type) |> matsbyname::setcoltype(industry_type),
-      )
-  }
-  return(Cmats)
 }

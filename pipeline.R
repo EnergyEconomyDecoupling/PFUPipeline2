@@ -433,35 +433,20 @@ list(
     Phivecs,
     sum_phi_vecs(phi_pf_vecs = Phipfvecs,
                  phi_u_vecs = Phiuvecs,
-                 countries = Countries #,
-                 # index_map = IndexMap,
-                 # rctypes = MatnameRCType,
-                 # dataset = clpfu_dataset,
-                 # db_table_name = db_table_name_from_hook_before,
-                 # conn = conn,
-                 # schema = DM,
-                 # fk_parent_tables = FKTables
-                 ),
-    pattern = map(Countries)) #,
+                 countries = Countries),
+    pattern = map(Countries)),
 
 
   # Extend to useful stage -----------------------------------------------------
 
   ## PSUTUsefulIEAWithDetails
-  # targets::tar_target(
-  #   PSUTUsefulIEAWithDetails,
-  #   move_to_useful_with_details(psut_final = PSUTFinalIEA,
-  #                               C_mats = Cmats,
-  #                               eta_phi_vecs = EtafuPhiuvecs,
-  #                               countries = Countries,
-  #                               index_map = IndexMap,
-  #                               rctypes = MatnameRCType,
-  #                               dataset = clpfu_dataset,
-  #                               db_table_name = db_table_name,
-  #                               conn = conn,
-  #                               schema = DM,
-  #                               fk_parent_tables = FKTables),
-  #   pattern = map(Countries))
+  targets::tar_target(
+    PSUTUsefulIEAWithDetails,
+    move_to_useful_with_details(psut_final = PSUTFinalIEA,
+                                C_mats = Cmats,
+                                eta_phi_vecs = EtafuPhiuvecs,
+                                countries = Countries),
+    pattern = map(Countries))
 
 
 
@@ -474,11 +459,10 @@ list(
 
   # tar_hook_before targets ----------------------------------------------------
 
-  ## This hook makes
+  ## This hook supplies the following items to all targets:
   ## * the database connection,
   ## * the table name, and
-  ## * the dataset
-  ## available to all targets
+  ## * the dataset.
   tarchetypes::tar_hook_before(
     hook = {
       # Ensure each target has access to the database,
@@ -529,7 +513,7 @@ list(
 
   ## An inner hook for targets where Countries
   ## is the mapped variable.
-  ## This is the typical hook.
+  ## This is the typical inner hook.
   tarchetypes::tar_hook_inner(
     hook = download_dependency_hook(.x,
                                     countries = Countries,
@@ -542,11 +526,13 @@ list(
     names = c("Cmats",
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
-              "EtafuPhiuvecs", "Etafuvecs", "Phivecs"),
+              "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
+              "PSUTUsefulIEAWithDetails"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
-                   "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs")) |>
+                   "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs",
+                   "PSUTFinalIEA", "Cmats")) |>
 
 
   ## An inner hook to download only relevant countries and years

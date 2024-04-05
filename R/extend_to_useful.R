@@ -26,23 +26,17 @@ move_to_useful_with_details <- function(psut_final,
                                         C_Y = IEATools::template_cols$C_Y,
                                         C_eiou = IEATools::template_cols$C_eiou) {
 
-  # Download the appropriate data frames from the database using the "ticket"
-
-
-
   # Calculate metadata columns.
-  m_cols <- C_mats %>%
+  m_cols <- C_mats |>
     IEATools::meta_cols(return_names = TRUE,
                         years_to_keep = year,
                         not_meta = c(C_Y, C_eiou))
-  psut_final_filtered <- psut_final |>
-    dplyr::filter(.data[[country]] %in% countries)
 
-  psut_final_filtered %>%
+  psut_final |>
     # Join the matrices and vectors to the psut_final data frame.
-    dplyr::full_join(C_mats %>% dplyr::filter(.data[[country]] %in% countries), by = m_cols) %>%
-    dplyr::full_join(eta_phi_vecs %>% dplyr::filter(.data[[country]] %in% countries), by = m_cols) %>%
+    dplyr::full_join(C_mats, by = m_cols) |>
+    dplyr::full_join(eta_phi_vecs, by = m_cols) |>
     # And, finally, extend to the useful stage.
     IEATools::extend_to_useful() |>
-    IEATools::stack_final_useful_df(psut_final_filtered)
+    IEATools::stack_final_useful_df(psut_final)
 }
