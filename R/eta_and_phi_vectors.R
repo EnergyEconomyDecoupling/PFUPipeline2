@@ -34,11 +34,7 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                    .values = IEATools::template_cols$.values,
                                    eta_fu = IEATools::template_cols$eta_fu,
                                    phi_u = IEATools::template_cols$phi_u,
-                                   phi_u_source = IEATools::phi_constants_names$phi_source_colname  # ,
-                                   # industry_type = IEATools::row_col_types$industry,
-                                   # product_type = IEATools::row_col_types$product,
-                                   # other_type = IEATools::row_col_types$other
-                                   ) {
+                                   phi_u_source = IEATools::phi_constants_names$phi_source_colname) {
 
   browser()
 
@@ -62,21 +58,7 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
     # Need to form eta_fu and phi_u vectors from completed_efficiency_tables.
     # Use the IEATools::form_eta_fu_phi_u_vecs() function for this task.
     # The function accepts a tidy data frame in addition to wide-by-year data frames.
-    IEATools::form_eta_fu_phi_u_vecs(matvals = .values, matrix_class = matrix_class) # |>
-    # dplyr::mutate(
-    #   # Rowtype of etafu is Industry -> Product; coltype is etafu.
-    #   # Coltype of phiu is phiu.
-    #   # That's accurate, but it will not pick up the Industry and Product types
-    #   # stored in the database.
-    #   # For example,
-    #   # Electric lamps -> L (a row name) in etafu is stored in the Industry table of the database.
-    #   # Electricity -> Residential (a row name) in phiu is stored in the Product table of the database.
-    #   # Change rowtype to Industry for etafu.
-    #   # Coltype for both should be "Other", because these are column vectors.
-    #   # Doing so enables indexing in the database.
-    #   "{eta_fu}" := .data[[eta_fu]] |> matsbyname::setrowtype(industry_type) |> matsbyname::setcoltype(other_type),
-    #   "{phi_u}" := .data[[phi_u]] |> matsbyname::setcoltype(other_type)
-    # )
+    IEATools::form_eta_fu_phi_u_vecs(matvals = .values, matrix_class = matrix_class)
 }
 
 
@@ -165,7 +147,6 @@ calc_phi_pf_vecs <- function(phi_constants,
                              country = IEATools::iea_cols$country,
                              product = IEATools::iea_cols$product,
                              product_type = IEATools::row_col_types$product,
-                             # other_type = IEATools::row_col_types$other,
                              eta_fu = IEATools::template_cols$eta_fu,
                              phi_u = IEATools::template_cols$phi_u,
                              phi_pf_colname = IEATools::template_cols$phi_pf,
@@ -185,8 +166,6 @@ calc_phi_pf_vecs <- function(phi_constants,
                                      dimnames = list(c(phi_pf_constants[[product]]), phi_colname))
   }
   phi_pf_vec <- phi_pf_vec |>
-    # matsbyname::setrowtype(product_type) |>
-    # matsbyname::setcoltype(other_type)
     matsbyname::setrowtype(product_type) |>
     matsbyname::setcoltype(phi_colname)
 
