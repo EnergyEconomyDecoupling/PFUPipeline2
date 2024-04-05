@@ -34,14 +34,10 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
                                       file_suffix = IEATools::fu_analysis_file_info$fu_analysis_file_suffix,
                                       use_subfolders = TRUE,
                                       generate_missing_fu_allocation_template = TRUE,
-                                      fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name,
-                                      index_map,
-                                      rctypes,
-                                      conn,
-                                      schema,
-                                      fk_parent_tables) {
+                                      fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name) {
 
   out <- lapply(countries, FUN = function(coun) {
+
     folder <- ifelse(use_subfolders, file.path(fu_analysis_folder, coun), fu_analysis_folder)
     fpath <- file.path(folder, paste0(coun, file_suffix))
     fexists <- file.exists(fpath)
@@ -50,26 +46,19 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     }
     if (!fexists & generate_missing_fu_allocation_template) {
       # Create and write the template
-      iea_data <- specified_iea_data |>
-        download_dependency(countries = coun,
-                            index_map =  index_map,
-                            rctypes = rctypes,
-                            conn = conn,
-                            schema = schema,
-                            fk_parent_tables = fk_parent_tables)
       # If there is no iea_data for coun, simply return NULL.
-      if (is.null(iea_data)) {
+      if (is.null(specified_iea_data)) {
         return(NULL)
       }
       # Writing the allocation table is pointless if we don't have any IEA
       # data for that country.
       # So only write a template file if we have a non-zero number
       # of rows in the IEA data.
-      if (nrow(iea_data) > 0) {
+      if (nrow(specified_iea_data) > 0) {
         # Make sure we have the folder we need
         dir.create(folder, showWarnings = FALSE)
         # Now write the template
-        IEATools::fu_allocation_template(iea_data) |>
+        IEATools::fu_allocation_template(specified_iea_data) |>
           IEATools::write_fu_allocation_template(fpath)
       }
     }

@@ -297,13 +297,8 @@ list(
   targets::tar_target(
     IncompleteAllocationTables,
     load_fu_allocation_tables(fu_analysis_folder = FUAnalysisFolder,
-                              specified_iea_data = PFUPipelineTools::tar_ungroup(SpecifiedIEAData),
-                              countries = AllocAndEffCountries,
-                              index_map = IndexMap,
-                              rctypes = MatnameRCType,
-                              conn = conn,
-                              schema = DM,
-                              fk_parent_tables = FKTables),
+                              specified_iea_data = SpecifiedIEAData,
+                              countries = AllocAndEffCountries),
     pattern = map(AllocAndEffCountries)),
 
   ## CompletedAllocationTables
@@ -528,7 +523,7 @@ list(
                                     schema = DM,
                                     fk_parent_tables = FKTables),
     names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
-              "SpecifiedIEAData", "PSUTFinalIEA"),
+              "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
     names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData")) |>
 
 
