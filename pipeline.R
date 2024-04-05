@@ -540,9 +540,11 @@ list(
                                     schema = DM,
                                     fk_parent_tables = FKTables),
     names = c("Cmats",
+              "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs"),
     names_wrap = c("CompletedAllocationTables",
+                   "AMWPFUDataRaw", "HMWPFUDataRaw",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs")) |>
 

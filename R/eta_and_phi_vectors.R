@@ -115,8 +115,6 @@ sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
                              eta_fu_colname = IEATools::template_cols$eta_fu,
                              phi_u_colname = IEATools::template_cols$phi_u) {
 
-  browser()
-
   keep <- match.arg(keep, several.ok = FALSE)
   if (keep == IEATools::template_cols$eta_fu) {
     col_to_delete <- phi_u_colname
