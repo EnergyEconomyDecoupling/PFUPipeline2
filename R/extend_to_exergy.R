@@ -20,9 +20,11 @@ move_to_exergy <- function(psut_energy,
                            countries,
                            country = IEATools::iea_cols$country,
                            phi_colname = IEATools::phi_constants_names$phi_colname) {
+
+  browser()
+
   # Make sure we're operating on the countries of interest.
-  psut_energy <- psut_energy %>%
-    dplyr::filter(.data[[country]] %in% countries)
+  # psut_energy <- psut_energy
   # If the psut_energy data frame has no rows,
   # simply return it.
   # Both the incoming and outgoing data frames have the exact same columns.
@@ -30,8 +32,8 @@ move_to_exergy <- function(psut_energy,
     return(psut_energy)
   }
   # We have a non-zero number of rows, so proceed with the calculations.
-  phi_vecs <- phi_vecs %>%
-    dplyr::filter(.data[[country]] %in% countries)
+  # phi_vecs <- phi_vecs %>%
+  #   dplyr::filter(.data[[country]] %in% countries)
 
   # Get the metadata columns for the phi_vecs data frame.
   meta_cols <- matsindf::everything_except(phi_vecs, phi_colname, .symbols = FALSE)

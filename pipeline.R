@@ -475,18 +475,18 @@ list(
                                  IEATools::psut_cols$s_units),
               remove_final = TRUE, # This data frame has only useful stage.
               countries = Countries),
-    pattern = map(Countries)) # ,
+    pattern = map(Countries)),
 
 
   # Extend to exergy -----------------------------------------------------------
 
   ## PSUTIEA
-  # targets::tar_target(
-  #   PSUTIEA,
-  #   move_to_exergy(psut_energy = PSUTUsefulIEA,
-  #                  phi_vecs = Phivecs,
-  #                  countries = Countries),
-  #   pattern = map(Countries)) #,
+  targets::tar_target(
+    PSUTIEA,
+    move_to_exergy(psut_energy = PSUTUsefulIEA,
+                   phi_vecs = Phivecs,
+                   countries = Countries),
+    pattern = map(Countries)) #,
 
 
 
@@ -566,12 +566,12 @@ list(
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy"),
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
-                   "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs",
-                   "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails")) |>
+                   "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
+                   "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -634,7 +634,7 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy"))
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA"))
 
 
 
