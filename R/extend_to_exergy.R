@@ -21,10 +21,6 @@ move_to_exergy <- function(psut_energy,
                            country = IEATools::iea_cols$country,
                            phi_colname = IEATools::phi_constants_names$phi_colname) {
 
-  browser()
-
-  # Make sure we're operating on the countries of interest.
-  # psut_energy <- psut_energy
   # If the psut_energy data frame has no rows,
   # simply return it.
   # Both the incoming and outgoing data frames have the exact same columns.
@@ -32,20 +28,18 @@ move_to_exergy <- function(psut_energy,
     return(psut_energy)
   }
   # We have a non-zero number of rows, so proceed with the calculations.
-  # phi_vecs <- phi_vecs %>%
-  #   dplyr::filter(.data[[country]] %in% countries)
 
   # Get the metadata columns for the phi_vecs data frame.
   meta_cols <- matsindf::everything_except(phi_vecs, phi_colname, .symbols = FALSE)
 
-  # Join the phi vectors to the psut_energy data frame
-  df_with_phi <- dplyr::left_join(psut_energy, phi_vecs, by = meta_cols)
-
-  # Calculate exergy versions of the ECC.
-  # Need to specify the mat_piece here, because the default value ("all")
-  # is not appropriate.
-  # We will have cases where the matrix will have specified names like
-  # "MP [from Bulk carrier ships]".
-  # In this case, we need to match the noun, not the whole string.
-  Recca::extend_to_exergy(df_with_phi, mat_piece = "noun", phi_piece = "all")
+  psut_energy |>
+    # Join the phi vectors to the psut_energy data frame
+    dplyr::left_join(phi_vecs, by = meta_cols) |>
+    # Calculate exergy versions of the ECC.
+    # Need to specify the mat_piece here, because the default value ("all")
+    # is not appropriate.
+    # We will have cases where the matrix will have specified names like
+    # "MP [from Bulk carrier ships]".
+    # In this case, we need to match the noun, not the whole string.
+    Recca::extend_to_exergy(mat_piece = "noun", phi_piece = "all")
 }

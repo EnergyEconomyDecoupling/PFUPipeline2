@@ -437,7 +437,7 @@ list(
     pattern = map(Countries)),
 
 
-  # Extend to useful stage -----------------------------------------------------
+  # Extend IEA data to useful stage --------------------------------------------
 
   ## PSUTUsefulIEAWithDetails
   targets::tar_target(
@@ -460,7 +460,7 @@ list(
     pattern = map(Countries)),
 
   ## YfuUEIOUfudetailsEnergy
-  #  Keep the details matrices for a different database product
+  #  Keep only the details matrices for a different database product
   targets::tar_target(
     YfuUEIOUfudetailsEnergy,
     PSUTUsefulIEAWithDetails |>
@@ -478,7 +478,7 @@ list(
     pattern = map(Countries)),
 
 
-  # Extend to exergy -----------------------------------------------------------
+  # Extend useful IEA data to exergy -------------------------------------------
 
   ## PSUTIEA
   targets::tar_target(
@@ -486,7 +486,19 @@ list(
     move_to_exergy(psut_energy = PSUTUsefulIEA,
                    phi_vecs = Phivecs,
                    countries = Countries),
+    pattern = map(Countries)),
+
+
+  # Make PSUT matrices for MW data ---------------------------------------------
+
+  ## PSUTMW_energy
+  targets::tar_target(
+    PSUTMWenergy,
+    make_mw_psut(.hmw_df = HMWPFUData,
+                 .amw_df = AMWPFUData,
+                 countries = Countries),
     pattern = map(Countries)) #,
+
 
 
 
@@ -566,9 +578,10 @@ list(
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA"),
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
+              "PSUTMW_energy"),
     names_wrap = c("CompletedAllocationTables",
-                   "AMWPFUDataRaw", "HMWPFUDataRaw",
+                   "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA")) |>
@@ -634,7 +647,8 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA"))
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
+              "PSUTMW_energy"))
 
 
 

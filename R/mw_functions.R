@@ -14,7 +14,6 @@ download_amw_data <- function(version,
 }
 
 
-
 #' Rename muscle work sectors to comport with IEA sectors.
 #'
 #' The muscle work methodology in the `MWTools` package
@@ -141,3 +140,34 @@ prep_hmw_pfu_data <- function(ilo_working_hours_data,
                   .data[[e_dot]] != 0)
 }
 
+
+#' Calculate PSUT data frames from muscle work PFU data frames
+#'
+#' This function creates PSUT matrices
+#' from primary-final-useful muscle work data frames.
+#'
+#' @param .hmw_df,.amw_df Data frames of primary-final-useful muscle work data.
+#' @param countries The countries to be analyzed.
+#' @param matrix_class The type of matrix to be created.
+#'                     Default is "Matrix" (for sparse matrices).
+#' @param output_unit A string of length one that specifies the output unit.
+#'                    Default is "TJ".
+#' @param country The name of the country column in `.hmw_df` and `.amw_df`.
+#'                Default is `MWTools::mw_cols$country`.
+#'
+#' @return A data frame of PSUT matrices for a muscle work energy conversion chain.
+#'
+#' @export
+make_mw_psut <- function(.hmw_df, .amw_df,
+                         countries,
+                         matrix_class = "Matrix",
+                         output_unit = "TJ",
+                         country = MWTools::mw_cols$country) {
+
+  browser()
+
+  MWTools::prep_psut(.hmw_df = .hmw_df,
+                     .amw_df = .amw_df,
+                     matrix_class = matrix_class,
+                     output_unit = output_unit)
+}
