@@ -36,8 +36,6 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                    phi_u = IEATools::template_cols$phi_u,
                                    phi_u_source = IEATools::phi_constants_names$phi_source_colname) {
 
-  browser()
-
   lapply(list(completed_efficiency_tables, completed_phi_tables), function(t) {
     t |>
       dplyr::mutate(
