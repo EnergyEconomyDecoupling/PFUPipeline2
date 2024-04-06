@@ -446,18 +446,17 @@ list(
                                 C_mats = Cmats,
                                 eta_phi_vecs = EtafuPhiuvecs,
                                 countries = Countries),
-    pattern = map(Countries)) #,
+    pattern = map(Countries)),
 
-  # # (12.2) Keep only the PSUT matrices for the energy conversion chains
-  # ## PSUTUsefulIEA
-  # targets::tar_target(
-  #   PSUTUsefulIEA,
-  #   PSUTUsefulIEAWithDetails |>
-  #           remove_cols_from_PSUTUsefulIEAWithDetails(
-  #             cols_to_remove = c(IEATools::psut_cols$Y_fu_details,
-  #                                IEATools::psut_cols$U_eiou_fu_details),
-  #             countries = Countries)),
-  #   pattern = map(Countries),
+  ## PSUTUsefulIEA
+  targets::tar_target(
+    PSUTUsefulIEA,
+    PSUTUsefulIEAWithDetails |>
+            remove_cols_from_PSUTUsefulIEAWithDetails(
+              cols_to_remove = c(IEATools::psut_cols$Y_fu_details,
+                                 IEATools::psut_cols$U_eiou_fu_details),
+              countries = Countries),
+    pattern = map(Countries)) # ,
 
 
 
@@ -538,12 +537,12 @@ list(
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails"),
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs",
-                   "PSUTFinalIEA", "Cmats")) |>
+                   "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -606,7 +605,7 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails"))
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA"))
 
 
 

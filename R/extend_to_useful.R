@@ -51,7 +51,6 @@ move_to_useful_with_details <- function(psut_final,
 #'
 #' @param psut_useful_iea_with_details The target from which columns should be removed.
 #' @param cols_to_remove A string vector of columns names to be removed.
-#' @param phi_vecs The name of the phi vector column in `psut_useful_iea_with_details`.
 #' @param remove_final A boolean that tells whether to remove Last.stage == "Final" rows.
 #'                     Default is `FALSE`.
 #' @param countries The countries for which this function should be applied.
@@ -69,15 +68,15 @@ move_to_useful_with_details <- function(psut_final,
 #' @export
 remove_cols_from_PSUTUsefulIEAWithDetails <- function(psut_useful_iea_with_details,
                                                       cols_to_remove,
-                                                      phi_vecs,
                                                       remove_final = FALSE,
                                                       countries,
                                                       country = IEATools::iea_cols$country,
                                                       year = IEATools::iea_cols$year,
                                                       last_stage = IEATools::iea_cols$last_stage,
                                                       final = IEATools::all_stages$final) {
+
   out <- psut_useful_iea_with_details |>
-    dplyr::filter(.data[[country]] %in% countries) |>
+    # dplyr::filter(.data[[country]] %in% countries) |>
     dplyr::select(-dplyr::any_of(cols_to_remove))
   if (remove_final) {
     out <- out |>
