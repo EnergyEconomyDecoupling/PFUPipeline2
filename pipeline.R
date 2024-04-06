@@ -449,6 +449,7 @@ list(
     pattern = map(Countries)),
 
   ## PSUTUsefulIEA
+  #  Keep only the PSUT matrices for the energy conversion chains
   targets::tar_target(
     PSUTUsefulIEA,
     PSUTUsefulIEAWithDetails |>
@@ -456,8 +457,36 @@ list(
               cols_to_remove = c(IEATools::psut_cols$Y_fu_details,
                                  IEATools::psut_cols$U_eiou_fu_details),
               countries = Countries),
+    pattern = map(Countries)),
+
+  ## YfuUEIOUfudetailsEnergy
+  #  Keep the details matrices for a different database product
+  targets::tar_target(
+    YfuUEIOUfudetailsEnergy,
+    PSUTUsefulIEAWithDetails |>
+            remove_cols_from_PSUTUsefulIEAWithDetails(
+              cols_to_remove = c(IEATools::psut_cols$R,
+                                 IEATools::psut_cols$U,
+                                 IEATools::psut_cols$U_feed,
+                                 IEATools::psut_cols$U_eiou,
+                                 IEATools::psut_cols$r_eiou,
+                                 IEATools::psut_cols$V,
+                                 IEATools::psut_cols$Y,
+                                 IEATools::psut_cols$s_units),
+              remove_final = TRUE, # This data frame has only useful stage.
+              countries = Countries),
     pattern = map(Countries)) # ,
 
+
+  # Extend to exergy -----------------------------------------------------------
+
+  ## PSUTIEA
+  # targets::tar_target(
+  #   PSUTIEA,
+  #   move_to_exergy(psut_energy = PSUTUsefulIEA,
+  #                  phi_vecs = Phivecs,
+  #                  countries = Countries),
+  #   pattern = map(Countries)) #,
 
 
 
@@ -537,7 +566,7 @@ list(
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA"),
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
@@ -605,7 +634,7 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA"))
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy"))
 
 
 
