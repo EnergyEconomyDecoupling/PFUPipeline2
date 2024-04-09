@@ -27,12 +27,13 @@ move_to_exergy <- function(psut_energy,
   if (nrow(psut_energy) == 0) {
     return(psut_energy)
   }
-  # We have a non-zero number of rows, so proceed with the calculations.
 
-  browser()
+  # We have a non-zero number of rows, so proceed with the calculations.
 
   # Get the metadata columns for the phi_vecs data frame.
   meta_cols <- matsindf::everything_except(phi_vecs, phi_colname, .symbols = FALSE)
+
+  browser()
 
   psut_energy |>
     # Join the phi vectors to the psut_energy data frame

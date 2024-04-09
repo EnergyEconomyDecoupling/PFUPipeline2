@@ -166,6 +166,8 @@ make_mw_psut <- function(.hmw_df,
                          output_unit = "TJ",
                          country = MWTools::mw_cols$country) {
 
+  browser()
+
   MWTools::prep_psut(.hmw_df = .hmw_df,
                      .amw_df = .amw_df,
                      matrix_class = matrix_class,

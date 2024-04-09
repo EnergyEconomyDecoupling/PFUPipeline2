@@ -83,6 +83,13 @@ download_dependency_hook <- function(.hashed_dependency,
 #' This function provides a `tarchetypes` "hook" to wrap each target
 #' for that purpose.
 #'
+#' By default, [PFUPipelineTools::pl_upsert()] will delete all zero entries
+#' in matrices before upserting.
+#' But for some countries and years,
+#' that could result in missing matrices, such as **U_EIOU**.
+#' Set `retain_zero_structure = TRUE`
+#' to do otherwise and preserve all entries in a zero matrix.
+#'
 #' @param .df A data frame to be upserted into table `db_table_name`
 #'            in the database at `conn`.
 #' @param db_table_name The name of the table into which `.df` will be upserted.
@@ -90,6 +97,9 @@ download_dependency_hook <- function(.hashed_dependency,
 #' @param index_map The mapping for matrix row and column indices,
 #'                  a two-column data frame with an integer column
 #'                  for indices and a string column for names.
+#' @param retain_zero_structure A boolean that tells whether to retain the stucture
+#'                              of zero matrices.
+#'                              See details.
 #' @param conn The database connection.
 #' @param schema A `dm` object, the database schema.
 #'               Default is `PFUPipelineTools::schema_from_conn(conn)`.
@@ -110,6 +120,7 @@ upsert_hook <- function(.df,
                         db_table_name,
                         dataset,
                         index_map,
+                        retain_zero_structure = TRUE,
                         conn,
                         schema = PFUPipelineTools::schema_from_conn(conn),
                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),

@@ -491,9 +491,9 @@ list(
 
   # Make PSUT matrices for MW data ---------------------------------------------
 
-  ## PSUTMWenergy
+  ## PSUTMWEnergy
   targets::tar_target(
-    PSUTMWenergy,
+    PSUTMWEnergy,
     make_mw_psut(.hmw_df = HMWPFUData,
                  .amw_df = AMWPFUData,
                  countries = Countries),
@@ -502,7 +502,7 @@ list(
   ## BalancedPSUTMW
   targets::tar_target(
     BalancedPSUTMW,
-    verify_mw_energy_balance(PSUTMWenergy,
+    verify_mw_energy_balance(PSUTMWEnergy,
                              countries = Countries),
     pattern = map(Countries)),
 
@@ -526,10 +526,19 @@ list(
   # Note plural spelling.
   targets::tar_target(
     PhivecsMW,
-    calc_phi_vecs_mw(psut_energy_mw = PSUTMWenergy,
+    calc_phi_vecs_mw(psut_energy_mw = PSUTMWEnergy,
                      phi_vec_mw = PhivecMW,
                      countries = Countries),
+    pattern = map(Countries)),
+
+  ## PSUTMWAllYears
+  targets::tar_target(
+    PSUTMWAllYears,
+    move_to_exergy(psut_energy = PSUTMWEnergy,
+                   phi_vecs = PhivecsMW,
+                   countries = Countries),
     pattern = map(Countries)) # ,
+
 
 
 
@@ -613,13 +622,14 @@ list(
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs", "PhivecMW",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMWenergy", "BalancedPSUTMW"),
+              "PSUTMWEnergy", "BalancedPSUTMW",
+              "PSUTMWAllYears"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
-                   "PSUTMWenergy")) |>
+                   "PSUTMWEnergy", "PhivecsMW")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -681,7 +691,7 @@ list(
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMWenergy"))
+              "PSUTMWEnergy", "PSUTMWAllYears"))
 
 
 
