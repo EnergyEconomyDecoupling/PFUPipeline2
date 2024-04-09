@@ -510,7 +510,27 @@ list(
   # stopifnot returns NULL if everything is OK.
   targets::tar_target(
     OKToProceedMW,
-    ifelse(is.null(stopifnot(BalancedPSUTMW)), yes = TRUE, no = FALSE)) #,
+    ifelse(is.null(stopifnot(BalancedPSUTMW)), yes = TRUE, no = FALSE)),
+
+  ## PhivecMW
+  #  Create a single MW phi vector applicable to all years.
+  #  This target is NOT uploaded to the database.
+  targets::tar_target(
+    PhivecMW,
+    MWTools::phi_vec_mw(.phi_table = PhiConstants,
+                        mw_energy_carriers = MWTools::mw_products,
+                        matrix_class = "Matrix")),
+
+  ## PhivecsMW
+  # This target provides a MW phi vector for every Country-Year combination.
+  # Note plural spelling.
+  targets::tar_target(
+    PhivecsMW,
+    calc_phi_vecs_mw(psut_energy_mw = PSUTMWenergy,
+                     phi_vec_mw = PhivecMW,
+                     countries = Countries),
+    pattern = map(Countries)) # ,
+
 
 
 
@@ -590,8 +610,8 @@ list(
                                     fk_parent_tables = FKTables),
     names = c("Cmats",
               "AMWPFUData", "HMWPFUData",
-              "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
-              "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
+              "CompletedPhiuTables", "Phipfvecs", "Phiuvecs", "PhivecMW",
+              "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWenergy", "BalancedPSUTMW"),
     names_wrap = c("CompletedAllocationTables",
@@ -617,9 +637,8 @@ list(
     names_wrap = c("SpecifiedIEAData")) |>
 
 
-  ## An inner hook for downloading IncompleteAllocationTables
-  ## for all countries in the CompletedAllocationTables target
-  ## but only for specific years
+  ## An inner hook for downloading data
+  ## for all countries but only specific years
   tarchetypes::tar_hook_inner(
     hook = download_dependency_hook(.x,
                                     countries = NULL, # Set NULL to download all data
@@ -632,8 +651,7 @@ list(
     names = c("CompletedAllocationTables",
               "CompletedEfficiencyTables"),
     names_wrap = c("IncompleteAllocationTables",
-                   "MachineData", "CompletedAllocationTables",
-                   "PhiConstants")) |>
+                   "MachineData", "CompletedAllocationTables")) |>
 
 
   # tar_hook_outer targets -----------------------------------------------------
@@ -661,7 +679,7 @@ list(
               "IncompleteAllocationTables", "CompletedAllocationTables", "Cmats",
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
-              "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
+              "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWenergy"))
 

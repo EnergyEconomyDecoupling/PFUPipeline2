@@ -90,8 +90,6 @@ prep_amw_pfu_data <- function(fao_data,
                               year = IEATools::iea_cols$year,
                               e_dot = IEATools::iea_cols$e_dot) {
 
-  browser()
-
   fao_data |>
     MWTools::calc_amw_pfu(concordance_path = mw_concordance_path,
                           amw_analysis_data_path = amw_analysis_data_path) |>
