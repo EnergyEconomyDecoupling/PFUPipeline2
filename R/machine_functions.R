@@ -75,8 +75,8 @@ get_eta_filepaths <- function(filepath,
 #'
 #' @return A data frame containing all Eta.fu and Phi.u values present
 #'         in all Machine excel files, with the following column names:
-#'         "Country", "Energy.type", "Last.stage", "Method", "Machine",
-#'         "Eu.product", "Quantity", "Year", "Value".
+#'         "Country", "EnergyType", "LastStage", "Method", "Machine",
+#'         "Euproduct", "Quantity", "Year", "Value".
 #'
 #' @export
 read_all_eta_files <- function(eta_fin_paths,

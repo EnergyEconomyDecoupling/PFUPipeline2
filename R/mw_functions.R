@@ -89,6 +89,9 @@ prep_amw_pfu_data <- function(fao_data,
                               country = IEATools::iea_cols$country,
                               year = IEATools::iea_cols$year,
                               e_dot = IEATools::iea_cols$e_dot) {
+
+  browser()
+
   fao_data |>
     MWTools::calc_amw_pfu(concordance_path = mw_concordance_path,
                           amw_analysis_data_path = amw_analysis_data_path) |>
@@ -158,16 +161,48 @@ prep_hmw_pfu_data <- function(ilo_working_hours_data,
 #' @return A data frame of PSUT matrices for a muscle work energy conversion chain.
 #'
 #' @export
-make_mw_psut <- function(.hmw_df, .amw_df,
+make_mw_psut <- function(.hmw_df,
+                         .amw_df,
                          countries,
                          matrix_class = "Matrix",
                          output_unit = "TJ",
                          country = MWTools::mw_cols$country) {
 
-  browser()
-
   MWTools::prep_psut(.hmw_df = .hmw_df,
                      .amw_df = .amw_df,
                      matrix_class = matrix_class,
                      output_unit = output_unit)
+}
+
+
+#' Verify energy balance in muscle work PSUT matrices
+#'
+#' After constructing the muscle work PSUT matrices,
+#' energy balance should be verified.
+#' Internally, this function uses `Recca::verify_SUT_energy_balance()`
+#' to ensure that everything is balanced.
+#'
+#' If `.psut_df` has zero rows,
+#' `TRUE` is returned, enabling the pipeline to continue,
+#' even if there are some years where there is no muscle work data available.
+#'
+#' @param .psut_df A data frame of muscle work PSUT matrices.
+#' @param countries The countries to be analyzed.
+#'
+#' @return A data frame with new boolean column ".balanced" that tells
+#'         whether the matrices are balanced.
+#'
+#' @export
+verify_mw_energy_balance <- function(.psut_df,
+                                     countries) {
+
+  if (nrow(.psut_df) == 0) {
+    return(TRUE)
+  }
+  # We have some rows. Perform the check.
+  .psut_df |>
+    Recca::verify_SUT_energy_balance(SUT_energy_balance = ".balanced") |>
+    magrittr::extract2(".balanced") |>
+    unlist() |>
+    all()
 }

@@ -491,13 +491,27 @@ list(
 
   # Make PSUT matrices for MW data ---------------------------------------------
 
-  ## PSUTMW_energy
+  ## PSUTMWenergy
   targets::tar_target(
     PSUTMWenergy,
     make_mw_psut(.hmw_df = HMWPFUData,
                  .amw_df = AMWPFUData,
                  countries = Countries),
-    pattern = map(Countries)) #,
+    pattern = map(Countries)),
+
+  ## BalancedPSUTMW
+  targets::tar_target(
+    BalancedPSUTMW,
+    verify_mw_energy_balance(PSUTMWenergy,
+                             countries = Countries),
+    pattern = map(Countries)),
+
+  # Don't continue if there is a problem with the MW data.
+  # stopifnot returns NULL if everything is OK.
+  targets::tar_target(
+    OKToProceedMW,
+    ifelse(is.null(stopifnot(BalancedPSUTMW)), yes = TRUE, no = FALSE)) #,
+
 
 
 
@@ -579,12 +593,13 @@ list(
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMW_energy"),
+              "PSUTMWenergy", "BalancedPSUTMW"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
-                   "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA")) |>
+                   "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
+                   "PSUTMWenergy")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -648,7 +663,7 @@ list(
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMW_energy"))
+              "PSUTMWenergy"))
 
 
 

@@ -29,6 +29,8 @@ move_to_exergy <- function(psut_energy,
   }
   # We have a non-zero number of rows, so proceed with the calculations.
 
+  browser()
+
   # Get the metadata columns for the phi_vecs data frame.
   meta_cols <- matsindf::everything_except(phi_vecs, phi_colname, .symbols = FALSE)
 
