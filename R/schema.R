@@ -54,8 +54,8 @@ set_dm_fk_tables <- function(schema_file_path, conn) {
 #'         index map for this database.
 #' @export
 create_index_map <- function(index_table_name = "Index",
-                             rc_type_table_name = "RCType",
-                             rc_type_colname = rc_type_table_name,
+                             # rc_type_table_name = "RCType",
+                             # rc_type_colname = rc_type_table_name,
                              conn,
                              schema = PFUPipelineTools::schema_from_conn(conn),
                              fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)) {
@@ -66,18 +66,18 @@ create_index_map <- function(index_table_name = "Index",
                                         schema = schema,
                                         fk_parent_tables = fk_parent_tables)
 
-  rc_type_table <- rc_type_table_name |>
-    PFUPipelineTools::pl_filter_collect(collect = TRUE,
-                                        conn = conn,
-                                        schema = schema,
-                                        fk_parent_tables = fk_parent_tables)
-
-  # Get the names of all row and column types from the RCType column
-  rc_type_names <- rc_type_table[[rc_type_colname]]
-
-  # Create the outgoing list, with each row and column getting the same index table,
-  # for simplicity
-  index_table |>
-    RCLabels::make_list(n = length(rc_type_names), lenx = 1) |>
-    magrittr::set_names(rc_type_names)
+  # rc_type_table <- rc_type_table_name |>
+  #   PFUPipelineTools::pl_filter_collect(collect = TRUE,
+  #                                       conn = conn,
+  #                                       schema = schema,
+  #                                       fk_parent_tables = fk_parent_tables)
+  #
+  # # Get the names of all row and column types from the RCType column
+  # rc_type_names <- rc_type_table[[rc_type_colname]]
+  #
+  # # Create the outgoing list, with each row and column getting the same index table,
+  # # for simplicity
+  # index_table |>
+  #   RCLabels::make_list(n = length(rc_type_names), lenx = 1) |>
+  #   magrittr::set_names(rc_type_names)
 }
