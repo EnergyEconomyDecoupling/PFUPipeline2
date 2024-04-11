@@ -37,11 +37,6 @@ iea_year <- 2022
 #
 # Other control parameters -----------------------------------------------------
 
-# For debugging in a single thread
-crew_controller <- NULL
-# For parallel processing
-crew_controller <- crew::crew_controller_local(workers = worker_threads)
-
 # Tell whether to do chops
 do_chops <- FALSE
 
@@ -64,6 +59,12 @@ if (parallel::detectCores() == 10) {
   # To be safe
   worker_threads <- 2
 }
+
+# For debugging in a single thread
+crew_controller <- NULL
+# For parallel processing
+# crew_controller <- crew::crew_controller_local(workers = worker_threads)
+
 
 
 #

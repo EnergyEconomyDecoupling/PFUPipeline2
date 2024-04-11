@@ -33,8 +33,6 @@ move_to_exergy <- function(psut_energy,
   # Get the metadata columns for the phi_vecs data frame.
   meta_cols <- matsindf::everything_except(phi_vecs, phi_colname, .symbols = FALSE)
 
-  browser()
-
   psut_energy |>
     # Join the phi vectors to the psut_energy data frame
     dplyr::left_join(phi_vecs, by = meta_cols) |>
