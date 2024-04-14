@@ -126,6 +126,8 @@ upsert_hook <- function(.df,
                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
+  browser()
+
   if (is.null(.df)) {
     return(NULL)
   }
@@ -144,6 +146,11 @@ upsert_hook <- function(.df,
                                 # because groups may have different columns
                                 # with single unique values.
                                 keep_single_unique_cols = FALSE,
+                                # Set retain_zero_structure TRUE
+                                # to preserve U_EIOU, r_EIOU, and
+                                # other matrices when they're otherwise
+                                # absent.
+                                retain_zero_structure = TRUE,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
