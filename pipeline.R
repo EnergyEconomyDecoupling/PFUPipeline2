@@ -546,7 +546,28 @@ list(
     filter_mw_to_iea_years(PSUTMWAllYears,
                            PSUTIEA,
                            countries = Countries),
-    pattern = map(Countries)) # ,
+    pattern = map(Countries)),
+
+
+  # PSUT with IEA and MW -------------------------------------------------------
+
+  ## PSUTIEAMW
+  #  Combine IEA and MW data by summing PSUT matrices
+  targets::tar_target(
+    PSUTIEAMW,
+    add_iea_mw_psut(PSUTIEA, PSUTMW,
+                    countries = Countries),
+    pattern = map(Countries)),
+
+  ## PSUT
+  #  Put everything in the same data frame
+  targets::tar_target(
+    PSUT,
+    build_psut_dataframe(psutiea = PSUTIEA,
+                         psutmw = PSUTMW,
+                         psutieamw = PSUTIEAMW))
+
+
 
 
 
@@ -633,13 +654,14 @@ list(
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
-              "PSUTMWAllYears", "PSUTMW"),
+              "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
-                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears", "PSUTIEA")) |>
+                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears", "PSUTIEA",
+                   "PSUTMW")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -701,7 +723,7 @@ list(
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW"))
+              "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT"))
 
 
 
