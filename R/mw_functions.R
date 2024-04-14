@@ -204,3 +204,34 @@ verify_mw_energy_balance <- function(.psut_df,
     unlist() |>
     all()
 }
+
+
+#' Filter muscle work data to only those years contained in IEA data
+#'
+#' This function compares the muscle work and IEA data frames
+#' on the `country`, `year`, `method`, `energy_type`, and `last_stage` columns
+#' and keeps only those rows in `.psut_mw` that match `.psut_iea`.
+#'
+#' @param .psut_mw The incoming muscle work data frame to be filtered.
+#' @param .psut_iea The incoming IEA data frame from which years are obtained.
+#' @param countries The countries for which the filtering should be done.
+#' @param country,year,method,energy_type,last_stage The columns in `.psut_mw` and `.iea_mw`
+#'                                                   to be used for filtering.
+#'
+#' @return A version of `.psut_mw` that contains only those
+#'         countries, years, methods, energy types, and last stages
+#'         also contained in `.psut_iea`.
+#'
+#' @export
+filter_mw_to_iea_years <- function(.psut_mw,
+                                   .psut_iea,
+                                   countries,
+                                   country = IEATools::iea_cols$country,
+                                   year = IEATools::iea_cols$year,
+                                   method = IEATools::iea_cols$method,
+                                   energy_type = IEATools::iea_cols$energy_type,
+                                   last_stage = IEATools::iea_cols$last_stage) {
+
+  dplyr::semi_join(x = .psut_mw, y = .psut_iea,
+                   by = c(country, year, method, energy_type, last_stage))
+}

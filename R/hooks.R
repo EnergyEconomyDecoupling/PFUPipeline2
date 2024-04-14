@@ -126,8 +126,6 @@ upsert_hook <- function(.df,
                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
-  browser()
-
   if (is.null(.df)) {
     return(NULL)
   }

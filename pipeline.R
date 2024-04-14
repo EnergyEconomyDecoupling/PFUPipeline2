@@ -537,7 +537,17 @@ list(
     move_to_exergy(psut_energy = PSUTMWEnergy,
                    phi_vecs = PhivecsMW,
                    countries = Countries),
+    pattern = map(Countries)),
+
+  ## PSUTMW
+  #  Trim MW to years also available in IEA
+  targets::tar_target(
+    PSUTMW,
+    filter_mw_to_iea_years(PSUTMWAllYears,
+                           PSUTIEA,
+                           countries = Countries),
     pattern = map(Countries)) # ,
+
 
 
 
@@ -623,13 +633,13 @@ list(
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
-              "PSUTMWAllYears"),
+              "PSUTMWAllYears", "PSUTMW"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
-                   "PSUTMWEnergy", "PhivecsMW")) |>
+                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears", "PSUTIEA")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -691,7 +701,7 @@ list(
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMWEnergy", "PSUTMWAllYears"))
+              "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW"))
 
 
 
