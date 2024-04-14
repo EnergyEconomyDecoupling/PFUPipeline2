@@ -565,14 +565,18 @@ list(
     PSUT,
     build_psut_dataframe(psutiea = PSUTIEA,
                          psutmw = PSUTMW,
-                         psutieamw = PSUTIEAMW))
+                         psutieamw = PSUTIEAMW,
+                         countries = Countries),
+    pattern = map(Countries)),
 
 
-
-
-
-
-
+  ## CmatsAgg
+  targets::tar_target(
+    CmatsAgg,
+    calc_C_mats_agg(C_mats = Cmats,
+                    psut_iea = PSUTIEA,
+                    countries = Countries),
+    pattern = map(Countries)) # ,
 
 
 
@@ -654,14 +658,14 @@ list(
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
-              "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT"),
+              "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
+              "CmatsAgg"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
-                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears", "PSUTIEA",
-                   "PSUTMW")) |>
+                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears", "PSUTIEA", "PSUTMW")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -723,7 +727,8 @@ list(
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT"))
+              "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
+              "CmatsAgg"))
 
 
 

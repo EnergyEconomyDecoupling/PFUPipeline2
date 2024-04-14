@@ -224,6 +224,7 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
 #' @param psutiea A PSUT data frame of IEA data. Default is `NULL.`
 #' @param psutmw A PSUT data frame of muscle work data. Default is `NULL.`
 #' @param psutieamw A PSUT data frame of combined IEA and MW data. Default is `NULL.`
+#' @param countries The countries to be calculated.
 #' @param country_colname,method_colname,energy_type_colname,last_stage_colname,year_colname Column names.
 #'                                                                                           See `IEATools::iea_cols` for defaults.
 #' @param ieamw_colname The name of the column that identifies whether data are for the IEA,
@@ -243,6 +244,7 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
 #'
 #' @export
 build_psut_dataframe <- function(psutiea = NULL, psutmw = NULL, psutieamw = NULL,
+                                 countries,
                                  country_colname = IEATools::iea_cols$country,
                                  method_colname = IEATools::iea_cols$method,
                                  energy_type_colname = IEATools::iea_cols$energy_type,

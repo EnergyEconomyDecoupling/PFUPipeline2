@@ -21,7 +21,7 @@ countries <- c("GHA", "ZAF")
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1971:1972
 years <- 1971
 
