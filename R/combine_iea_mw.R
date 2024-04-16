@@ -243,7 +243,9 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
 #'         and a new column (`IEAMW_colname`) that distinguishes among them.
 #'
 #' @export
-build_psut_dataframe <- function(psutiea = NULL, psutmw = NULL, psutieamw = NULL,
+build_psut_dataframe <- function(psutiea = NULL,
+                                 psutmw = NULL,
+                                 psutieamw = NULL,
                                  countries,
                                  country_colname = IEATools::iea_cols$country,
                                  method_colname = IEATools::iea_cols$method,
@@ -262,6 +264,7 @@ build_psut_dataframe <- function(psutiea = NULL, psutmw = NULL, psutieamw = NULL
                                  iea = PFUPipeline::ieamw_cols$iea,
                                  mw = PFUPipeline::ieamw_cols$mw,
                                  both = PFUPipeline::ieamw_cols$both) {
+
   # Bind the data frames, with each one having the new IEAMW column.
   if (!is.null(psutiea)) {
     psutiea <- psutiea %>%
