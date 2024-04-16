@@ -549,7 +549,7 @@ list(
     pattern = map(Countries)),
 
 
-  # PSUT with IEA and MW -------------------------------------------------------
+  # PSUT -----------------------------------------------------------------------
 
   ## PSUTIEAMW
   #  Combine IEA and MW data by summing PSUT matrices
@@ -570,13 +570,28 @@ list(
     pattern = map(Countries)),
 
 
+  # Aggregations ---------------------------------------------------------------
+
   ## CmatsAgg
   targets::tar_target(
     CmatsAgg,
     calc_C_mats_agg(C_mats = Cmats,
                     psut_iea = PSUTIEA,
                     countries = Countries),
+    pattern = map(Countries)),
+
+
+  # Efficiencies ---------------------------------------------------------------
+
+  ## EtafuYEIOU
+  targets::tar_target(
+    EtafuYEIOU,
+    calc_fu_Y_EIOU_efficiencies(C_mats = Cmats,
+                                eta_m_vecs = Etafuvecs,
+                                phi_vecs = Phivecs,
+                                countries = Countries),
     pattern = map(Countries)) # ,
+
 
 
 
@@ -659,14 +674,15 @@ list(
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
-              "CmatsAgg"),
+              "CmatsAgg", "EtafuYEIOU"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears",
-                   "PSUTIEA", "PSUTMW", "PSUTIEAMW")) |>
+                   "PSUTIEA", "PSUTMW", "PSUTIEAMW",
+                   "Etafuvecs")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -729,7 +745,7 @@ list(
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
-              "CmatsAgg"))
+              "CmatsAgg", "EtafuYEIOU"))
 
 
 

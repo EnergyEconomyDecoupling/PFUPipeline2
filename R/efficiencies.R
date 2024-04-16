@@ -31,8 +31,6 @@ calc_C_mats_agg <- function(C_mats,
                             last_stage = IEATools::iea_cols$last_stage,
                             year = IEATools::iea_cols$year) {
 
-  browser()
-
   # These assignments eliminate notes in R CMD check
   eiou_vec <- NULL
   y_vec <- NULL
@@ -86,4 +84,42 @@ calc_C_mats_agg <- function(C_mats,
     dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU_agg, C_Y_agg, C_EIOU_Y_agg)))
 
   return(C_mats_agg)
+}
+
+
+#' Calculate final-to-useful efficiencies
+#'
+#' Knowing allocations (`C_mats`), machine efficiencies (`eta_m_vecs`), and
+#' exergy-to-energy ratios (`phi_vecs`), it is possible to
+#' calculate the final-to-useful efficiencies for all
+#' final demand and energy industry own use
+#' in an energy conversion chain.
+#' This function performs those calculations using
+#' `Recca::calc_eta_fu_Y_eiou()`.
+#'
+#' @param C_mats A data frame containing allocation matrices.
+#' @param eta_m_vecs A data frame containing vectors of machine efficiencies, probably the Etafuvecs target.
+#' @param phi_vecs A data frame containing vectors of exergy-to-energy ratios, probably the Phivecs target.
+#' @param countries The countries for which this analysis should be performed.
+#' @param country,last_stage,energy_type,method,year See `IEATools::iea_cols`.
+#'
+#' @return A data frame of final-to-useful efficiencies by energy sector and energy carrier.
+#'
+#' @export
+calc_fu_Y_EIOU_efficiencies <- function(C_mats,
+                                        eta_m_vecs,
+                                        phi_vecs,
+                                        countries,
+                                        country = IEATools::iea_cols$country,
+                                        last_stage = IEATools::iea_cols$last_stage,
+                                        energy_type = IEATools::iea_cols$energy_type,
+                                        method = IEATools::iea_cols$method,
+                                        year = IEATools::iea_cols$year,
+                                        etafu_colname = "etafu") {
+
+  # Make one large data frame.
+  dplyr::full_join(C_mats, eta_m_vecs, by = c(country, last_stage, energy_type, method, year)) |>
+    dplyr::full_join(phi_vecs, by = c(country, year)) |>
+    # Run the calculations
+    Recca::calc_eta_fu_Y_eiou(eta_i = etafu_colname)
 }
