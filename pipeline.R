@@ -665,7 +665,8 @@ list(
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
-                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears", "PSUTIEA", "PSUTMW")) |>
+                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears",
+                   "PSUTIEA", "PSUTMW", "PSUTIEAMW")) |>
 
 
   ## An inner hook to download only relevant countries and years
