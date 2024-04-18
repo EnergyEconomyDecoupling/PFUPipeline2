@@ -590,7 +590,14 @@ list(
                                 eta_m_vecs = Etafuvecs,
                                 phi_vecs = Phivecs,
                                 countries = Countries),
+    pattern = map(Countries)),
+
+  ## Etai
+  targets::tar_target(
+    Etai,
+    calc_etai(.psut = PSUT, countries = Countries),
     pattern = map(Countries)) # ,
+
 
 
 
@@ -637,23 +644,7 @@ list(
   ) |>
 
 
-  # tar_hook_inner targets -----------------------------------------------------
-
-  ## An inner hook for targets where AllocAndEffCountries
-  ## is the mapped variable
-  tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = AllocAndEffCountries,
-                                    years = Years,
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DM,
-                                    fk_parent_tables = FKTables),
-    names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
-              "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
-    names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData")) |>
-
+  # tar_hook_inner -------------------------------------------------------------
 
   ## An inner hook for targets where Countries
   ## is the mapped variable.
@@ -674,15 +665,31 @@ list(
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
-              "CmatsAgg", "EtafuYEIOU"),
+              "CmatsAgg", "EtafuYEIOU", "Etai"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears",
-                   "PSUTIEA", "PSUTMW", "PSUTIEAMW",
+                   "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUT",
                    "Etafuvecs")) |>
+
+
+  ## An inner hook for targets where AllocAndEffCountries
+  ## is the mapped variable
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = AllocAndEffCountries,
+                                    years = Years,
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
+              "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
+    names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData")) |>
 
 
   ## An inner hook to download only relevant countries and years
@@ -717,7 +724,7 @@ list(
                    "MachineData", "CompletedAllocationTables")) |>
 
 
-  # tar_hook_outer targets -----------------------------------------------------
+  # tar_hook_outer -------------------------------------------------------------
 
   ## This hook uploads a resulting data frame to the database
   tarchetypes::tar_hook_outer(
@@ -745,7 +752,7 @@ list(
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
-              "CmatsAgg", "EtafuYEIOU"))
+              "CmatsAgg", "EtafuYEIOU", "Etai"))
 
 
 

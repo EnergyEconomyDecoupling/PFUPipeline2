@@ -123,3 +123,45 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
     # Run the calculations
     Recca::calc_eta_fu_Y_eiou(eta_i = etafu_colname)
 }
+
+
+#' Calculate machine efficiencies
+#'
+#' Calculate machine efficiencies from RUVY matrices
+#' by calling [Recca::calc_eta_i()] and
+#' deleting some columns.
+#'
+#' @param .psut A data frame of PSUT matrices.
+#' @param countries The countries for which this analysis should be conducted.
+#' @param R_col,U_col,U_feed_col,U_eiou_col,r_eiou_col,V_col,Y_col,S_units_col See [Recca::psut_cols].
+#'
+#' @return A data frame with machine efficiencies.
+#'
+#' @export
+calc_etai <- function(.psut,
+                      countries,
+                      R_col = Recca::psut_cols$R,
+                      U_col = Recca::psut_cols$U,
+                      U_feed_col = Recca::psut_cols$U_feed,
+                      U_eiou_col = Recca::psut_cols$U_eiou,
+                      r_eiou_col = Recca::psut_cols$r_eiou,
+                      V_col = Recca::psut_cols$V,
+                      Y_col = Recca::psut_cols$Y,
+                      S_units_col = Recca::psut_cols$S_units) {
+
+  browser()
+
+  .psut |>
+    Recca::calc_eta_i() |>
+    dplyr::mutate(
+      "{R_col}" := NULL,
+      "{U_col}" := NULL,
+      "{U_feed_col}" := NULL,
+      "{U_eiou_col}" := NULL,
+      "{r_eiou_col}" := NULL,
+      "{r_eiou_col}" := NULL,
+      "{V_col}" := NULL,
+      "{Y_col}" := NULL,
+      "{S_units_col}" := NULL
+    )
+}
