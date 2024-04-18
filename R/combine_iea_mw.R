@@ -229,16 +229,15 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
 #'                                                                                           See `IEATools::iea_cols` for defaults.
 #' @param ieamw_colname The name of the column that identifies whether data are for the IEA,
 #'                      muscle work (MW) or both.
-#'                      Default is `PFUPipeline::ieamw_cols$ieamw`.
+#'                      Default is [PFUPipelineTools::ieamw_cols$ieamw].
 #' @param R_colname,U_colname,U_feed_colname,U_eiou_colname,r_eiou_colname,V_colname,Y_colname,S_units_colname Names of matrix columns.
 #'                                                                                                             See `IEATools::psut_cols`.
 #' @param iea The string that identifies ECC data are from the IEA only.
-#'            Default is `PFUPipeline::ieamw_cols$iea`.
+#'            Default is [PFUPipelineTools::ieamw_cols$iea].
 #' @param mw The string that identifies ECC data are for muscle work only.
-#'           Default is `PFUPipeline::ieamw_cols$mw`.
+#'           Default is [PFUPipelineTools::ieamw_cols$mw].
 #' @param both The string that identifies ECC data are for both IEA and muscle work.
-#'             Default is `PFUPipeline::ieamw_cols`.
-#'             Default is `PFUPipeline::ieamw_cols$both`.
+#'             Default is [PFUPipelineTools::ieamw_cols$both].
 #' @return A data frame with `PSUTIEA`, `PSUTMW`, and `PSUTIEAMW` `rbind()`ed together,
 #'         and a new column (`IEAMW_colname`) that distinguishes among them.
 #'
@@ -252,7 +251,7 @@ build_psut_dataframe <- function(psutiea = NULL,
                                  energy_type_colname = IEATools::iea_cols$energy_type,
                                  last_stage_colname = IEATools::iea_cols$last_stage,
                                  year_colname = IEATools::iea_cols$year,
-                                 ieamw_colname = PFUPipeline::ieamw_cols$ieamw,
+                                 ieamw_colname = PFUPipelineTools::ieamw_cols$ieamw,
                                  R_colname = IEATools::psut_cols$R,
                                  U_colname = IEATools::psut_cols$U,
                                  U_feed_colname = IEATools::psut_cols$U_feed,
@@ -261,9 +260,9 @@ build_psut_dataframe <- function(psutiea = NULL,
                                  V_colname = IEATools::psut_cols$V,
                                  Y_colname = IEATools::psut_cols$Y,
                                  S_units_colname = IEATools::psut_cols$s_units,
-                                 iea = PFUPipeline::ieamw_cols$iea,
-                                 mw = PFUPipeline::ieamw_cols$mw,
-                                 both = PFUPipeline::ieamw_cols$both) {
+                                 iea = PFUPipelineTools::ieamw_cols$iea,
+                                 mw = PFUPipelineTools::ieamw_cols$mw,
+                                 both = PFUPipelineTools::ieamw_cols$both) {
 
   # Bind the data frames, with each one having the new IEAMW column.
   if (!is.null(psutiea)) {

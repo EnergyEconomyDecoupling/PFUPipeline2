@@ -57,7 +57,7 @@ load_phi_values <- function(phi_constants_path) {
 #' @param country,year,product See `IEATools::iea_cols`.
 #' @param machine,quantity,phi_u,.values,eu_product,eta_fu_source See `IEATools::template_cols`.
 #' @param phi_colname,phi_source_colname,is_useful See `IEATools::phi_constants_names`.
-#' @param eta_fu_tables,phi_constants See `PFUPipeline::phi_sources`.
+#' @param eta_fu_tables,phi_constants See `PFUPipelineTools::phi_sources`.
 #'
 #' @return A data frame of phi values for every combination of country, year, machine, destination, etc.
 #'
