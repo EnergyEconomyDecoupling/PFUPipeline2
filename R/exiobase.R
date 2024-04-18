@@ -1,0 +1,294 @@
+#' Calculates the aggregated FU efficiency of products when used in EIOU, Y, or economy-wide
+#'
+#' @param C_mats_agg A data frame containing the aggregated C matrices.
+#' @param eta_fu_vecs A data frame containing the efficiency vectors.
+#' @param phi_vecs A data frame containing the phi values.
+#' @param countries The countries for which the analysis is to be performed.
+#' @param non_energy_use_machine The character string of the non-energy use machine that needs to be excluded
+#'                               for efficiencies excluding non-energy uses.
+#' @param eta.fu The name of the column containing the machine efficiencies in the eta_fu_vecs data frame.
+#' @param C_EIOU_agg The name of the column containing the C_EIOU aggregated matrix in the output data frame.
+#' @param C_Y_agg The name of the column containing the C_Y aggregated matrix in the output data frame.
+#' @param C_EIOU_Y_agg The name of the column containing the C_EIOU_Y aggregated matrix in the output data frame.
+#' @param C_EIOU_agg_excl_NEU The name of a temporary column containing the C_EIOU aggregated matrix excluding non-energy uses.
+#' @param C_Y_agg_excl_NEU The name of a temporary column containing the C_Y aggregated matrix excluding non-energy uses.
+#' @param C_EIOU_Y_agg_excl_NEU The name of a temporary column containing the C_EIOU_Y aggregated matrix excluding non-energy uses.
+#' @param eta_p_eiou The name of the column containing the efficiency of each product when used in EIOU.
+#' @param eta_p_y The name of the column containing the efficiency of each product when used in final demand.
+#' @param eta_p_eiou_y The name of the column containing the efficiency of each product when used in either EIOU or final demand.
+#' @param phi The name of the column containing the phi values.
+#' @param country,method,energy_type,last_stage,year,product See `IEATools::iea_cols`.
+#'
+#' @return A data frame containing the product efficiencies when used in EIOU, Y, or economy-wide (Y and EIOU).
+#' @export
+calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
+                                            eta_fu_vecs,
+                                            phi_vecs,
+                                            countries,
+                                            non_energy_use_machine = "Non-energy consumption -> NEU",
+                                            eta.fu = "etafu",
+                                            C_EIOU_agg = "C_EIOU_agg",
+                                            C_Y_agg = "C_Y_agg",
+                                            C_EIOU_Y_agg = "C_EIOU_Y_agg",
+                                            C_EIOU_agg_excl_NEU = "C_EIOU_agg_excl_NEU",
+                                            C_Y_agg_excl_NEU = "C_Y_agg_excl_NEU",
+                                            C_EIOU_Y_agg_excl_NEU = "C_EIOU_Y_agg_excl_NEU",
+                                            eta_p_eiou = "eta_p_eiou",
+                                            eta_p_y = "eta_p_y",
+                                            eta_p_eiou_y = "eta_p_eiou_y",
+                                            phi = "phi",
+                                            country = IEATools::iea_cols$country,
+                                            method = IEATools::iea_cols$method,
+                                            energy_type = IEATools::iea_cols$energy_type,
+                                            last_stage = IEATools::iea_cols$last_stage,
+                                            year = IEATools::iea_cols$year,
+                                            product = IEATools::iea_cols$product){
+
+  # (0) OLD SCRIPT; Calculation of efficiencies including non-energy uses
+  # eta_fu_agg_incl_NEU <- C_mats_agg |>
+  #   dplyr::left_join(eta_fu_vecs, by = c({country}, {method}, {energy_type}, {last_stage}, {year})) |>
+  #   dplyr::mutate(
+  #     "{eta_p_eiou}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_agg]], .data[[eta.fu]]) |>
+  #       matsbyname::clean_byname(margin = 1),
+  #     "{eta_p_y}" := matsbyname::matrixproduct_byname(.data[[C_Y_agg]], .data[[eta.fu]]) |>
+  #       matsbyname::clean_byname(margin = 1),
+  #     "{eta_p_eiou_y}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_Y_agg]], .data[[eta.fu]]) |>
+  #       matsbyname::clean_byname(margin = 1),
+  #     "{neu}" := included
+  #   )
+
+  browser()
+
+  # (1) Determination of aggregated C_mats excluding non-energy uses
+  C_mats_agg_excl_NEU <- C_mats_agg |>
+    dplyr::mutate(
+      # New C_Y_agg excluding non-energy uses
+      "{C_Y_agg_excl_NEU}" := matsbyname::matrixproduct_byname(
+        matsbyname::select_cols_byname(.data[[C_Y_agg]], remove_pattern = list(non_energy_use_machine)) |>
+          matsbyname::rowsums_byname() |>
+          matsbyname::hatinv_byname(keep = "rownames"),
+        matsbyname::select_cols_byname(.data[[C_Y_agg]], remove_pattern = list(non_energy_use_machine))),
+      # New C_EIOU_agg excluding non-energy uses
+      # "{C_EIOU_agg_excl_NEU}" := matsbyname::matrixproduct_byname(
+      #   matsbyname::select_cols_byname(.data[[C_EIOU_agg]], remove_pattern = list(non_energy_use_machine)) |>
+      #     matsbyname::rowsums_byname() |>
+      #     matsbyname::hatinv_byname(keep = "rownames"),
+      #   matsbyname::select_cols_byname(.data[[C_EIOU_agg]], remove_pattern = list(non_energy_use_machine))),
+      # New C_EIOU_Y_agg excluding non-energy uses
+      "{C_EIOU_Y_agg_excl_NEU}" := matsbyname::matrixproduct_byname(
+        matsbyname::select_cols_byname(.data[[C_EIOU_Y_agg]], remove_pattern = list(non_energy_use_machine)) |>
+          matsbyname::rowsums_byname() |>
+          matsbyname::hatinv_byname(keep = "rownames"),
+        matsbyname::select_cols_byname(.data[[C_EIOU_Y_agg]], remove_pattern = list(non_energy_use_machine)))
+    ) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU_agg_excl_NEU, C_Y_agg_excl_NEU, C_EIOU_Y_agg_excl_NEU))) |>
+    # dplyr::select(.data[[country]], .data[[method]], .data[[energy_type]], .data[[last_stage]], .data[[year]], .data[[C_EIOU_agg_excl_NEU]],
+    #               .data[[C_Y_agg_excl_NEU]], .data[[C_EIOU_Y_agg_excl_NEU]]) |>
+    dplyr::rename(
+      #"{C_EIOU_agg}" := .data[[C_EIOU_agg_excl_NEU]],
+      "{C_Y_agg}" := .data[[C_Y_agg_excl_NEU]],
+      "{C_EIOU_Y_agg}" := .data[[C_EIOU_Y_agg_excl_NEU]]
+    )
+
+  # (2) Determination of aggregated energy efficiencies (excluding non-energy uses)
+  eta_E_fu_agg <- C_mats_agg_excl_NEU |>
+    dplyr::left_join(eta_fu_vecs, by = c({country}, {method}, {energy_type}, {last_stage}, {year})) |>
+    dplyr::mutate(
+      # "{eta_p_eiou}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_agg]], .data[[eta.fu]]) |>
+      #   matsbyname::clean_byname(margin = 1),
+      "{eta_p_y}" := matsbyname::matrixproduct_byname(.data[[C_Y_agg]], .data[[eta.fu]]) |>
+        matsbyname::clean_byname(margin = 1),
+      "{eta_p_eiou_y}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_Y_agg]], .data[[eta.fu]]) |>
+        matsbyname::clean_byname(margin = 1)#,
+      #"{neu}" := excluded
+    )
+
+  # Getting eta.fu column name
+  eta_fu <- dplyr::first(eta_E_fu_agg) |> magrittr::extract2(eta_p_eiou) |> matsbyname::getcolnames_byname()
+
+  # (3) Determination of aggregated exergy efficiencies (excluding non-energy uses)
+  eta_X_fu_agg <- C_mats_agg_excl_NEU |>
+    dplyr::left_join(eta_fu_vecs, by = c({country}, {method}, {energy_type}, {last_stage}, {year})) |>
+    dplyr::left_join(phi_vecs, by = c({country}, {year})) |>
+    dplyr::mutate(
+      # "{eta_p_eiou}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(phi), C_EIOU_agg) |>
+      #   matsbyname::matrixproduct_byname(matsbyname::hatize_byname(eta.fu)) |>
+      #   matsbyname::aggregate_pieces_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
+      #   matsbyname::setcoltype(product) |>
+      #   matsbyname::matrixproduct_byname(phi) |>
+      #   matsbyname::clean_byname() |>
+      #   matsbyname::setcolnames_byname(eta_fu),
+      "{eta_p_y}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(phi, keep = "rownames"), C_Y_agg) |>
+        matsbyname::matrixproduct_byname(matsbyname::hatize_byname(eta.fu, keep = "rownames")) |>
+        matsbyname::aggregate_pieces_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
+        matsbyname::setcoltype(product) |>
+        matsbyname::matrixproduct_byname(phi) |>
+        matsbyname::clean_byname() |>
+        matsbyname::setcolnames_byname(eta_fu),
+      "{eta_p_eiou_y}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(phi, keep = "rownames"), C_EIOU_Y_agg) |>
+        matsbyname::matrixproduct_byname(matsbyname::hatize_byname({eta.fu}, keep = "rownames")) |>
+        matsbyname::aggregate_pieces_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
+        matsbyname::setcoltype(product) |>
+        matsbyname::matrixproduct_byname(phi) |>
+        matsbyname::clean_byname() |>
+        matsbyname::setcolnames_byname(eta_fu),
+      Energy.type = "X"
+    ) |>
+    dplyr::select(-.data[[phi]])
+
+  # (4) Binding both data frames
+  eta_fu_agg <- dplyr::bind_rows(eta_E_fu_agg, eta_X_fu_agg) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou, eta_p_y, eta_p_eiou_y)))
+
+  return(eta_fu_agg)
+}
+
+
+#' Calculates the final energy to useful energy multipliers
+#'
+#' @param eta_fu_Y_EIOU_mats The input data frame containing matrices with all the efficiencies by final demand sector and energy industry
+#' @param eta_fu_Y_EIOU_agg The input data frame containing matrices with the economy-wide efficiencies by energy product
+#' @param years_exiobase The years for which the coefficients are provided to the Exiobase team
+#' @param full_list_exiobase_flows The full list of energy flows used in the Exiobase pipeline led by KR
+#' @param country_concordance_table_df A data frame containing the country concordance table
+#' @param useful_energy_flow The name of the column stating whether a flow is a final energy flow or not
+#' @param exiobase_flow The name of the column stating the name of the Exiobase flow
+#' @param pfu_code The name of the column containing the PFU country name
+#' @param pfu_flow The name of the column containing the PFU flow names
+#' @param iea_country_name The name of the column containing the IEA country name
+#' @param iea_country_name_accented The name of the column containing the IEA country name with accents
+#' @param phi The name of the column containing the phi values
+#' @param matnames The name of the column containing matrices names after unpacking the matrices
+#' @param colnames The name of the column containing the column names after unpacking the matrices
+#' @param matvals The name of the column containing matrices values after unpacking the matrices
+#' @param rowtypes The name of the column containing the matrices row types names after unpacking the matrices
+#' @param coltypes The name of the column containing matrices column types after unpacking the matrices
+#' @param eta_p_eiou The name of the column containing the efficiencies for products used in EIOU
+#' @param eta_p_eiou_y The name of the column containing the efficiencies for products used in final demand.
+#' @param country,year,product,flow,method,energy_type,last_stage See `IEATools::iea_cols`.
+#' @param energy_type_E The letter standing for energy as energy type.
+#' @param eta_fu_Y_E The name of the the column containing the efficiencies of products when used as part of final demand.
+#' @param eta_fu_EIOU_E The name of the column containing the efficiencies of products when used as part of the EIOU matrix.
+#' @param eta The name of the column containing the efficiencies.
+#'
+#' @return A dataframe of the final energy to useful energy multipliers
+#' @export
+calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
+                                   eta_fu_Y_EIOU_agg,
+                                   years_exiobase,
+                                   full_list_exiobase_flows,
+                                   country_concordance_table_df,
+                                   useful_energy_flow = "Useful.energy.flow",
+                                   exiobase_flow = "Exiobase.Flow",
+                                   pfu_code = "PFU.code",
+                                   pfu_flow = "PFU.flow",
+                                   iea_country_name = "IEA.country.name",
+                                   iea_country_name_accented = "IEA.name.accented",
+                                   phi = "phi",
+                                   matnames = "matnames",
+                                   colnames = "colnames",
+                                   matvals = "matvals",
+                                   rowtypes = "rowtypes",
+                                   coltypes = "coltypes",
+                                   energy_type_E = IEATools::energy_types$e,
+                                   country = IEATools::iea_cols$country,
+                                   product = IEATools::iea_cols$product,
+                                   year = IEATools::iea_cols$year,
+                                   flow = IEATools::iea_cols$flow,
+                                   method = IEATools::iea_cols$method,
+                                   energy_type = IEATools::iea_cols$energy_type,
+                                   last_stage = IEATools::iea_cols$last_stage,
+                                   eta_p_eiou = "eta_p_eiou",
+                                   eta_p_eiou_y = "eta_p_eiou_y",
+                                   eta_fu_Y_E = "eta_fu_Y_E",
+                                   eta_fu_EIOU_E = "eta_fu_EIOU_E",
+                                   eta = "eta"){
+
+  # Filtering out non useful energy flows
+  # So here we remove non-energy uses and losses
+  list_useful_energy_flows <- full_list_exiobase_flows %>%
+    dplyr::filter(.data[[useful_energy_flow]] == TRUE) %>%
+    dplyr::select(tidyselect::all_of(c(exiobase_flow, pfu_flow)))
+
+  # Expanding the EIOU-wide efficiencies data frame to prepare the join
+  eta_fu_EIOU_wide_df <- eta_fu_Y_EIOU_agg |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::filter(.data[[energy_type]] == energy_type_E) |>
+    #REPLACE THE TWO LINES COMMENTED OUT FOR FINAL VERSION.
+    #dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou))) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou_y))) |>
+    #tidyr::pivot_longer(cols = tidyselect::any_of(eta_p_eiou), values_to = matvals, names_to = matnames) |>
+    tidyr::pivot_longer(cols = tidyselect::any_of(eta_p_eiou_y), values_to = matvals, names_to = matnames) |>
+    # This will need to go, too.
+    dplyr::filter(! is.null(.data[[matvals]])) |>
+    matsindf::expand_to_tidy() |>
+    dplyr::rename(
+      "{product}" := rownames,
+      "{eta}" := matvals
+    ) |>
+    dplyr::select(tidyselect::all_of(c(country, method, energy_type, year, product, eta))) |>
+    dplyr::mutate("{pfu_flow}" := "EIOU-wide",
+                  "{last_stage}" := "Final")
+
+  # Expanding the final-to-useful efficiencies to prepare the join
+  eta_fu_df <- eta_fu_Y_EIOU_mats |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, eta_fu_Y_E, eta_fu_EIOU_E))) |>
+    tidyr::pivot_longer(cols = tidyr::ends_with("_E"), names_to = matnames, values_to = matvals) |>
+    # This will need to go
+    dplyr::filter(! is.null(.data[[matvals]])) |>
+    matsindf::expand_to_tidy(rownames = product, colnames = pfu_flow) |>
+    dplyr::select(-tidyselect::all_of(c(rowtypes, coltypes, matnames))) |>
+    dplyr::rename("{eta}" := matvals) |>
+    dplyr::filter(.data[[product]] %in% IEATools::products) |>
+    dplyr::bind_rows(eta_fu_EIOU_wide_df) |>
+    dplyr::filter(.data[[eta]] != 0)
+
+  # Expanding the economy-wide efficiencies data frame to prepare the join
+  eta_fu_economy_wide_df <- eta_fu_Y_EIOU_agg |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::filter(.data[[energy_type]] == energy_type_E) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou_y))) |>
+    tidyr::pivot_longer(cols = eta_p_eiou_y, values_to = matvals, names_to = matnames) |>
+    # This will need to go
+    dplyr::filter(! is.null(.data[[matvals]])) |>
+    matsindf::expand_to_tidy() |>
+    dplyr::rename(
+      "{product}" := rownames,
+      "{pfu_code}" := country,
+      "{eta}" := matvals
+    ) |>
+    dplyr::select(tidyselect::all_of(c(pfu_code, method, energy_type, year, product, eta))) |>
+    dplyr::mutate("{exiobase_flow}" := "Economy-wide") |>
+    dplyr::filter(.data[[eta]] != 0)
+
+  # Preparing the (Country, Year, Product) list
+  country_year_product_list <- eta_fu_df |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::select(tidyselect::all_of(c(country, year, product))) |>
+    dplyr::distinct()
+
+  # List of Exiobase flows to be joined to the PFU results
+  expanded_exiobase_Ue_flows <- list_useful_energy_flows |>
+    tidyr::expand_grid(country_year_product_list) |>
+    dplyr::relocate(tidyselect::all_of(c(exiobase_flow, pfu_flow)), .after = .data[[year]])
+
+  # Now, joining to ascribe each Exiobase flow a PFU flow
+  Ef_to_Eu_multipliers <- expanded_exiobase_Ue_flows |>
+    dplyr::left_join(eta_fu_df, by = c({country}, {year}, {product}, {pfu_flow})) |>
+    dplyr::filter(!is.na(.data[[eta]])) |>
+    dplyr::rename("{pfu_code}" := .data[[country]]) |>
+    dplyr::select(-tidyselect::all_of(pfu_flow)) |>
+    dplyr::bind_rows(eta_fu_economy_wide_df) |>
+    dplyr::left_join(country_concordance_table_df %>% dplyr::select(tidyselect::all_of(c(iea_country_name_accented, pfu_code))),
+                     by = pfu_code) |>
+    dplyr::select(-tidyselect::all_of(pfu_code)) |>
+    dplyr::rename("{iea_country_name}" := .data[[iea_country_name_accented]],
+                  "{flow}" := .data[[exiobase_flow]]) |>
+    dplyr::filter(!is.na(.data[[iea_country_name]])) |>
+    dplyr::select(tidyselect::all_of(c(iea_country_name, year, product, flow, eta))) |>
+    dplyr::relocate(tidyselect::all_of(flow), .before = .data[[product]]) |>
+    tidyr::pivot_wider(names_from = .data[[year]], values_from = .data[[eta]])
+
+  return(Ef_to_Eu_multipliers)
+}

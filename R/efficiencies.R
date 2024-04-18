@@ -138,18 +138,16 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
 #' @return A data frame with machine efficiencies.
 #'
 #' @export
-calc_etai <- function(.psut,
-                      countries,
-                      R_col = Recca::psut_cols$R,
-                      U_col = Recca::psut_cols$U,
-                      U_feed_col = Recca::psut_cols$U_feed,
-                      U_eiou_col = Recca::psut_cols$U_eiou,
-                      r_eiou_col = Recca::psut_cols$r_eiou,
-                      V_col = Recca::psut_cols$V,
-                      Y_col = Recca::psut_cols$Y,
-                      S_units_col = Recca::psut_cols$S_units) {
-
-  browser()
+calc_eta_i <- function(.psut,
+                       countries,
+                       R_col = Recca::psut_cols$R,
+                       U_col = Recca::psut_cols$U,
+                       U_feed_col = Recca::psut_cols$U_feed,
+                       U_eiou_col = Recca::psut_cols$U_eiou,
+                       r_eiou_col = Recca::psut_cols$r_eiou,
+                       V_col = Recca::psut_cols$V,
+                       Y_col = Recca::psut_cols$Y,
+                       S_units_col = Recca::psut_cols$S_units) {
 
   .psut |>
     Recca::calc_eta_i() |>

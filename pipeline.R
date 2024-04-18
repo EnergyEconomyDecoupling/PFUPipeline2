@@ -595,13 +595,73 @@ list(
   ## Etai
   targets::tar_target(
     Etai,
-    calc_etai(.psut = PSUT, countries = Countries),
+    calc_eta_i(.psut = PSUT, countries = Countries),
+    pattern = map(Countries)),
+
+
+  # Exiobase -------------------------------------------------------------------
+
+  ## EtafuYEIOUagg
+  #  Calculating the product efficiency at the
+  #  (a) EIOU-wide,
+  #  (b) Y-wide, and
+  #  (c) economy-wide levels
+  # targets::tar_target(
+  #   EtafuYEIOUagg,
+  #   calc_fu_Y_EIOU_agg_efficiencies(C_mats_agg = CmatsAgg,
+  #                                   eta_fu_vecs = Etafuvecs,
+  #                                   phi_vecs = Phivecs,
+  #                                   countries = Countries),
+  #   pattern = map(Countries)) # ,
+
+  # targets::tar_target(
+  #   ExiobaseEftoEuMultipliers,
+  #   calc_Ef_to_Eu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
+  #                          eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
+  #                          years_exiobase = ExiobaseYears,
+  #                          full_list_exiobase_flows = ListExiobaseEnergyFlows,
+  #                          country_concordance_table_df = CountryConcordanceTable)),
+
+  ## exiobase_Ef_to_Eloss_multipliers
+  # targets::tar_target(
+  #   ExiobaseEftoElossMultipliers,
+  #   calc_Ef_to_Eloss_exiobase(ExiobaseEftoEuMultipliers)),
+
+  # targets::tar_target(
+  #   ListExiobaseEnergyFlows,
+  #   read_list_exiobase_energy_flows(path_to_list_exiobase_energy_flows = ExiobaseEnergyFlowsPath)),
+  #
+  #
+  #
+
+  # Phi values
+  # Multiplier to go from final energy to final exergy
+  # targets::tar_target(
+  #   ExiobaseEftoXfMultipliers,
+  #   calc_Ef_to_Xf_exiobase(phi_vecs = Phivecs,
+  #                          years_exiobase = ExiobaseYears,
+  #                          full_list_exiobase_flows = ListExiobaseEnergyFlows,
+  #                          country_concordance_table_df = CountryConcordanceTable)),
+
+  #
+  # Product K: exiobase_Ef_to_Xloss_multipliers ------------------------------
+  #
+  # Final energy to exergy losses multipliers
+  # Multiplier to go from final energy to exergy losses
+  # targets::tar_target(
+  #   ExiobaseEftoXlossMultipliers,
+  #   calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
+
+
+  # Remove NEU -----------------------------------------------------------------
+
+  ## PSUTWithoutNEU
+  #  Calculate a version of the PSUT data frame with all Non-energy use removed.
+  targets::tar_target(
+    PSUTWithoutNEU,
+    remove_non_energy_use(PSUT,
+                          countries = Countries),
     pattern = map(Countries)) # ,
-
-
-
-
-
 
 
 
@@ -665,7 +725,9 @@ list(
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
-              "CmatsAgg", "EtafuYEIOU", "Etai"),
+              "CmatsAgg", "EtafuYEIOU", "Etai",
+              "EtafuYEIOUagg",
+              "PSUTWithoutNEU"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
@@ -673,7 +735,7 @@ list(
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUT",
-                   "Etafuvecs")) |>
+                   "Etafuvecs", "CmatsAgg")) |>
 
 
   ## An inner hook for targets where AllocAndEffCountries
