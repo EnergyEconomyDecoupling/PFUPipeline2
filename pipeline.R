@@ -626,6 +626,15 @@ list(
   # targets::tar_target(
   #   ExiobaseEftoElossMultipliers,
   #   calc_Ef_to_Eloss_exiobase(ExiobaseEftoEuMultipliers)),
+  #
+  # targets::tar_target(
+  #   ReleaseExiobaseEftoElossMultipliers,
+  #   PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+  #                                    targ = ExiobaseEftoElossMultipliers,
+  #                                    pin_name = "exiobase_Ef_to_Eloss_multipliers",
+  #                                    type = "csv",
+  #                                    release = Release)),
+
 
   # targets::tar_target(
   #   ListExiobaseEnergyFlows,
