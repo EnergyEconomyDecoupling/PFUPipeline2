@@ -64,7 +64,7 @@ if (parallel::detectCores() == 10) {
 # For debugging in a single thread
 crew_controller <- NULL
 # For parallel processing
-# crew_controller <- crew::crew_controller_local(workers = worker_threads)
+crew_controller <- crew::crew_controller_local(workers = worker_threads)
 
 
 

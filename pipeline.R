@@ -814,7 +814,7 @@ list(
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
-              "CmatsAgg", "EtafuYEIOU", "Etai"))
+              "CmatsAgg", "EtafuYEIOU", "Etai", "PSUTWithoutNEU"))
 
 
 
