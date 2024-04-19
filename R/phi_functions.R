@@ -54,7 +54,7 @@ load_phi_values <- function(phi_constants_path) {
 #'                                   should be completed.
 #' @param countries A vector of countries for which completed phi tables are to be assembled.
 #' @param years The years for which analysis is desired. Default is `NULL`, meaning analyze all years.
-#' @param country,year,product See `IEATools::iea_cols`.
+#' @param country,energy_type,last_stage,method,year,product See `IEATools::iea_cols`.
 #' @param machine,quantity,phi_u,.values,eu_product,eta_fu_source See `IEATools::template_cols`.
 #' @param phi_colname,phi_source_colname,is_useful See `IEATools::phi_constants_names`.
 #' @param eta_fu_tables,phi_constants See `PFUPipelineTools::phi_sources`.
@@ -103,6 +103,9 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
                                   countries,
                                   years = NULL,
                                   country = IEATools::iea_cols$country,
+                                  energy_type = IEATools::iea_cols$energy_type,
+                                  last_stage = IEATools::iea_cols$last_stage,
+                                  method = IEATools::iea_cols$method,
                                   year = IEATools::iea_cols$year,
                                   product = IEATools::iea_cols$product,
                                   machine = IEATools::template_cols$machine,
@@ -116,6 +119,33 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
                                   is_useful = IEATools::phi_constants_names$is_useful_colname,
                                   eta_fu_tables = PFUPipelineTools::phi_sources$eta_fu_tables,
                                   phi_constants = PFUPipelineTools::phi_sources$phi_constants) {
+
+  if (is.null(incomplete_phi_u_table)) {
+    # If we get a NULL incomplete_phi_u_table,
+    # it means we have no MachineData for this country.
+    # NULL is returned when the inner_hook filters for
+    # the country and finds no rows.
+    # Make a zero-row MachineData data frame so that
+    # the code below this point doesn't fail.
+    # Columns are
+    # country, energy_type, last_stage, method, machine,
+    # eu_product, quantity, year, and .values.
+
+    incomplete_phi_u_table <- data.frame("country",
+                                         "energy_type",
+                                         "last_stage",
+                                         "method",
+                                         "machine",
+                                         "eu_product",
+                                         "quantity",
+                                         as.integer(1234), # year
+                                         3.1415) |> # .values
+      # Set column names
+      magrittr::set_colnames(c(country, energy_type, last_stage, method,
+                               machine, eu_product, quantity, year, .values)) |>
+      # Eliminate the fake row
+      dplyr::filter(FALSE)
+  }
 
   lapply(countries, FUN = function(coun) {
 
@@ -160,8 +190,7 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
     # Thus, any phi values coming from the efficiency tables or machine data tables
     # will have first priority
     phi_u_from_eta_fu_tables <- incomplete_phi_u_table |>
-      dplyr::filter(#.data[[country]] == coun,
-                    .data[[quantity]] == phi_u,
+      dplyr::filter(.data[[quantity]] == phi_u,
                     !is.na(.data[[.values]])) |>
       dplyr::mutate(
         "{phi_source_colname}" := eta_fu_tables

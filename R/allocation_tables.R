@@ -312,6 +312,8 @@ calc_C_mats <- function(completed_allocation_tables,
                         C_Y = IEATools::template_cols$C_Y,
                         C_EIOU  = IEATools::template_cols$C_eiou) {
 
+  browser()
+
   completed_allocation_tables |>
     dplyr::mutate(
       # Eliminate the c_source column (if it exists) before sending

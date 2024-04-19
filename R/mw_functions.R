@@ -153,8 +153,10 @@ prep_hmw_pfu_data <- function(ilo_working_hours_data,
 #'                     Default is "Matrix" (for sparse matrices).
 #' @param output_unit A string of length one that specifies the output unit.
 #'                    Default is "TJ".
-#' @param country The name of the country column in `.hmw_df` and `.amw_df`.
-#'                Default is `MWTools::mw_cols$country`.
+#' @param country,year,e_dot The name of country, year, and energy columns in `.hmw_df` and `.amw_df`.
+#'                           See `MWTools::mw_cols`.
+#' @param species,stage,sector See `MWTools::mw_constants`.
+#' @param unit See `IEATools::iea_cols$unit`.
 #'
 #' @return A data frame of PSUT matrices for a muscle work energy conversion chain.
 #'
@@ -164,7 +166,46 @@ make_mw_psut <- function(.hmw_df,
                          countries,
                          matrix_class = "Matrix",
                          output_unit = "TJ",
-                         country = MWTools::mw_cols$country) {
+                         country = MWTools::mw_cols$country,
+                         year = MWTools::mw_cols$year,
+                         species = MWTools::mw_constants$species,
+                         stage = MWTools::mw_constants$stage_col,
+                         sector = MWTools::mw_constants$sector_col,
+                         unit = IEATools::iea_cols$unit,
+                         e_dot = MWTools::mw_cols$e_dot) {
+
+  browser()
+
+  # If .hmw_df or .amw_df are NULL, create a zero-row data
+  # frame so prep_psut can deal with it.
+  # NULL data frames can result when there is no
+  # data for this country.
+
+  if (is.null(.hmw_df)) {
+    .hmw_df <- data.frame("country",
+                          as.integer(1111), # year
+                          "species",
+                          "stage",
+                          "sector",
+                          "unit",
+                          3.1415) |> # e_dot
+      magrittr::set_colnames(c(country, year, species, stage, sector, unit, e_dot)) |>
+      # Remove rows
+      dplyr::filter(FALSE)
+  }
+
+  if (is.null(.amw_df)) {
+    .amw_df <- data.frame("country",
+                          as.integer(1111), # year
+                          "species",
+                          "stage",
+                          "sector",
+                          "unit",
+                          3.1415) |> # e_dot
+      magrittr::set_colnames(c(country, year, species, stage, sector, unit, e_dot)) |>
+      # Remove rows
+      dplyr::filter(FALSE)
+  }
 
   MWTools::prep_psut(.hmw_df = .hmw_df,
                      .amw_df = .amw_df,

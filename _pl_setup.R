@@ -11,7 +11,10 @@
 countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "GHA"
-countries <- c("GHA", "ZAF")
+# countries <- "USA"
+# countries <- c("GHA", "ZAF")
+countries <- c("GHA", "ZAF", "GBR", "USA", "CAN", "MEX", "BRA", "CHNM",
+               "PRT", "DEU", "AGO", "WRLD", "ALB", "ARE", "ARG", "ARM")
 # countries <- "WRLD"
 # countries <- c("USA", "WRLD")
 # countries <- c(PFUPipelineTools::canonical_countries[1], "WRLD")
@@ -64,7 +67,7 @@ if (parallel::detectCores() == 10) {
 # For debugging in a single thread
 crew_controller <- NULL
 # For parallel processing
-crew_controller <- crew::crew_controller_local(workers = worker_threads)
+# crew_controller <- crew::crew_controller_local(workers = worker_threads)
 
 
 
