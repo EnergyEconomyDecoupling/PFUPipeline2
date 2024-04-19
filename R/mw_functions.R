@@ -174,8 +174,6 @@ make_mw_psut <- function(.hmw_df,
                          unit = IEATools::iea_cols$unit,
                          e_dot = MWTools::mw_cols$e_dot) {
 
-  browser()
-
   # If .hmw_df or .amw_df are NULL, create a zero-row data
   # frame so prep_psut can deal with it.
   # NULL data frames can result when there is no
@@ -207,10 +205,14 @@ make_mw_psut <- function(.hmw_df,
       dplyr::filter(FALSE)
   }
 
-  MWTools::prep_psut(.hmw_df = .hmw_df,
-                     .amw_df = .amw_df,
-                     matrix_class = matrix_class,
-                     output_unit = output_unit)
+  out <- MWTools::prep_psut(.hmw_df = .hmw_df,
+                            .amw_df = .amw_df,
+                            matrix_class = matrix_class,
+                            output_unit = output_unit)
+  if (nrow(out) == 0) {
+    return(NULL)
+  }
+  return(out)
 }
 
 
