@@ -74,8 +74,6 @@ calc_phi_vecs_mw <- function(psut_energy_mw,
                              year = MWTools::mw_cols$year,
                              phi = "phi") {
 
-  browser()
-
   if (is.null(psut_energy_mw)) {
     return(NULL)
   }

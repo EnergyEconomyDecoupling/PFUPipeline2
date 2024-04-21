@@ -164,8 +164,6 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           complete_alloc_tables = PFUPipelineTools::exemplar_names$complete_alloc_table,
                                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
-  browser()
-
   if (is.null(specified_iea_data)) {
     # No reason to assemble allocation data,
     # because there is no IEA data to be allocated.
@@ -319,6 +317,8 @@ calc_C_mats <- function(completed_allocation_tables,
                         .values = IEATools::template_cols$.values,
                         C_Y = IEATools::template_cols$C_Y,
                         C_EIOU  = IEATools::template_cols$C_eiou) {
+
+  browser()
 
   if (is.null(completed_allocation_tables)) {
     # No reason to calculate allocation matrices.
