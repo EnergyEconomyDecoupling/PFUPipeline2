@@ -31,6 +31,8 @@ aggcountries_mw_to_iea <- function(mw_df,
                                    stage_col = MWTools::mw_constants$stage_col,
                                    sector_col = MWTools::mw_constants$sector_col) {
 
+  browser()
+
   focused_exemplar_table <- exemplar_table |>
     dplyr::select(-dplyr::all_of(c(region_code, exemplar_country))) |>
     tidyr::pivot_longer(cols = -dplyr::all_of(c(country)),
@@ -263,6 +265,11 @@ build_psut_dataframe <- function(psutiea = NULL,
                                  iea = PFUPipelineTools::ieamw_cols$iea,
                                  mw = PFUPipelineTools::ieamw_cols$mw,
                                  both = PFUPipelineTools::ieamw_cols$both) {
+
+  if (is.null(psutiea) & is.null(psutmw) & is.null(psutieamw)) {
+    # Nothing to be done.
+    return(NULL)
+  }
 
   # Bind the data frames, with each one having the new IEAMW column.
   if (!is.null(psutiea)) {

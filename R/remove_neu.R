@@ -23,6 +23,11 @@ remove_non_energy_use <- function(.psut_mats,
                                   S_units_col = Recca::psut_cols$S_units,
                                   prime_suffix = "_prime") {
 
+  if (is.null(.psut_mats)) {
+    # Nothing to be done.
+    return(NULL)
+  }
+
   .psut_mats |>
     Recca::remove_neu(R = R_col,
                       U = U_col,

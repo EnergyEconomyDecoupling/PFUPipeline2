@@ -31,6 +31,11 @@ calc_C_mats_agg <- function(C_mats,
                             last_stage = IEATools::iea_cols$last_stage,
                             year = IEATools::iea_cols$year) {
 
+  if (is.null(C_mats) & is.null(psut_iea)) {
+    # Nothing to be done.
+    return(NULL)
+  }
+
   # These assignments eliminate notes in R CMD check
   eiou_vec <- NULL
   y_vec <- NULL
@@ -117,6 +122,11 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
                                         year = IEATools::iea_cols$year,
                                         etafu_colname = "etafu") {
 
+  if (is.null(C_mats) & is.null(eta_m_vecs) & is.null(phi_vecs)) {
+    # Nothing to be done.
+    return(NULL)
+  }
+
   # Make one large data frame.
   dplyr::full_join(C_mats, eta_m_vecs, by = c(country, last_stage, energy_type, method, year)) |>
     dplyr::full_join(phi_vecs, by = c(country, year)) |>
@@ -148,6 +158,11 @@ calc_eta_i <- function(.psut,
                        V_col = Recca::psut_cols$V,
                        Y_col = Recca::psut_cols$Y,
                        S_units_col = Recca::psut_cols$S_units) {
+
+  if (is.null(.psut)) {
+    # Nothing to be done.
+    return(NULL)
+  }
 
   .psut |>
     Recca::calc_eta_i() |>

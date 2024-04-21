@@ -229,6 +229,12 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
 
                                    .values = IEATools::template_cols$.values) {
 
+  if (is.null(completed_fu_allocation_tables)) {
+    # No need to assemble eta_fu tables,
+    # because there is no allocation for which efficiency must be calculated.
+    return(NULL)
+  }
+
   which_quantity <- match.arg(which_quantity, several.ok = FALSE)
 
   tidy_incomplete_eta_fu_tables <- incomplete_eta_fu_tables

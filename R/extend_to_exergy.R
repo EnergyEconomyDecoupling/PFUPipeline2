@@ -21,6 +21,10 @@ move_to_exergy <- function(psut_energy,
                            country = IEATools::iea_cols$country,
                            phi_colname = IEATools::phi_constants_names$phi_colname) {
 
+  # If the psut_energy data frame is NULL, just return NULL.
+  if (is.null(psut_energy)) {
+    return(NULL)
+  }
   # If the psut_energy data frame has no rows,
   # simply return it.
   # Both the incoming and outgoing data frames have the exact same columns.
@@ -69,6 +73,15 @@ calc_phi_vecs_mw <- function(psut_energy_mw,
                              country = MWTools::mw_cols$country,
                              year = MWTools::mw_cols$year,
                              phi = "phi") {
+
+  browser()
+
+  if (is.null(psut_energy_mw)) {
+    return(NULL)
+  }
+  if (nrow(psut_energy_mw) == 0) {
+    return(NULL)
+  }
 
   psut_energy_mw |>
     dplyr::select(dplyr::all_of(c(country, year))) |>

@@ -53,6 +53,14 @@ download_dependency_hook <- function(.hashed_dependency,
                                      dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                      tar_group_colname = "tar_group") {
 
+  if (is.null(.hashed_dependency)) {
+    # Likely no data for this country.
+    # Just return NULL.
+    return(NULL)
+  }
+  if (nrow(.hashed_dependency) == 0) {
+    return(NULL)
+  }
   if (!is.null(countries) & (country %in% colnames(.hashed_dependency))) {
     .hashed_dependency <- .hashed_dependency |>
       dplyr::filter(.data[[country]] %in% countries)
@@ -61,19 +69,21 @@ download_dependency_hook <- function(.hashed_dependency,
     .hashed_dependency <- .hashed_dependency |>
       dplyr::filter(.data[[year]] %in% years)
   }
-  if (nrow(.hashed_dependency) == 0) {
+  out <- .hashed_dependency |>
+    PFUPipelineTools::pl_collect_from_hash(set_tar_group = TRUE,
+                                           index_map = index_map,
+                                           rctypes = rctypes,
+                                           conn = conn,
+                                           schema = schema,
+                                           fk_parent_tables = fk_parent_tables)
+  if (is.null(out)) {
+    # No country data
     return(NULL)
   }
-  .hashed_dependency |>
-  PFUPipelineTools::pl_collect_from_hash(set_tar_group = TRUE,
-                                         index_map = index_map,
-                                         rctypes = rctypes,
-                                         conn = conn,
-                                         schema = schema,
-                                         fk_parent_tables = fk_parent_tables) |>
-  dplyr::mutate(
-    "{dataset_colname}" := NULL
-  )
+  out |>
+    dplyr::mutate(
+      "{dataset_colname}" := NULL
+    )
 }
 
 
@@ -125,6 +135,8 @@ upsert_hook <- function(.df,
                         schema = PFUPipelineTools::schema_from_conn(conn),
                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+
+  browser()
 
   if (is.null(.df)) {
     return(NULL)

@@ -26,6 +26,11 @@ move_to_useful_with_details <- function(psut_final,
                                         C_Y = IEATools::template_cols$C_Y,
                                         C_eiou = IEATools::template_cols$C_eiou) {
 
+  if (is.null(psut_final) & is.null(C_mats) & is.null(eta_phi_vecs)) {
+    # No data to move to useful
+    return(NULL)
+  }
+
   # Calculate metadata columns.
   m_cols <- C_mats |>
     IEATools::meta_cols(return_names = TRUE,
@@ -75,8 +80,12 @@ remove_cols_from_PSUTUsefulIEAWithDetails <- function(psut_useful_iea_with_detai
                                                       last_stage = IEATools::iea_cols$last_stage,
                                                       final = IEATools::all_stages$final) {
 
+  if (is.null(psut_useful_iea_with_details)) {
+    # No need to do anything if no data are incoming.
+    return(NULL)
+  }
+
   out <- psut_useful_iea_with_details |>
-    # dplyr::filter(.data[[country]] %in% countries) |>
     dplyr::select(-dplyr::any_of(cols_to_remove))
   if (remove_final) {
     out <- out |>

@@ -174,6 +174,8 @@ make_mw_psut <- function(.hmw_df,
                          unit = IEATools::iea_cols$unit,
                          e_dot = MWTools::mw_cols$e_dot) {
 
+  browser()
+
   # If .hmw_df or .amw_df are NULL, create a zero-row data
   # frame so prep_psut can deal with it.
   # NULL data frames can result when there is no
@@ -237,6 +239,9 @@ make_mw_psut <- function(.hmw_df,
 verify_mw_energy_balance <- function(.psut_df,
                                      countries) {
 
+  if (is.null(.psut_df)) {
+    return(TRUE)
+  }
   if (nrow(.psut_df) == 0) {
     return(TRUE)
   }
@@ -274,6 +279,11 @@ filter_mw_to_iea_years <- function(.psut_mw,
                                    method = IEATools::iea_cols$method,
                                    energy_type = IEATools::iea_cols$energy_type,
                                    last_stage = IEATools::iea_cols$last_stage) {
+
+  if (is.null(.psut_mw) & is.null(.psut_iea)) {
+    # Nothing to be done.
+    return(NULL)
+  }
 
   dplyr::semi_join(x = .psut_mw, y = .psut_iea,
                    by = c(country, year, method, energy_type, last_stage))

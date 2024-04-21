@@ -36,6 +36,11 @@ calc_eta_fu_phi_u_vecs <- function(completed_efficiency_tables,
                                    phi_u = IEATools::template_cols$phi_u,
                                    phi_u_source = IEATools::phi_constants_names$phi_source_colname) {
 
+  if (is.null(completed_efficiency_tables) & is.null(completed_phi_tables)) {
+    # No data for which to get the efficiency and phi vectors
+    return(NULL)
+  }
+
   lapply(list(completed_efficiency_tables, completed_phi_tables), function(t) {
     t |>
       dplyr::mutate(
@@ -98,6 +103,11 @@ sep_eta_fu_phi_u <- function(eta_fu_phi_u_vecs,
                              eta_fu_colname = IEATools::template_cols$eta_fu,
                              phi_u_colname = IEATools::template_cols$phi_u) {
 
+  if (is.null(eta_fu_phi_u_vecs)) {
+    # No data to be operated upon.
+    return(NULL)
+  }
+
   keep <- match.arg(keep, several.ok = FALSE)
   if (keep == IEATools::template_cols$eta_fu) {
     col_to_delete <- phi_u_colname
@@ -150,6 +160,11 @@ calc_phi_pf_vecs <- function(phi_constants,
                              phi_pf_colname = IEATools::template_cols$phi_pf,
                              phi_colname = IEATools::phi_constants_names$phi_colname,
                              is_useful_colname = IEATools::phi_constants_names$is_useful_colname) {
+
+  if (is.null(phi_u_vecs)) {
+    # No need to do anything.
+    return(NULL)
+  }
 
   # Pick up non-useful (i.e., primary and final)
   # phi values.
@@ -249,6 +264,11 @@ sum_phi_vecs <- function(phi_pf_vecs,
                          .phi_sum_OK = ".phi_sum_OK",
                          .phi_pf_colnames = ".phi_pf_colnames",
                          .phi_u_colnames = ".phi_u_colnames") {
+
+  if (is.null(phi_pf_vecs) & is.null(phi_u_vecs)) {
+    # Nothing to be done.
+    return(NULL)
+  }
 
   temp <- dplyr::full_join(phi_pf_vecs,
                            phi_u_vecs,
