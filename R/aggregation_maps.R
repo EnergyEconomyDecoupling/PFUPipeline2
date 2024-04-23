@@ -28,9 +28,9 @@ load_aggregation_maps <- function(path,
                                   few_colname = PFUAggPipeline::aggregation_file_cols$few_colname) {
 
   lapply(aggregation_file_tabs, function(sheet) {
-    readxl::read_excel(path = path, sheet = sheet) %>%
+    readxl::read_excel(path = path, sheet = sheet) |>
       matsbyname::agg_table_to_agg_map(many_colname = many_colname, few_colname = few_colname)
-  }) %>%
+  }) |>
     magrittr::set_names(names(aggregation_file_tabs))
 }
 
