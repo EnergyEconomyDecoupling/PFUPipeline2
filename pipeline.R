@@ -669,7 +669,22 @@ list(
     PSUTWithoutNEU,
     remove_non_energy_use(PSUT,
                           countries = Countries),
-    pattern = map(Countries)) # ,
+    pattern = map(Countries)),
+
+
+  # Aggregation maps -----------------------------------------------------------
+
+  ## AggregationMapsPath
+  targets::tar_target_raw(
+    "AggregationMapsPath",
+    clpfu_setup_paths[["aggregation_maps_path"]],
+    format = "file"),
+
+  ## AggregationMaps
+  targets::tar_target(
+    AggregationMaps,
+    load_aggregation_maps(path = AggregationMapsPath)) # ,
+
 
 
 

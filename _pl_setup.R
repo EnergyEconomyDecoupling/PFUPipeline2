@@ -26,7 +26,8 @@ countries <- c(PFUPipelineTools::canonical_countries[1:64], "WRLD") |> as.charac
 # Set the years for IEA data analysis
 # years <- 1960:2020
 # years <- 1971:1972
-years <- 1971
+years <- 1971:1980
+# years <- 1971
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -66,7 +67,7 @@ if (parallel::detectCores() == 10) {
 # For debugging in a single thread
 crew_controller <- NULL
 # For parallel processing
-crew_controller <- crew::crew_controller_local(workers = worker_threads)
+# crew_controller <- crew::crew_controller_local(workers = worker_threads)
 
 
 #
@@ -149,7 +150,9 @@ clpfu_setup_paths <- list(
   machine_data_folder = file.path(input_data_path, "Machines - Data"),
   ceda_data_folder = file.path(input_data_path, "CEDA Data"),
   exiobase_energy_flows_path = file.path(input_data_path, "exiobase_energy_flows_concordance.xlsx"),
+  aggregation_maps_path = file.path(input_data_path, "aggregation_mapping.xlsx"),
   reports_source_folders = file.path(project_path, "reports"),
+  # Output paths
   reports_dest_folder = file.path(output_data_path, "Reports"),
   pipeline_releases_folder = file.path(output_data_path, "PipelineReleases"),
   versions_and_products_path = file.path(output_data_path, "PipelineReleases", "versions and products.xlsx")
