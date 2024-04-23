@@ -318,8 +318,6 @@ calc_C_mats <- function(completed_allocation_tables,
                         C_Y = IEATools::template_cols$C_Y,
                         C_EIOU  = IEATools::template_cols$C_eiou) {
 
-  browser()
-
   if (is.null(completed_allocation_tables)) {
     # No reason to calculate allocation matrices.
     return(NULL)

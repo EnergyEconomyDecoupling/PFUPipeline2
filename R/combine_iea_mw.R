@@ -31,6 +31,11 @@ aggcountries_mw_to_iea <- function(mw_df,
                                    stage_col = MWTools::mw_constants$stage_col,
                                    sector_col = MWTools::mw_constants$sector_col) {
 
+  if (is.null(mw_df)) {
+    # Nothing to be done.
+    return(NULL)
+  }
+
   focused_exemplar_table <- exemplar_table |>
     dplyr::select(-dplyr::all_of(c(region_code, exemplar_country))) |>
     tidyr::pivot_longer(cols = -dplyr::all_of(c(country)),
