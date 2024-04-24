@@ -57,8 +57,6 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
   #     "{neu}" := included
   #   )
 
-  browser()
-
   # (1) Determination of aggregated C_mats excluding non-energy uses
   C_mats_agg_excl_NEU <- C_mats_agg |>
     dplyr::mutate(
@@ -86,13 +84,13 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
     #               .data[[C_Y_agg_excl_NEU]], .data[[C_EIOU_Y_agg_excl_NEU]]) |>
     dplyr::rename(
       #"{C_EIOU_agg}" := .data[[C_EIOU_agg_excl_NEU]],
-      "{C_Y_agg}" := .data[[C_Y_agg_excl_NEU]],
-      "{C_EIOU_Y_agg}" := .data[[C_EIOU_Y_agg_excl_NEU]]
+      "{C_Y_agg}" := dplyr::all_of(C_Y_agg_excl_NEU),
+      "{C_EIOU_Y_agg}" := dplyr::all_of(C_EIOU_Y_agg_excl_NEU)
     )
 
   # (2) Determination of aggregated energy efficiencies (excluding non-energy uses)
   eta_E_fu_agg <- C_mats_agg_excl_NEU |>
-    dplyr::left_join(eta_fu_vecs, by = c({country}, {method}, {energy_type}, {last_stage}, {year})) |>
+    dplyr::left_join(eta_fu_vecs, by = c(country, method, energy_type, last_stage, year)) |>
     dplyr::mutate(
       # "{eta_p_eiou}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_agg]], .data[[eta.fu]]) |>
       #   matsbyname::clean_byname(margin = 1),
@@ -104,12 +102,13 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
     )
 
   # Getting eta.fu column name
-  eta_fu <- dplyr::first(eta_E_fu_agg) |> magrittr::extract2(eta_p_eiou) |> matsbyname::getcolnames_byname()
+  # eta_fu <- dplyr::first(eta_E_fu_agg) |> magrittr::extract2(eta_p_eiou) |> matsbyname::getcolnames_byname()
+  eta_fu <- dplyr::first(eta_E_fu_agg) |> magrittr::extract2(eta_p_eiou_y) |> matsbyname::getcolnames_byname()
 
   # (3) Determination of aggregated exergy efficiencies (excluding non-energy uses)
   eta_X_fu_agg <- C_mats_agg_excl_NEU |>
-    dplyr::left_join(eta_fu_vecs, by = c({country}, {method}, {energy_type}, {last_stage}, {year})) |>
-    dplyr::left_join(phi_vecs, by = c({country}, {year})) |>
+    dplyr::left_join(eta_fu_vecs, by = c(country, method, energy_type, last_stage, year)) |>
+    dplyr::left_join(phi_vecs, by = c(country, year)) |>
     dplyr::mutate(
       # "{eta_p_eiou}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(phi), C_EIOU_agg) |>
       #   matsbyname::matrixproduct_byname(matsbyname::hatize_byname(eta.fu)) |>
@@ -118,27 +117,27 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
       #   matsbyname::matrixproduct_byname(phi) |>
       #   matsbyname::clean_byname() |>
       #   matsbyname::setcolnames_byname(eta_fu),
-      "{eta_p_y}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(phi, keep = "rownames"), C_Y_agg) |>
-        matsbyname::matrixproduct_byname(matsbyname::hatize_byname(eta.fu, keep = "rownames")) |>
+      "{eta_p_y}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(.data[[phi]], keep = "rownames"), .data[[C_Y_agg]]) |>
+        matsbyname::matrixproduct_byname(matsbyname::hatize_byname(.data[[eta.fu]], keep = "rownames")) |>
         matsbyname::aggregate_pieces_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
         matsbyname::setcoltype(product) |>
-        matsbyname::matrixproduct_byname(phi) |>
+        matsbyname::matrixproduct_byname(.data[[phi]]) |>
         matsbyname::clean_byname() |>
         matsbyname::setcolnames_byname(eta_fu),
-      "{eta_p_eiou_y}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(phi, keep = "rownames"), C_EIOU_Y_agg) |>
-        matsbyname::matrixproduct_byname(matsbyname::hatize_byname({eta.fu}, keep = "rownames")) |>
+      "{eta_p_eiou_y}" := matsbyname::matrixproduct_byname(matsbyname::hatize_byname(.data[[phi]], keep = "rownames"), .data[[C_EIOU_Y_agg]]) |>
+        matsbyname::matrixproduct_byname(matsbyname::hatize_byname(.data[[eta.fu]], keep = "rownames")) |>
         matsbyname::aggregate_pieces_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
         matsbyname::setcoltype(product) |>
-        matsbyname::matrixproduct_byname(phi) |>
+        matsbyname::matrixproduct_byname(.data[[phi]]) |>
         matsbyname::clean_byname() |>
         matsbyname::setcolnames_byname(eta_fu),
-      Energy.type = "X"
+      "{energy_type}" := "X"
     ) |>
-    dplyr::select(-.data[[phi]])
+    dplyr::select(-dplyr::any_of(phi))
 
   # (4) Binding both data frames
   eta_fu_agg <- dplyr::bind_rows(eta_E_fu_agg, eta_X_fu_agg) |>
-    dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou, eta_p_y, eta_p_eiou_y)))
+    dplyr::select(dplyr::any_of(c(country, method, energy_type, year, eta_p_eiou, eta_p_y, eta_p_eiou_y)))
 
   return(eta_fu_agg)
 }

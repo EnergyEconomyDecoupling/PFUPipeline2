@@ -561,7 +561,7 @@ list(
   ## PSUT
   #  Put everything in the same data frame
   targets::tar_target(
-    PSUT,
+    PSUTWithNEU,
     build_psut_dataframe(psutiea = PSUTIEA,
                          psutmw = PSUTMW,
                          psutieamw = PSUTIEAMW,
@@ -580,24 +580,6 @@ list(
     pattern = map(Countries)),
 
 
-  # Efficiencies ---------------------------------------------------------------
-
-  ## EtafuYEIOU
-  targets::tar_target(
-    EtafuYEIOU,
-    calc_fu_Y_EIOU_efficiencies(C_mats = Cmats,
-                                eta_m_vecs = Etafuvecs,
-                                phi_vecs = Phivecs,
-                                countries = Countries),
-    pattern = map(Countries)),
-
-  ## Etai
-  targets::tar_target(
-    Etai,
-    calc_eta_i(.psut = PSUT, countries = Countries),
-    pattern = map(Countries)),
-
-
   # Exiobase -------------------------------------------------------------------
 
   ## EtafuYEIOUagg
@@ -605,13 +587,13 @@ list(
   #  (a) EIOU-wide,
   #  (b) Y-wide, and
   #  (c) economy-wide levels
-  # targets::tar_target(
-  #   EtafuYEIOUagg,
-  #   calc_fu_Y_EIOU_agg_efficiencies(C_mats_agg = CmatsAgg,
-  #                                   eta_fu_vecs = Etafuvecs,
-  #                                   phi_vecs = Phivecs,
-  #                                   countries = Countries),
-  #   pattern = map(Countries)) # ,
+  targets::tar_target(
+    EtafuYEIOUagg,
+    calc_fu_Y_EIOU_agg_efficiencies(C_mats_agg = CmatsAgg,
+                                    eta_fu_vecs = Etafuvecs,
+                                    phi_vecs = Phivecs,
+                                    countries = Countries),
+    pattern = map(Countries)),
 
   # targets::tar_target(
   #   ExiobaseEftoEuMultipliers,
@@ -667,8 +649,36 @@ list(
   #  Calculate a version of the PSUT data frame with all Non-energy use removed.
   targets::tar_target(
     PSUTWithoutNEU,
-    remove_non_energy_use(PSUT,
+    remove_non_energy_use(PSUTWithNEU,
                           countries = Countries),
+    pattern = map(Countries)),
+
+
+  ## PSUT
+  #  Includes both WithNEU and WithoutNEU versions
+  targets::tar_target(
+    PSUT,
+    stack_psut(PSUTWithNEU,
+               PSUTWithoutNEU,
+               countries = Countries),
+    pattern = map(Countries)),
+
+
+  # Efficiencies ---------------------------------------------------------------
+
+  ## EtafuYEIOU
+  targets::tar_target(
+    EtafuYEIOU,
+    calc_fu_Y_EIOU_efficiencies(C_mats = Cmats,
+                                eta_m_vecs = Etafuvecs,
+                                phi_vecs = Phivecs,
+                                countries = Countries),
+    pattern = map(Countries)),
+
+  ## Etai
+  targets::tar_target(
+    Etai,
+    calc_eta_i(.psut = PSUT, countries = Countries),
     pattern = map(Countries)),
 
 
@@ -733,9 +743,10 @@ list(
   ## PSUTReAll
   #  ********** Need to upload this to the database yet.
   #  However, first
-  #  * Rename PSUT target to PSUTWithNEU
-  #  * Combine PSUTWithNEU and PSUTWithoutNEU into PSUT with added column WithNEU (values 0 and 1 for FALSE and TRUE)
-  #  * Build all aggregations with only PSUT
+  #  x Rename PSUT target to PSUTWithNEU
+  #  x Combine PSUTWithNEU and PSUTWithoutNEU into PSUT with added column WithNEU (values 0 and 1 for FALSE and TRUE)
+  #  x Build all aggregations with only PSUT
+  #  * Change defaults in PFUPipelineTools::pl_filter_download()
   targets::tar_target(
     PSUTReAll,
     region_pipeline(PSUT,
@@ -807,10 +818,10 @@ list(
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
-              "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
+              "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
+              "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               "CmatsAgg", "EtafuYEIOU", "Etai",
               "EtafuYEIOUagg",
-              "PSUTWithoutNEU",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
@@ -818,7 +829,7 @@ list(
                    "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
                    "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears",
-                   "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUT",
+                   "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
                    "Etafuvecs", "CmatsAgg")) |>
 
 
@@ -896,9 +907,12 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
-              "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
-              "CmatsAgg", "EtafuYEIOU", "Etai", "PSUTWithoutNEU"))
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy",
+              "CmatsAgg", "EtafuYEIOU",
+              "PSUTIEA", "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
+              "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
+              "Etai",
+              "PSUTReAll"))
 
 
 

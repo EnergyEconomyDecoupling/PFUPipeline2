@@ -61,3 +61,40 @@ remove_non_energy_use <- function(.psut_mats,
       "{S_units_col}" := paste0(S_units_col, prime_suffix)
     )
 }
+
+
+#' Stack with and without non-energy use data frames and add new column
+#'
+#' PSUT data frames that include and exclude non-energy use are calculated
+#' in this pipeline.
+#' This function stacks those data frames with [dplyr::bind_rows()]
+#' and adds a new `includes_neu` column.
+#'
+#' @param .psut_with_neu A PSUT data frame wherein energy conversion chains include non-energy use.
+#' @param .psut_without_neu A PSUT data frame wherein energy conversion chains exclude non-energy use.
+#' @param countries The countries whose data frames are to be stacked.
+#' @param includes_neu The name of the column added to the data frames.
+#'                     `TRUE` and `FALSE` values are inserted into the column.
+#' @param ieamw The name of the IEAMW columns.
+#'              New column `includes_neu` is located after (to the right of) `ieamw`.
+#'
+#' @return `.psut_with_neu` and `.psut_without_neu` stacked together with new column `includes_neu`.
+#'
+#' @export
+stack_psut <- function(.psut_with_neu,
+                       .psut_without_neu,
+                       countries,
+                       includes_neu = Recca::psut_cols$includes_neu,
+                       ieamw = PFUPipelineTools::ieamw_cols$ieamw) {
+
+  dplyr::bind_rows(.psut_with_neu |>
+                     dplyr::mutate(
+                       "{includes_neu}" := TRUE
+                     ),
+                   .psut_without_neu |>
+                     dplyr::mutate(
+                       "{includes_neu}" := FALSE
+                     )) |>
+    # Move to a reasonable position in the data frame
+    dplyr::relocate(dplyr::all_of(includes_neu), .after = dplyr::all_of(ieamw))
+}
