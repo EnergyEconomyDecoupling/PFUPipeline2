@@ -582,6 +582,10 @@ list(
 
   # Exiobase -------------------------------------------------------------------
 
+  ## ExiobaseYears
+  targets::tar_target_raw("ExiobaseYears", list(years_exiobase)),
+  targets::tar_target_raw("ExiobaseEnergyFlowsPath", clpfu_setup_paths[["exiobase_energy_flows_path"]]),
+
   ## EtafuYEIOUagg
   #  Calculating the product efficiency at the
   #  (a) EIOU-wide,
@@ -595,13 +599,24 @@ list(
                                     countries = Countries),
     pattern = map(Countries)),
 
-  # targets::tar_target(
-  #   ExiobaseEftoEuMultipliers,
-  #   calc_Ef_to_Eu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
-  #                          eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
-  #                          years_exiobase = ExiobaseYears,
-  #                          full_list_exiobase_flows = ListExiobaseEnergyFlows,
-  #                          country_concordance_table_df = CountryConcordanceTable)),
+  ## ListExiobaseEnergyFlows
+  #  Final energy to final exergy multipliers
+  #  List of Exiobase code energy flows
+  targets::tar_target(
+    ListExiobaseEnergyFlows,
+    read_list_exiobase_energy_flows(path_to_list_exiobase_energy_flows = ExiobaseEnergyFlowsPath)),
+
+
+  ## ExiobaseEftoEuMultipliers
+  targets::tar_target(
+    ExiobaseEftoEuMultipliers,
+    calc_Ef_to_Eu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
+                           eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
+                           countries = Countries,
+                           years_exiobase = ExiobaseYears,
+                           full_list_exiobase_flows = ListExiobaseEnergyFlows,
+                           country_concordance_table_df = CountryConcordanceTable),
+    pattern = map(Countries)),
 
   ## exiobase_Ef_to_Eloss_multipliers
   # targets::tar_target(
@@ -616,13 +631,6 @@ list(
   #                                    type = "csv",
   #                                    release = Release)),
 
-
-  # targets::tar_target(
-  #   ListExiobaseEnergyFlows,
-  #   read_list_exiobase_energy_flows(path_to_list_exiobase_energy_flows = ExiobaseEnergyFlowsPath)),
-  #
-  #
-  #
 
   # Phi values
   # Multiplier to go from final energy to final exergy
@@ -815,7 +823,7 @@ list(
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               "CmatsAgg", "EtafuYEIOU", "Etai",
-              "EtafuYEIOUagg",
+              "EtafuYEIOUagg", "ExiobaseEftoEuMultipliers",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
@@ -823,6 +831,7 @@ list(
                    "CompletedPhiuTables", "EtafuPhiuvecs",
                    "Phipfvecs", "Phivecs", "PhivecsMW",
                    "Cmats", "CmatsAgg",
+                   "EtafuYEIOU", "EtafuYEIOUagg",
                    "PSUTFinalIEA", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
