@@ -683,7 +683,62 @@ list(
   ## AggregationMaps
   targets::tar_target(
     AggregationMaps,
-    load_aggregation_maps(path = AggregationMapsPath)) # ,
+    load_aggregation_maps(path = AggregationMapsPath)),
+
+  ## ProductAggMap
+  #  Separate the product aggregation map
+  targets::tar_target(
+    ProductAggMap,
+    c(AggregationMaps[["ef_product_aggregation"]],
+      AggregationMaps[["eu_product_aggregation"]])),
+
+  ## IndustryAggMap
+  #  Separate the industry aggregation map
+  targets::tar_target(
+    IndustryAggMap,
+    AggregationMaps[["ef_sector_aggregation"]]),
+
+  ## PIndustryPrefixes
+  #  Establish prefixes for primary industries
+  targets::tar_target(
+    PIndustryPrefixes,
+    IEATools::tpes_flows |> unname() |> unlist() |> list()),
+
+  ## FinalDemandSectors
+  #  Establish final demand sectors
+  targets::tar_target(
+    FinalDemandSectors,
+    create_fd_sectors_list(IEATools::fd_sectors, AggregationMaps$ef_sector_aggregation)),
+
+  ## Regions
+  #  Identify the regions to which we'll aggregate
+  targets::tar_target(
+    Regions,
+    names(AggregationMaps$region_aggregation)),
+
+  ## Continents
+  #  Identify the continents to which we'll aggregate
+  targets::tar_target(
+    Continents,
+    AggregationMaps$world_aggregation$World),
+
+  ## CountriesRegionsContinentsWorld
+  targets::tar_target(
+    CountriesRegionsContinentsWorld,
+    c(Countries, Regions, Continents, "World")),
+
+
+  # Regional aggregations ------------------------------------------------------
+
+  ## PSUTReAll
+  targets::tar_target(
+    PSUTReAll,
+    region_pipeline(PSUT,
+                    region_aggregation_map = AggregationMaps$region_aggregation,
+                    continent_aggregation_map = AggregationMaps$continent_aggregation,
+                    world_aggregation_map = AggregationMaps$world_aggregation,
+                    countries = Countries),
+    pattern = map(Countries)) # ,
 
 
 
@@ -750,7 +805,8 @@ list(
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW", "PSUT",
               "CmatsAgg", "EtafuYEIOU", "Etai",
               "EtafuYEIOUagg",
-              "PSUTWithoutNEU"),
+              "PSUTWithoutNEU",
+              "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
