@@ -741,12 +741,6 @@ list(
   # Regional aggregations ------------------------------------------------------
 
   ## PSUTReAll
-  #  ********** Need to upload this to the database yet.
-  #  However, first
-  #  x Rename PSUT target to PSUTWithNEU
-  #  x Combine PSUTWithNEU and PSUTWithoutNEU into PSUT with added column WithNEU (values 0 and 1 for FALSE and TRUE)
-  #  x Build all aggregations with only PSUT
-  #  * Change defaults in PFUPipelineTools::pl_filter_download()
   targets::tar_target(
     PSUTReAll,
     region_pipeline(PSUT,
@@ -915,8 +909,10 @@ list(
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               # Exiobase targets
               "EtafuYEIOUagg",
-              "Etai",
-              "PSUTReAll"))
+              # Aggregation targets
+              "PSUTReAll",
+              # Efficiency targets
+              "Etai"))
 
 
 
