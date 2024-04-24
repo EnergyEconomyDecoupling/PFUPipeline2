@@ -731,6 +731,11 @@ list(
   # Regional aggregations ------------------------------------------------------
 
   ## PSUTReAll
+  #  ********** Need to upload this to the database yet.
+  #  However, first
+  #  * Rename PSUT target to PSUTWithNEU
+  #  * Combine PSUTWithNEU and PSUTWithoutNEU into PSUT with added column WithNEU (values 0 and 1 for FALSE and TRUE)
+  #  * Build all aggregations with only PSUT
   targets::tar_target(
     PSUTReAll,
     region_pipeline(PSUT,
