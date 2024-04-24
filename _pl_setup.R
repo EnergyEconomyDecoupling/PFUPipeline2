@@ -11,8 +11,8 @@
 # countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN"
-# countries <- "GHA"
-countries <- "USA"
+countries <- "GHA"
+# countries <- "USA"
 # countries <- "WRLD"
 # countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")

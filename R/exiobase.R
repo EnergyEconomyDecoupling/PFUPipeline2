@@ -83,7 +83,7 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
     # dplyr::select(.data[[country]], .data[[method]], .data[[energy_type]], .data[[last_stage]], .data[[year]], .data[[C_EIOU_agg_excl_NEU]],
     #               .data[[C_Y_agg_excl_NEU]], .data[[C_EIOU_Y_agg_excl_NEU]]) |>
     dplyr::rename(
-      #"{C_EIOU_agg}" := .data[[C_EIOU_agg_excl_NEU]],
+      #"{C_EIOU_agg}" := dplyr::all_of(C_EIOU_agg_excl_NEU),
       "{C_Y_agg}" := dplyr::all_of(C_Y_agg_excl_NEU),
       "{C_EIOU_Y_agg}" := dplyr::all_of(C_EIOU_Y_agg_excl_NEU)
     )
@@ -138,6 +138,8 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
   # (4) Binding both data frames
   eta_fu_agg <- dplyr::bind_rows(eta_E_fu_agg, eta_X_fu_agg) |>
     dplyr::select(dplyr::any_of(c(country, method, energy_type, year, eta_p_eiou, eta_p_y, eta_p_eiou_y)))
+
+  browser()
 
   return(eta_fu_agg)
 }

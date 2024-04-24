@@ -826,11 +826,13 @@ list(
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
-                   "CompletedPhiuTables", "EtafuPhiuvecs", "Phipfvecs", "Phivecs",
-                   "PSUTFinalIEA", "Cmats", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
-                   "PSUTMWEnergy", "PhivecsMW", "PSUTMWAllYears",
+                   "CompletedPhiuTables", "EtafuPhiuvecs",
+                   "Phipfvecs", "Phivecs", "PhivecsMW",
+                   "Cmats", "CmatsAgg",
+                   "PSUTFinalIEA", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
+                   "PSUTMWEnergy", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
-                   "Etafuvecs", "CmatsAgg")) |>
+                   "Etafuvecs")) |>
 
 
   ## An inner hook for targets where AllocAndEffCountries
@@ -911,6 +913,8 @@ list(
               "CmatsAgg", "EtafuYEIOU",
               "PSUTIEA", "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
+              # Exiobase targets
+              "EtafuYEIOUagg",
               "Etai",
               "PSUTReAll"))
 
