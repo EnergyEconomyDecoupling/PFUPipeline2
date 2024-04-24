@@ -102,7 +102,6 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
     )
 
   # Getting eta.fu column name
-  # eta_fu <- dplyr::first(eta_E_fu_agg) |> magrittr::extract2(eta_p_eiou) |> matsbyname::getcolnames_byname()
   eta_fu <- dplyr::first(eta_E_fu_agg) |> magrittr::extract2(eta_p_eiou_y) |> matsbyname::getcolnames_byname()
 
   # (3) Determination of aggregated exergy efficiencies (excluding non-energy uses)
@@ -138,8 +137,6 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
   # (4) Binding both data frames
   eta_fu_agg <- dplyr::bind_rows(eta_E_fu_agg, eta_X_fu_agg) |>
     dplyr::select(dplyr::any_of(c(country, method, energy_type, year, eta_p_eiou, eta_p_y, eta_p_eiou_y)))
-
-  browser()
 
   return(eta_fu_agg)
 }
