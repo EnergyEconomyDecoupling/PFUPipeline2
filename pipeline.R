@@ -608,6 +608,7 @@ list(
 
 
   ## ExiobaseEftoEuMultipliers
+  #  This target is NOT stored in the database.
   targets::tar_target(
     ExiobaseEftoEuMultipliers,
     calc_Ef_to_Eu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
