@@ -125,6 +125,9 @@ exemplar_lists <- function(exemplar_table,
     dplyr::rename("{year_temp}" := dplyr::all_of(year)) |>
     tidyr::nest("{prev_names}" := dplyr::all_of(c(year_temp, prev_names)))
 
+
+browser()
+
   # First step: join the previous names to each country and year
   with_prev_names_list <- dplyr::left_join(year_country, pntable, by = country) |>
     # Unnest to get all years.
@@ -139,9 +142,12 @@ exemplar_lists <- function(exemplar_table,
     unique() %>%
     # Eliminate the current name of the country from its list of previous names.
     dplyr::filter(.data[[country]] != .data[[prev_names]]) |>
+    # Ungroup before summarising to eliminate a warning
+    dplyr::ungroup() |>
     # Build a list column containing all previous names for the given country.
     dplyr::summarise(
-      "{prev_names_list}" := list(.data[[prev_names]] |> rev())
+      "{prev_names_list}" := list(.data[[prev_names]] |> rev()),
+      .by = dplyr::all_of(c(country, year))
     )
 
   out <- exemplar_table %>%

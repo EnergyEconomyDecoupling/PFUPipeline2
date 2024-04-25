@@ -765,8 +765,24 @@ list(
                     continent_aggregation_map = AggregationMaps$continent_aggregation,
                     world_aggregation_map = AggregationMaps$world_aggregation,
                     countries = Countries),
-    pattern = map(Countries)) # ,
+    pattern = map(Countries)),
 
+
+  # Chopped, despecified, and grouped aggregations -----------------------------
+
+  ## PSUTReAllChopAllDsAllGrAll
+  targets::tar_target(
+    PSUTReAllChopAllDsAllGrAll,
+    pr_in_agg_pipeline(PSUTReAll,
+                       product_agg_map = ProductAggMap,
+                       industry_agg_map = IndustryAggMap,
+                       p_industries = unlist(PIndustryPrefixes),
+                       countries = Countries,
+                       do_chops = do_chops,
+                       method = "SVD",
+                       country = Recca::psut_cols$country,
+                       year = Recca::psut_cols$year),
+    pattern = map(Countries)) # ,
 
 
 
@@ -834,7 +850,7 @@ list(
               "CmatsAgg", "EtafuYEIOU", "Etai",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
-              "PSUTReAll"),
+              "PSUTReAll", "PSUTReAllChopAllDsAllGrAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
@@ -845,6 +861,7 @@ list(
                    "PSUTFinalIEA", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
+                   "PSUTReAll",
                    "Etafuvecs")) |>
 
 
@@ -929,7 +946,7 @@ list(
               # Exiobase targets
               "EtafuYEIOUagg",
               # Aggregation targets
-              "PSUTReAll",
+              "PSUTReAll", # "PSUTReAllChopAllDsAllGrAll",
               # Efficiency targets
               "Etai"))
 

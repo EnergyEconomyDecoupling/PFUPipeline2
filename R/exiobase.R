@@ -380,8 +380,6 @@ calc_Ef_to_Xf_exiobase <- function(phi_vecs,
                                    year = IEATools::iea_cols$year,
                                    flow = IEATools::iea_cols$flow) {
 
-  browser()
-
   # Filtering out non final energy flows
   # We keep losses and non-energy uses in the multipliers we produce for Exiobase
   list_final_energy_flows <- full_list_exiobase_flows %>%
@@ -481,8 +479,6 @@ calc_eta_fu_eff_phi_Y_EIOU_agg <- function(C_mats_agg,
                                            last_stage = IEATools::iea_cols$last_stage,
                                            year = IEATools::iea_cols$year,
                                            product = IEATools::iea_cols$product) {
-
-  browser()
 
   # (1) Determination of aggregated C_mats excluding non-energy uses
   C_mats_agg_excl_NEU <- C_mats_agg |>
