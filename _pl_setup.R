@@ -24,7 +24,7 @@ countries <- "GHA"
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1995:2020
 # years <- 1995:1996
 # years <- 1971:1972
@@ -45,7 +45,7 @@ iea_year <- 2022
 # Other control parameters -----------------------------------------------------
 
 # Tell whether to do chops
-do_chops <- TRUE
+do_chops <- FALSE
 
 # Should we specify non-energy flows?
 specify_non_energy_flows <- TRUE

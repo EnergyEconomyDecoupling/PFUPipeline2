@@ -957,7 +957,7 @@ list(
               # Exiobase targets
               "EtafuYEIOUagg",
               # Aggregation targets
-              "PSUTReAll", # "PSUTReAllChopAllDsAllGrAll",
+              "PSUTReAll", "PSUTReAllChopAllDsAllGrAll",
               # Efficiency targets
               "Etai"))
 
