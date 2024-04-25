@@ -631,33 +631,33 @@ list(
                            full_list_exiobase_flows = ListExiobaseEnergyFlows,
                            country_concordance_table_df = CountryConcordanceTable)),
 
-  #
-  # Product L: exiobase_Ef_to_Xu_multipliers ---------------------------------
-  #
-  # Final energy to useful exergy multipliers
-  # Multiplier to go from final exergy to useful exergy
-  # This is just an intermediary target that is needed for the ExiobaseEftoXuMultipliers targets
+  ## EtafuPhiYEIOUagg
+  #  Multiplier to go from final exergy to useful exergy
+  #  This is just an intermediary target that is needed for the ExiobaseEftoXuMultipliers targets
+  #  This target is NOT stored in the database.
   targets::tar_target(
     EtafuPhiYEIOUagg,
     calc_eta_fu_eff_phi_Y_EIOU_agg(C_mats_agg = CmatsAgg,
                                    eta_fu_vecs = Etafuvecs,
                                    phi_vecs = Phivecs)),
 
-  # targets::tar_target_raw(
-  #   "ExiobaseEftoXuMultipliers",
-  #   quote(calc_Ef_to_Xu_exiobase(EtafuYEIOU_mats = EtafuYEIOU,
-  #                                phi_vecs = Phivecs,
-  #                                eta_fu_phi_Y_EIOU_agg = EtafuPhiYEIOUagg,
-  #                                years_exiobase = ExiobaseYears,
-  #                                full_list_exiobase_flows = ListExiobaseEnergyFlows,
-  #                                country_concordance_table_df = CountryConcordanceTable))
-  # ),
-  #
-  # ## ExiobaseEftoXlossMultipliers
-  # #  Multiplier to go from final energy to exergy losses
-  # targets::tar_target(
-  #   ExiobaseEftoXlossMultipliers,
-  #   calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
+  ## ExiobaseEftoXuMultipliers
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseEftoXuMultipliers,
+    calc_Ef_to_Xu_exiobase(EtafuYEIOU_mats = EtafuYEIOU,
+                           phi_vecs = Phivecs,
+                           eta_fu_phi_Y_EIOU_agg = EtafuPhiYEIOUagg,
+                           years_exiobase = ExiobaseYears,
+                           full_list_exiobase_flows = ListExiobaseEnergyFlows,
+                           country_concordance_table_df = CountryConcordanceTable)),
+
+  ## ExiobaseEftoXlossMultipliers
+  #  Multiplier to go from final energy to exergy losses
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseEftoXlossMultipliers,
+    calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
 
 
   # Remove NEU -----------------------------------------------------------------
@@ -833,7 +833,7 @@ list(
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               "CmatsAgg", "EtafuYEIOU", "Etai",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
-              "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers",
+              "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
