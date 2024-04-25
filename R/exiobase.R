@@ -213,8 +213,8 @@ calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
                                    last_stage = IEATools::iea_cols$last_stage,
                                    eta_p_eiou = "eta_p_eiou",
                                    eta_p_eiou_y = "eta_p_eiou_y",
-                                   eta_fu_Y_E = "eta_fu_Y_E",
-                                   eta_fu_EIOU_E = "eta_fu_EIOU_E",
+                                   eta_fu_Y_E = "etafu_Y_E",
+                                   eta_fu_EIOU_E = "etafu_EIOU_E",
                                    eta = "eta") {
 
   # Filtering out non useful energy flows
@@ -623,14 +623,16 @@ calc_Ef_to_Xu_exiobase <- function(EtafuYEIOU_mats,
                                    last_stage = IEATools::iea_cols$last_stage,
                                    eta_p_eiou = "eta_p_eiou",
                                    eta_p_eiou_y = "eta_p_eiou_y",
-                                   eta_fu_Y_E = "eta_fu_Y_E",
-                                   eta_fu_EIOU_E = "eta_fu_EIOU_E",
-                                   eta_fu_Y_X = "eta_fu_Y_X",
-                                   eta_fu_EIOU_X = "eta_fu_EIOU_X",
+                                   eta_fu_Y_E = "etafu_Y_E",
+                                   eta_fu_EIOU_E = "etafu_EIOU_E",
+                                   eta_fu_Y_X = "etafu_Y_X",
+                                   eta_fu_EIOU_X = "etafu_EIOU_X",
                                    eta_phi_p_eiou = "eta_phi_p_eiou",
                                    eta_phi_p_eiou_y = "eta_phi_p_eiou_y",
                                    phi_eta_X = "phi_eta_X",
                                    eta = "eta") {
+
+  browser()
 
   # Filtering out non useful energy flows
   # So here we remove non-energy uses and losses

@@ -966,12 +966,10 @@ list(
               "CmatsAgg", "EtafuYEIOU",
               "PSUTIEA", "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
-              # Exiobase targets
-              "EtafuYEIOUagg",
               # Aggregation targets
               "PSUTReAll", "PSUTReAllChopAllDsAllGrAll",
               # Efficiency targets
-              "Etai"))
+              "EtafuYEIOUagg", "Etai", "AggEtaPFU"))
 
 
 
