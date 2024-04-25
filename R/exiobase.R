@@ -18,7 +18,6 @@ read_list_exiobase_energy_flows <- function(path_to_list_exiobase_energy_flows){
 #' @param C_mats_agg A data frame containing the aggregated C matrices.
 #' @param eta_fu_vecs A data frame containing the efficiency vectors.
 #' @param phi_vecs A data frame containing the phi values.
-#' @param countries The countries for which the analysis is to be performed.
 #' @param non_energy_use_machine The character string of the non-energy use machine that needs to be excluded
 #'                               for efficiencies excluding non-energy uses.
 #' @param eta.fu The name of the column containing the machine efficiencies in the eta_fu_vecs data frame.
@@ -39,7 +38,6 @@ read_list_exiobase_energy_flows <- function(path_to_list_exiobase_energy_flows){
 calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
                                             eta_fu_vecs,
                                             phi_vecs,
-                                            countries,
                                             non_energy_use_machine = "Non-energy consumption -> NEU",
                                             eta.fu = "etafu",
                                             C_EIOU_agg = "C_EIOU_agg",
@@ -190,7 +188,6 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
 #' @export
 calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
                                    eta_fu_Y_EIOU_agg,
-                                   countries,
                                    years_exiobase,
                                    full_list_exiobase_flows,
                                    country_concordance_table_df,
@@ -315,4 +312,127 @@ calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
     tidyr::pivot_wider(names_from = dplyr::all_of(year), values_from = dplyr::all_of(eta))
 
   return(Ef_to_Eu_multipliers)
+}
+
+
+#' Calculates the final energy to energy losses multipliers
+#'
+#' @param ExiobaseEftoEuMultipliers_df The data frame of final energy to useful energy multipliers previously calculated
+#'
+#' @return A data frame of the final energy to energy losses multipliers
+#'
+#' @export
+calc_Ef_to_Eloss_exiobase <- function(ExiobaseEftoEuMultipliers_df){
+
+  Ef_to_Eloss_multipliers <- ExiobaseEftoEuMultipliers_df |>
+    # Conditional if mutate to avoid putting 100% where efficiency is 0; which corresponds to a missing efficiency anyway.
+    # However we are now filtering out 0 efficiencies in the calc_Ef_to_Eu_exiobase() function to help identify potentially missing efficiencies
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::where(is.double), ~ dplyr::case_when(.x == 0 ~ .x,
+                                                    .x >= 1 ~ 0,
+                                                    TRUE ~ 1 - .x)
+      )
+    )
+  return(Ef_to_Eloss_multipliers)
+}
+
+
+#' Calculates the final energy to final exergy multipliers
+#'
+#' @param phi_vecs A data frame of phi (exergy-to-energy ratio) coefficients.
+#' @param years_exiobase The years for which the coefficients are provided to the Exiobase team
+#' @param full_list_exiobase_flows The full list of energy flows used in the Exiobase pipeline led by KR
+#' @param country_concordance_table_df A data frame containing the country concordance table
+#' @param final_energy_flow The name of the column stating whether a flow is a final energy flow or not
+#' @param exiobase_flow The name of the column stating the name of the Exiobase flow
+#' @param pfu_code The name of the column containing the PFU country name
+#' @param iea_country_name The name of the column containing the IEA country name
+#' @param iea_country_name_accented The name of the column containing the IEA country name with accents
+#' @param phi The name of the column containing the phi values
+#' @param matnames The name of the column containing matrices names after unpacking the matrices
+#' @param matvals The name of the column containing matrices values after unpacking the matrices
+#' @param colnames The name of the column containing the column names after unpacking the matrices
+#' @param rowtypes The name of the column containing the matrices row types names after unpacking the matrices
+#' @param coltypes The name of the column containing matrices column types after unpacking the matrices
+#' @param country,year,product,flow See `IEATools::iea_cols`.
+#'
+#' @return A data frame of final energy to final exergy multipliers
+#'
+#' @export
+calc_Ef_to_Xf_exiobase <- function(phi_vecs,
+                                   years_exiobase,
+                                   full_list_exiobase_flows,
+                                   country_concordance_table_df,
+                                   final_energy_flow = "Final.energy.flow",
+                                   exiobase_flow = "Exiobase.Flow",
+                                   pfu_code = "PFU.code",
+                                   iea_country_name = "IEA.country.name",
+                                   iea_country_name_accented = "IEA.name.accented",
+                                   phi = "phi",
+                                   matnames = "matnames",
+                                   colnames = "colnames",
+                                   matvals = "matvals",
+                                   rowtypes = "rowtypes",
+                                   coltypes = "coltypes",
+                                   country = IEATools::iea_cols$country,
+                                   product = IEATools::iea_cols$product,
+                                   year = IEATools::iea_cols$year,
+                                   flow = IEATools::iea_cols$flow) {
+
+  browser()
+
+  # Filtering out non final energy flows
+  # We keep losses and non-energy uses in the multipliers we produce for Exiobase
+  list_final_energy_flows <- full_list_exiobase_flows %>%
+    dplyr::filter(.data[[final_energy_flow]] == TRUE) %>%
+    dplyr::select(tidyselect::all_of(exiobase_flow))
+
+  # Expanding to determine phi values for each Exiobase flow
+  phi_vals_df <- phi_vecs |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    tidyr::pivot_longer(cols = phi, names_to = matnames, values_to = matvals) |>
+    matsindf::expand_to_tidy(rownames = product) |>
+    dplyr::select(-tidyselect::any_of(c(matnames, colnames, rowtypes, coltypes))) |>
+    tidyr::expand_grid(list_final_energy_flows) |>
+    dplyr::filter(.data[[product]] %in% IEATools::products) |>
+    dplyr::rename(
+      "{pfu_code}" := dplyr::all_of(country)
+    ) |>
+    dplyr::left_join(country_concordance_table_df |>
+                       dplyr::select(dplyr::all_of(c(iea_country_name_accented, pfu_code))),
+                     by = pfu_code) |>
+    dplyr::select(-dplyr::all_of(pfu_code)) |>
+    dplyr::rename(
+      "{iea_country_name}" := dplyr::all_of(iea_country_name_accented),
+      "{flow}" := dplyr::all_of(exiobase_flow)
+    ) |>
+    dplyr::filter(!is.na(.data[[iea_country_name]])) |>
+    dplyr::relocate(dplyr::any_of(iea_country_name), .before = dplyr::all_of(year)) |>
+    tidyr::pivot_wider(names_from = dplyr::all_of(year), values_from = dplyr::all_of(matvals))
+
+  return(phi_vals_df)
+}
+
+
+#' Calculates the final energy to exergy losses multipliers
+#'
+#' @param ExiobaseEftoXuMultipliers_df The data frame of final energy to useful exergy multipliers previously calculated
+#'
+#' @return A data frame of the final energy to exergy losses multipliers
+#'
+#' @export
+calc_Ef_to_Xloss_exiobase <- function(ExiobaseEftoXuMultipliers_df){
+
+  Ef_to_Xloss_multipliers <- ExiobaseEftoXuMultipliers_df |>
+    # Conditional if mutate to avoid putting 100% where efficiency is 0; which corresponds to a missing efficiency anyway.
+    # However we are now filtering out 0 efficiencies in the calc_Ef_to_Eu_exiobase() function to help identify potentially missing efficiencies
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::where(is.double), ~ dplyr::case_when(.x == 0 ~ .x,
+                                                    .x >= 1 ~ 0,
+                                                    TRUE ~ 1 - .x)
+      )
+    )
+  return(Ef_to_Xloss_multipliers)
 }

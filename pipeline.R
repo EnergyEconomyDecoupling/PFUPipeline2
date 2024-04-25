@@ -595,9 +595,7 @@ list(
     EtafuYEIOUagg,
     calc_fu_Y_EIOU_agg_efficiencies(C_mats_agg = CmatsAgg,
                                     eta_fu_vecs = Etafuvecs,
-                                    phi_vecs = Phivecs,
-                                    countries = Countries),
-    pattern = map(Countries)),
+                                    phi_vecs = Phivecs)),
 
   ## ListExiobaseEnergyFlows
   #  Final energy to final exergy multipliers
@@ -613,43 +611,31 @@ list(
     ExiobaseEftoEuMultipliers,
     calc_Ef_to_Eu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
                            eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
-                           countries = Countries,
                            years_exiobase = ExiobaseYears,
                            full_list_exiobase_flows = ListExiobaseEnergyFlows,
-                           country_concordance_table_df = CountryConcordanceTable),
-    pattern = map(Countries)),
+                           country_concordance_table_df = CountryConcordanceTable)),
 
-  ## exiobase_Ef_to_Eloss_multipliers
-  # targets::tar_target(
-  #   ExiobaseEftoElossMultipliers,
-  #   calc_Ef_to_Eloss_exiobase(ExiobaseEftoEuMultipliers)),
-  #
-  # targets::tar_target(
-  #   ReleaseExiobaseEftoElossMultipliers,
-  #   PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
-  #                                    targ = ExiobaseEftoElossMultipliers,
-  #                                    pin_name = "exiobase_Ef_to_Eloss_multipliers",
-  #                                    type = "csv",
-  #                                    release = Release)),
+  ## ExiobaseEftoElossMultipliers
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseEftoElossMultipliers,
+    calc_Ef_to_Eloss_exiobase(ExiobaseEftoEuMultipliers)),
 
+  ## ExiobaseEftoXfMultipliers
+  #  Phi values, multipliers to go from final energy to final exergy
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseEftoXfMultipliers,
+    calc_Ef_to_Xf_exiobase(phi_vecs = Phivecs,
+                           years_exiobase = ExiobaseYears,
+                           full_list_exiobase_flows = ListExiobaseEnergyFlows,
+                           country_concordance_table_df = CountryConcordanceTable)),
 
-  # Phi values
-  # Multiplier to go from final energy to final exergy
-  # targets::tar_target(
-  #   ExiobaseEftoXfMultipliers,
-  #   calc_Ef_to_Xf_exiobase(phi_vecs = Phivecs,
-  #                          years_exiobase = ExiobaseYears,
-  #                          full_list_exiobase_flows = ListExiobaseEnergyFlows,
-  #                          country_concordance_table_df = CountryConcordanceTable)),
-
-  #
-  # Product K: exiobase_Ef_to_Xloss_multipliers ------------------------------
-  #
-  # Final energy to exergy losses multipliers
-  # Multiplier to go from final energy to exergy losses
-  # targets::tar_target(
-  #   ExiobaseEftoXlossMultipliers,
-  #   calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
+  ## ExiobaseEftoXlossMultipliers
+  #  Multiplier to go from final energy to exergy losses
+  targets::tar_target(
+    ExiobaseEftoXlossMultipliers,
+    calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
 
 
   # Remove NEU -----------------------------------------------------------------
@@ -824,7 +810,7 @@ list(
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               "CmatsAgg", "EtafuYEIOU", "Etai",
-              "EtafuYEIOUagg", "ExiobaseEftoEuMultipliers",
+              "EtafuYEIOUagg", "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
