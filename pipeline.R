@@ -782,17 +782,17 @@ list(
                        method = "SVD",
                        country = Recca::psut_cols$country,
                        year = Recca::psut_cols$year),
-    pattern = cross(Countries, Years)) # ,
+    pattern = cross(Countries, Years)),
 
-  # ## SectorAggEtaFU
-  # #  Final demand sector aggregates and efficiencies
-  # targets::tar_target(
-  #   SectorAggEtaFU,
-  #   PSUTReAllChopAllDsAllGrAll |>
-  #     calculate_sector_agg_eta_fu(fd_sectors = unlist(FinalDemandSectors)) |>
-  #     PFUPipelineTools::tar_ungroup(),
-  #   pattern = map(Countries)
-  # ),
+  ## SectorAggEtaFU
+  #  Final demand sector aggregates and efficiencies
+  targets::tar_target(
+    SectorAggEtaFU,
+    calculate_sector_agg_eta_fu(PSUTReAllChopAllDsAllGrAll,
+                                fd_sectors = unlist(FinalDemandSectors),
+                                countries = Countries),
+    pattern = map(Countries)
+  ) # ,
 
 
 
@@ -861,7 +861,8 @@ list(
               "CmatsAgg", "EtafuYEIOU", "Etai",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
-              "PSUTReAll", "PSUTReAllChopAllDsAllGrAll"),
+              "PSUTReAll", "PSUTReAllChopAllDsAllGrAll",
+              "SectorAggEtaFU"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
@@ -872,7 +873,7 @@ list(
                    "PSUTFinalIEA", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
-                   "PSUTReAll",
+                   "PSUTReAll", "PSUTReAllChopAllDsAllGrAll",
                    "Etafuvecs")) |>
 
 

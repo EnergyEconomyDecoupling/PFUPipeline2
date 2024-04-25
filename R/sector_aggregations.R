@@ -27,6 +27,7 @@ create_fd_sectors_list <- function(iea_fd_sectors, sector_aggregation_map) {
 #'
 #' @param .psut_data A data frame of PSUT matrices.
 #' @param fd_sectors The sectors that count for final demand.
+#' @param countries The countries to analyze.
 #' @param piece The piece to be aggregated. Default is "noun".
 #' @param pattern_type Where to look for sectors.
 #'                     Default is "leading".
@@ -62,6 +63,7 @@ create_fd_sectors_list <- function(iea_fd_sectors, sector_aggregation_map) {
 #' @export
 calculate_sector_agg_eta_fu <- function(.psut_data,
                                         fd_sectors,
+                                        countries,
                                         piece = "all",
                                         pattern_type = "exact",
                                         notation = RCLabels::notations_list,
@@ -117,7 +119,9 @@ calculate_sector_agg_eta_fu <- function(.psut_data,
       "{Y}" := NULL,
       "{S_units}" := NULL
     ) |>
-    tidyr::pivot_longer(cols = c(net_aggregate_demand, gross_aggregate_demand), names_to = gross_net, values_to = aggregate_demand) |>
+    tidyr::pivot_longer(cols = dplyr::all_of(c(net_aggregate_demand, gross_aggregate_demand)),
+                        names_to = gross_net,
+                        values_to = aggregate_demand) |>
     dplyr::mutate(
       "{gross_net}" := dplyr::case_when(
         .data[[gross_net]] == gross_aggregate_demand ~ gross,
@@ -132,7 +136,8 @@ calculate_sector_agg_eta_fu <- function(.psut_data,
       "{rowtypes}" := NULL,
       "{coltypes}" := NULL
     ) |>
-    tidyr::pivot_wider(names_from = last_stage, values_from = aggregate_demand) |>
+    tidyr::pivot_wider(names_from = dplyr::all_of(last_stage),
+                       values_from = dplyr::all_of(aggregate_demand)) |>
     dplyr::mutate(
       "{eta_fu}" := .data[[useful]] / .data[[final]]
     )
