@@ -681,24 +681,6 @@ list(
     pattern = map(Countries)),
 
 
-  # Efficiencies ---------------------------------------------------------------
-
-  ## EtafuYEIOU
-  targets::tar_target(
-    EtafuYEIOU,
-    calc_fu_Y_EIOU_efficiencies(C_mats = Cmats,
-                                eta_m_vecs = Etafuvecs,
-                                phi_vecs = Phivecs,
-                                countries = Countries),
-    pattern = map(Countries)),
-
-  ## Etai
-  targets::tar_target(
-    Etai,
-    calc_eta_i(.psut = PSUT, countries = Countries),
-    pattern = map(Countries)),
-
-
   # Aggregation maps -----------------------------------------------------------
 
   ## AggregationMapsPath
@@ -784,6 +766,24 @@ list(
                        year = Recca::psut_cols$year),
     pattern = cross(Countries, Years)),
 
+
+  # Efficiencies ---------------------------------------------------------------
+
+  ## EtafuYEIOU
+  targets::tar_target(
+    EtafuYEIOU,
+    calc_fu_Y_EIOU_efficiencies(C_mats = Cmats,
+                                eta_m_vecs = Etafuvecs,
+                                phi_vecs = Phivecs,
+                                countries = Countries),
+    pattern = map(Countries)),
+
+  ## Etai
+  targets::tar_target(
+    Etai,
+    calc_eta_i(.psut = PSUT, countries = Countries),
+    pattern = map(Countries)),
+
   ## SectorAggEtaFU
   #  Final demand sector aggregates and efficiencies
   targets::tar_target(
@@ -791,8 +791,18 @@ list(
     calculate_sector_agg_eta_fu(PSUTReAllChopAllDsAllGrAll,
                                 fd_sectors = unlist(FinalDemandSectors),
                                 countries = Countries),
-    pattern = map(Countries)
-  ) # ,
+    pattern = map(Countries)),
+
+  ## AggEtaPFU
+  #  PFU aggregates and efficiencies
+  targets::tar_target(
+    AggEtaPFU,
+    calc_agg_eta_pfu(PSUTReAllChopAllDsAllGrAll,
+                     p_industries = unlist(PIndustryPrefixes),
+                     fd_sectors = unlist(FinalDemandSectors),
+                     countries = Countries),
+    pattern = map(Countries)) # ,
+
 
 
 
@@ -862,7 +872,7 @@ list(
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
               "PSUTReAll", "PSUTReAllChopAllDsAllGrAll",
-              "SectorAggEtaFU"),
+              "SectorAggEtaFU", "AggEtaPFU"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",

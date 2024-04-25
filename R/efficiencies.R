@@ -262,3 +262,26 @@ calc_eta_i <- function(.psut,
       "{S_units_col}" := NULL
     )
 }
+
+
+#' Calculate primary, final, and useful aggregates and associated efficiencies
+#'
+#' Routes to [Recca::calc_agg_eta_pfus()].
+#'
+#' @param .psut_df The data frame for which efficiencies should be calculated.
+#' @param p_industries Primary industries.
+#' @param fd_sectors Final demand sectors.
+#' @param countries The countries for this analysis.
+#'
+#' @return A data frame of aggregations and efficiencies.
+#'
+#' @export
+calc_agg_eta_pfu <- function(.psut_df,
+                             p_industries,
+                             fd_sectors,
+                             countries) {
+
+  .psut_df |>
+    Recca::calc_agg_eta_pfus(p_industries = p_industries,
+                             fd_sectors = fd_sectors)
+}
