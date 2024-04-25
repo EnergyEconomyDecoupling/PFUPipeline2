@@ -11,10 +11,10 @@
 # countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN"
-# countries <- "GHA"
+countries <- "GHA"
 # countries <- "USA"
 # countries <- "WRLD"
-countries <- c("GHA", "ZAF")
+# countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c(PFUPipelineTools::canonical_countries[1:64], "WRLD") |> as.character()
 
@@ -26,10 +26,10 @@ countries <- c("GHA", "ZAF")
 # Set the years for IEA data analysis
 years <- 1960:2020
 # years <- 1995:2020
-years <- 1995:1996
+# years <- 1995:1996
 # years <- 1971:1972
 # years <- 1971:1980
-# years <- 1995
+years <- 1995
 # years <- 1971
 
 # Set the years to provide exiobase coefficients
@@ -45,7 +45,7 @@ iea_year <- 2022
 # Other control parameters -----------------------------------------------------
 
 # Tell whether to do chops
-do_chops <- FALSE
+do_chops <- TRUE
 
 # Should we specify non-energy flows?
 specify_non_energy_flows <- TRUE

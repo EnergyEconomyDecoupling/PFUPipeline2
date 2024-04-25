@@ -75,7 +75,7 @@ rename_suffixed_psut_columns <- function(.psut_data,
 #' @param product_agg_map The product aggregation map.
 #' @param industry_agg_map The industry aggregation map.
 #' @param p_industries A string vector of primary industries.
-#' @param countries The countries to analyze.
+#' @param countries,years The countries and years to analyze.
 #' @param do_chops A boolean that tells whether to do the chopping of **R** and **Y** matrices.
 #' @param pattern_type The matching type for row and column labels.
 #'                     Default is "exact".
@@ -117,6 +117,7 @@ pr_in_agg_pipeline <- function(.psut_data,
                                industry_agg_map,
                                p_industries,
                                countries,
+                               years,
                                do_chops = FALSE,
                                pattern_type = "exact",
                                piece = "noun",

@@ -782,7 +782,18 @@ list(
                        method = "SVD",
                        country = Recca::psut_cols$country,
                        year = Recca::psut_cols$year),
-    pattern = map(Countries)) # ,
+    pattern = cross(Countries, Years)) # ,
+
+  # ## SectorAggEtaFU
+  # #  Final demand sector aggregates and efficiencies
+  # targets::tar_target(
+  #   SectorAggEtaFU,
+  #   PSUTReAllChopAllDsAllGrAll |>
+  #     calculate_sector_agg_eta_fu(fd_sectors = unlist(FinalDemandSectors)) |>
+  #     PFUPipelineTools::tar_ungroup(),
+  #   pattern = map(Countries)
+  # ),
+
 
 
 
