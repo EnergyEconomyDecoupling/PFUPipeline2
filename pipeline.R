@@ -759,12 +759,12 @@ list(
                        product_agg_map = ProductAggMap,
                        industry_agg_map = IndustryAggMap,
                        p_industries = unlist(PIndustryPrefixes),
-                       countries = Countries,
+                       countries = CountriesRegionsContinentsWorld,
                        do_chops = do_chops,
                        method = "SVD",
                        country = Recca::psut_cols$country,
                        year = Recca::psut_cols$year),
-    pattern = cross(Countries, Years)),
+    pattern = cross(CountriesRegionsContinentsWorld, Years)),
 
 
   # Efficiencies ---------------------------------------------------------------
@@ -781,8 +781,9 @@ list(
   ## Etai
   targets::tar_target(
     Etai,
-    calc_eta_i(.psut = PSUT, countries = Countries),
-    pattern = map(Countries)),
+    calc_eta_i(.psut = PSUTReAll,
+               countries = CountriesRegionsContinentsWorld),
+    pattern = map(CountriesRegionsContinentsWorld)),
 
   ## SectorAggEtaFU
   #  Final demand sector aggregates and efficiencies
@@ -790,8 +791,8 @@ list(
     SectorAggEtaFU,
     calculate_sector_agg_eta_fu(PSUTReAllChopAllDsAllGrAll,
                                 fd_sectors = unlist(FinalDemandSectors),
-                                countries = Countries),
-    pattern = map(Countries)),
+                                countries = CountriesRegionsContinentsWorld),
+    pattern = map(CountriesRegionsContinentsWorld)),
 
   ## AggEtaPFU
   #  PFU aggregates and efficiencies
@@ -849,8 +850,8 @@ list(
 
   # tar_hook_inner -------------------------------------------------------------
 
-  ## An inner hook for targets where Countries
-  ## is the mapped variable.
+  ## An inner hook for targets where Countries and/or Years
+  ## is/are the mapped variables.
   ## This is the typical inner hook.
   tarchetypes::tar_hook_inner(
     hook = download_dependency_hook(.x,
@@ -869,11 +870,11 @@ list(
               "PSUTMWEnergy", "BalancedPSUTMW",
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
-              "CmatsAgg", "EtafuYEIOU", "Etai",
+              "CmatsAgg", "EtafuYEIOU", # "Etai",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
-              "PSUTReAll", "PSUTReAllChopAllDsAllGrAll",
-              "SectorAggEtaFU", "AggEtaPFU"),
+              "PSUTReAll",
+              "AggEtaPFU"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
@@ -902,6 +903,21 @@ list(
     names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
               "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
     names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData")) |>
+
+  ## An inner hook for targets where CountriesRegionsContinentsWorld
+  ## is the mapped variable
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = CountriesRegionsContinentsWorld,
+                                    years = Years,
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("PSUTReAllChopAllDsAllGrAll",
+              "Etai", "SectorAggEtaFU"),
+    names_wrap = c("PSUTReAll", "PSUTReAllChopAllDsAllGrAll")) |>
 
 
   ## An inner hook to download only relevant countries and years
