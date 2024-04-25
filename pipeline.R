@@ -631,11 +631,33 @@ list(
                            full_list_exiobase_flows = ListExiobaseEnergyFlows,
                            country_concordance_table_df = CountryConcordanceTable)),
 
-  ## ExiobaseEftoXlossMultipliers
-  #  Multiplier to go from final energy to exergy losses
+  #
+  # Product L: exiobase_Ef_to_Xu_multipliers ---------------------------------
+  #
+  # Final energy to useful exergy multipliers
+  # Multiplier to go from final exergy to useful exergy
+  # This is just an intermediary target that is needed for the ExiobaseEftoXuMultipliers targets
   targets::tar_target(
-    ExiobaseEftoXlossMultipliers,
-    calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
+    EtafuPhiYEIOUagg,
+    calc_eta_fu_eff_phi_Y_EIOU_agg(C_mats_agg = CmatsAgg,
+                                   eta_fu_vecs = Etafuvecs,
+                                   phi_vecs = Phivecs)),
+
+  # targets::tar_target_raw(
+  #   "ExiobaseEftoXuMultipliers",
+  #   quote(calc_Ef_to_Xu_exiobase(EtafuYEIOU_mats = EtafuYEIOU,
+  #                                phi_vecs = Phivecs,
+  #                                eta_fu_phi_Y_EIOU_agg = EtafuPhiYEIOUagg,
+  #                                years_exiobase = ExiobaseYears,
+  #                                full_list_exiobase_flows = ListExiobaseEnergyFlows,
+  #                                country_concordance_table_df = CountryConcordanceTable))
+  # ),
+  #
+  # ## ExiobaseEftoXlossMultipliers
+  # #  Multiplier to go from final energy to exergy losses
+  # targets::tar_target(
+  #   ExiobaseEftoXlossMultipliers,
+  #   calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
 
 
   # Remove NEU -----------------------------------------------------------------
@@ -810,7 +832,8 @@ list(
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               "CmatsAgg", "EtafuYEIOU", "Etai",
-              "EtafuYEIOUagg", "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers",
+              "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
+              "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",

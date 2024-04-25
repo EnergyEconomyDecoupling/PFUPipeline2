@@ -436,3 +436,125 @@ calc_Ef_to_Xloss_exiobase <- function(ExiobaseEftoXuMultipliers_df){
     )
   return(Ef_to_Xloss_multipliers)
 }
+
+#' Calculates the average FU energy efficiency times phi value
+#'
+#' @param C_mats_agg A data frame containing the aggregated C matrices.
+#' @param eta_fu_vecs A data frame containing the efficiency vectors.
+#' @param phi_vecs A data frame containing the phi vectors
+#' @param non_energy_use_machine The character string of the non-energy use machine that needs to be excluded
+#'                               for efficiencies excluding non-energy uses.
+#' @param eta.fu The name of the column containing the machine efficiencies in the eta_fu_vecs data frame.
+#' @param C_EIOU_agg The name of the column containing the C_EIOU aggregated matrix in the output data frame.
+#' @param C_Y_agg The name of the column containing the C_Y aggregated matrix in the output data frame.
+#' @param C_EIOU_Y_agg The name of the column containing the C_EIOU_Y aggregated matrix in the output data frame.
+#' @param C_EIOU_agg_excl_NEU The name of a temporary column containing the C_EIOU aggregated matrix excluding non-energy uses.
+#' @param C_Y_agg_excl_NEU The name of a temporary column containing the C_Y aggregated matrix excluding non-energy uses.
+#' @param C_EIOU_Y_agg_excl_NEU The name of a temporary column containing the C_EIOU_Y aggregated matrix excluding non-energy uses.
+#' @param eta_phi_p_eiou The name of the column containing the efficiency of each product when used in EIOU.
+#' @param eta_phi_p_y The name of the column containing the efficiency of each product when used in final demand.
+#' @param eta_phi_p_eiou_y The name of the column containing the efficiency of each product when used in either EIOU or final demand.
+#' @param phi The name of the column containing the phi values.
+#' @param country,method,energy_type,last_stage,year,product See `IEATools::iea_cols`.
+#'
+#' @return A data frame containing the average FU efficiencies times phi values for each product when used in EIOU, Y, or economy-wide (Y and EIOU).
+#'
+#' @export
+calc_eta_fu_eff_phi_Y_EIOU_agg <- function(C_mats_agg,
+                                           eta_fu_vecs,
+                                           phi_vecs,
+                                           non_energy_use_machine = "Non-energy consumption -> NEU",
+                                           eta.fu = "etafu",
+                                           C_EIOU_agg = "C_EIOU_agg",
+                                           C_Y_agg = "C_Y_agg",
+                                           C_EIOU_Y_agg = "C_EIOU_Y_agg",
+                                           C_EIOU_agg_excl_NEU = "C_EIOU_agg_excl_NEU",
+                                           C_Y_agg_excl_NEU = "C_Y_agg_excl_NEU",
+                                           C_EIOU_Y_agg_excl_NEU = "C_EIOU_Y_agg_excl_NEU",
+                                           eta_phi_p_eiou = "eta_phi_p_eiou",
+                                           eta_phi_p_y = "eta_phi_p_y",
+                                           eta_phi_p_eiou_y = "eta_phi_p_eiou_y",
+                                           phi = "phi",
+                                           country = IEATools::iea_cols$country,
+                                           method = IEATools::iea_cols$method,
+                                           energy_type = IEATools::iea_cols$energy_type,
+                                           last_stage = IEATools::iea_cols$last_stage,
+                                           year = IEATools::iea_cols$year,
+                                           product = IEATools::iea_cols$product) {
+
+  browser()
+
+  # (1) Determination of aggregated C_mats excluding non-energy uses
+  C_mats_agg_excl_NEU <- C_mats_agg |>
+    dplyr::mutate(
+      # New C_Y_agg excluding non-energy uses
+      "{C_Y_agg_excl_NEU}" := matsbyname::matrixproduct_byname(
+        matsbyname::select_cols_byname(.data[[C_Y_agg]], remove_pattern = list(non_energy_use_machine)) |>
+          matsbyname::rowsums_byname() |>
+          matsbyname::hatinv_byname(keep = "rownames"),
+        matsbyname::select_cols_byname(.data[[C_Y_agg]], remove_pattern = list(non_energy_use_machine))),
+      # New C_EIOU_agg excluding non-energy uses
+      # "{C_EIOU_agg_excl_NEU}" := matsbyname::matrixproduct_byname(
+      #   matsbyname::select_cols_byname(.data[[C_EIOU_agg]], remove_pattern = list(non_energy_use_machine)) |>
+      #     matsbyname::rowsums_byname() |>
+      #     matsbyname::hatinv_byname(keep = "rownames"),
+      # matsbyname::select_cols_byname(.data[[C_EIOU_agg]], remove_pattern = list(non_energy_use_machine))),
+      # New C_EIOU_Y_agg excluding non-energy uses
+      "{C_EIOU_Y_agg_excl_NEU}" := matsbyname::matrixproduct_byname(
+        matsbyname::select_cols_byname(.data[[C_EIOU_Y_agg]], remove_pattern = list(non_energy_use_machine)) |>
+          matsbyname::rowsums_byname() |>
+          matsbyname::hatinv_byname(keep = "rownames"),
+        matsbyname::select_cols_byname(.data[[C_EIOU_Y_agg]], remove_pattern = list(non_energy_use_machine)))
+    ) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU_agg_excl_NEU, C_Y_agg_excl_NEU, C_EIOU_Y_agg_excl_NEU))) |>
+    # dplyr::select(.data[[country]], .data[[method]], .data[[energy_type]], .data[[last_stage]], .data[[year]], .data[[C_EIOU_agg_excl_NEU]],
+    #               .data[[C_Y_agg_excl_NEU]], .data[[C_EIOU_Y_agg_excl_NEU]]) |>
+    dplyr::rename(
+      #"{C_EIOU_agg}" := .data[[C_EIOU_agg_excl_NEU]],
+      "{C_Y_agg}" := dplyr::all_of(C_Y_agg_excl_NEU),
+      "{C_EIOU_Y_agg}" := dplyr::all_of(C_EIOU_Y_agg_excl_NEU)
+    )
+
+
+  # (2) Calculations of eta * phi
+  # Represents the final-to-useful energy efficiency times the useful stage Phi coefficient
+  eta_fu_eff_phi_Y_EIOU_agg <- C_mats_agg_excl_NEU |>
+    dplyr::left_join(eta_fu_vecs, by = c(country, method, energy_type, last_stage, year)) |>
+    dplyr::left_join(phi_vecs, by = c(country, year)) |>
+    dplyr::mutate(
+      # "{eta_phi_p_eiou}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_agg]], matsbyname::hatize_byname(.data[[eta.fu]])) |>
+      #   matsbyname::clean_byname(margin = 1) |>
+      #   matsbyname::rename_to_piece_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
+      #   matsbyname::aggregate_byname(margin = 2) |>
+      #   matsbyname::setcoltype(product) |>
+      #   matsbyname::matrixproduct_byname(.data[[phi]]),
+      "{eta_phi_p_y}" := matsbyname::matrixproduct_byname(.data[[C_Y_agg]], matsbyname::hatize_byname(.data[[eta.fu]], keep = "rownames")) |>
+        matsbyname::clean_byname(margin = 1) |>
+        matsbyname::rename_to_piece_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
+        matsbyname::aggregate_byname(margin = 2) |>
+        matsbyname::setcoltype(product) |>
+        matsbyname::matrixproduct_byname(.data[[phi]]),
+      "{eta_phi_p_eiou_y}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_Y_agg]], matsbyname::hatize_byname(.data[[eta.fu]], keep = "rownames")) |>
+        matsbyname::clean_byname(margin = 1) |>
+        matsbyname::rename_to_piece_byname(piece = "suff", margin = 2, notation = list(RCLabels::arrow_notation)) |>
+        matsbyname::aggregate_byname(margin = 2) |>
+        matsbyname::setcoltype(product) |>
+        matsbyname::matrixproduct_byname(.data[[phi]]),
+    ) |>
+    dplyr::select(tidyselect::any_of(c(country, method, year, eta_phi_p_eiou, eta_phi_p_y, eta_phi_p_eiou_y)))
+  #dplyr::select(.data[[country]], .data[[method]], .data[[year]], .data[[eta_phi_p_eiou]], .data[[eta_phi_p_y]], .data[[eta_phi_p_eiou_y]])
+
+  # (3) Determination of aggregated efficiencies (excluding non-energy uses)
+  # eta_fu_eff_phi_Y_EIOU_agg <- C_mats_agg_excl_NEU |>
+  #   dplyr::left_join(eta_fu_vecs, by = c({country}, {method}, {energy_type}, {last_stage}, {year})) |>
+  #   dplyr::mutate(
+  #     "{eta_p_eiou}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_agg]], .data[[eta.fu]]) |>
+  #       matsbyname::clean_byname(margin = 1),
+  #     "{eta_p_y}" := matsbyname::matrixproduct_byname(.data[[C_Y_agg]], .data[[eta.fu]]) |>
+  #       matsbyname::clean_byname(margin = 1),
+  #     "{eta_p_eiou_y}" := matsbyname::matrixproduct_byname(.data[[C_EIOU_Y_agg]], .data[[eta.fu]]) |>
+  #       matsbyname::clean_byname(margin = 1)
+  #   )
+
+  return(eta_fu_eff_phi_Y_EIOU_agg)
+}
