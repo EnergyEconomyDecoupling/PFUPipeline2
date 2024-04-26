@@ -16,6 +16,7 @@ list(
   targets::tar_target_raw("AdditionalExemplarCountries", list(additional_exemplar_countries)),
   targets::tar_target_raw("SpecifyNonEnergyFlows", list(specify_non_energy_flows)),
   targets::tar_target_raw("ApplyFixes", list(apply_fixes)),
+  targets::tar_target_raw("Release", list(release)),
 
   targets::tar_target(
     AllocAndEffCountries,
@@ -805,19 +806,26 @@ list(
 
   ## AggEtaPFU
   #  PFU aggregates and efficiencies
-  #  ******* Need to upload to the database ************
   targets::tar_target(
     AggEtaPFU,
     calc_agg_eta_pfu(PSUTReAllChopAllDsAllGrAll,
                      p_industries = unlist(PIndustryPrefixes),
                      fd_sectors = unlist(FinalDemandSectors),
                      countries = Countries),
-    pattern = map(Countries)) # ,
+    pattern = map(Countries)),
 
 
 
 
 
+  # Release csv targets as pins ------------------------------------------------
+  targets::tar_target(
+    PerformRelease,
+    perform_release(pipeline_releases_folder = clpfu_setup_paths[["pipeline_releases_folder"]],
+                    pin_targs = list(CompletedAllocationTables),
+                    pin_names = c("completed_allocation_tables"),
+                    pin_types = "csv",
+                    release = Release))
 ) |>
 
 

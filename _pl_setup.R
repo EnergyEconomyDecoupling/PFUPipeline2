@@ -53,6 +53,9 @@ specify_non_energy_flows <- TRUE
 # Should we apply fixes to the IEA data?
 apply_fixes <- TRUE
 
+# Should we do a release?
+release <- TRUE
+
 # For parallel processing.
 # Set worker_threads equal to or slightly less than
 # the number of high-performance cores on your machine.
@@ -70,7 +73,7 @@ if (parallel::detectCores() == 10) {
 # For debugging in a single thread
 crew_controller <- NULL
 # For parallel processing
-crew_controller <- crew::crew_controller_local(workers = worker_threads)
+# crew_controller <- crew::crew_controller_local(workers = worker_threads)
 
 
 #
