@@ -130,7 +130,7 @@ input_data_version <- sub(pattern = "[ab]\\d*$", "", version)
 
 # Create a list of important paths for the CL-PFU pipeline
 input_data_path <- file.path(project_path, "InputData", input_data_version)
-output_data_path <- file.path(project_path, "OutputData", version)
+output_data_path <- file.path(project_path, "OutputData")
 
 clpfu_setup_paths <- list(
   project_path = project_path,

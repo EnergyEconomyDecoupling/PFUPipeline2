@@ -972,6 +972,21 @@ list(
                    "MachineData", "CompletedAllocationTables")) |>
 
 
+  ## An inner hook for downloading data
+  ## for all countries and all years
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = NULL, # Set NULL to download all data
+                                    years = NULL,     # Set NULL to download all data
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("PerformRelease"),
+    names_wrap = c("CompletedAllocationTables")) |>
+
+
   # tar_hook_outer -------------------------------------------------------------
 
   ## This hook uploads a resulting data frame to the database

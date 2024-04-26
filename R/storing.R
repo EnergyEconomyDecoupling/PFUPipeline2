@@ -21,7 +21,7 @@ perform_release <- function(pipeline_releases_folder,
   # Create a tibble from the pin arguments
   csv_info <- tibble::tibble(targ = pin_targs,
                              pin_name = pin_names,
-                             targ_type = pin_types)
+                             pin_type = pin_types)
   PFUPipelineTools::release_many_pins(pipeline_releases_folder,
                                       release_info = csv_info,
                                       release = release)
