@@ -487,6 +487,15 @@ list(
                    countries = Countries),
     pattern = map(Countries)),
 
+  ## YfuUEIOUfudetails
+  #  Exergy quantification of energy for details matrices
+  targets::tar_target(
+    YfuUEIOUfudetails,
+    extend_details_matrices_to_exergy(YfuUEIOUfudetailsEnergy,
+                                      phi_vecs = Phivecs,
+                                      countries = Countries),
+    pattern = map(Countries)),
+
 
   # Make PSUT matrices for MW data ---------------------------------------------
 
@@ -866,11 +875,12 @@ list(
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs", "PhivecMW",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy", "PSUTIEA",
+              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetails",
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
-              "CmatsAgg", "EtafuYEIOU", # "Etai",
+              "CmatsAgg", "EtafuYEIOU",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
               "PSUTReAll",
@@ -882,6 +892,7 @@ list(
                    "Phipfvecs", "Phivecs", "PhivecsMW",
                    "Cmats", "CmatsAgg",
                    "EtafuYEIOU", "EtafuYEIOUagg",
+                   "YfuUEIOUfudetailsEnergy",
                    "PSUTFinalIEA", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
@@ -903,6 +914,7 @@ list(
     names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
               "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
     names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData")) |>
+
 
   ## An inner hook for targets where CountriesRegionsContinentsWorld
   ## is the mapped variable
@@ -978,14 +990,15 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
-              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "YfuUEIOUfudetailsEnergy",
+              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetails",
               "CmatsAgg", "EtafuYEIOU",
+              "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
               "PSUTIEA", "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               # Aggregation targets
               "PSUTReAll", "PSUTReAllChopAllDsAllGrAll",
               # Efficiency targets
-              "EtafuYEIOUagg", "Etai", "AggEtaPFU"))
+              "EtafuYEIOUagg", "Etai", "SectorAggEtaFU", "AggEtaPFU"))
 
 
 
