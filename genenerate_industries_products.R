@@ -12,7 +12,7 @@ conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
                        dbname = "v2.0a1",
                        host = "eviz.cs.calvin.edu",
                        port = 5432,
-                       user = "postgres")
+                       user = "mkh2")
 
 # Get the existing Industry and Product tables from the database
 industry_table <- DBI::dbReadTable(conn = conn, name = "Industry")

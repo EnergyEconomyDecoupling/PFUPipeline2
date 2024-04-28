@@ -54,7 +54,7 @@
 # # worker_threads <- 16 # For parallel processing
 #
 # conn_params <- list(dbname = output_version,
-#                     user = "postgres",
+#                     user = "mkh2",
 #                     host = "eviz.cs.calvin.edu",
 #                     port = 5432)
 

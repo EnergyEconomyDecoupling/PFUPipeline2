@@ -119,7 +119,6 @@ iea_dataset <- paste0("IEAEWEB", iea_year)
 # See https://www.postgresql.org/docs/current/libpq-pgpass.html
 # for details.
 conn_params <- list(dbname = version,
-                    # user = "postgres",
                     user = "mkh2",
                     host = "eviz.cs.calvin.edu",
                     port = 5432)
