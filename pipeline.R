@@ -16,7 +16,6 @@ list(
   targets::tar_target_raw("AdditionalExemplarCountries", list(additional_exemplar_countries)),
   targets::tar_target_raw("SpecifyNonEnergyFlows", list(specify_non_energy_flows)),
   targets::tar_target_raw("ApplyFixes", list(apply_fixes)),
-  targets::tar_target_raw("Release", list(release)),
 
   targets::tar_target(
     AllocAndEffCountries,
@@ -819,13 +818,59 @@ list(
 
 
   # Release csv targets as pins ------------------------------------------------
+
+  targets::tar_target_raw("Release", list(release)),
+  targets::tar_target_raw("PipelineReleasesFolder",
+                          clpfu_setup_paths[["pipeline_releases_folder"]]),
+
+  ## Product H: exiobase_Ef_to_Eloss_multipliers
   targets::tar_target(
-    PerformRelease,
-    perform_release(pipeline_releases_folder = clpfu_setup_paths[["pipeline_releases_folder"]],
-                    pin_targs = list(CompletedAllocationTables),
-                    pin_names = c("completed_allocation_tables"),
-                    pin_types = "csv",
-                    release = Release))
+    ReleaseExiobaseEftoElossMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseEftoElossMultipliers,
+                                     pin_name = "exiobase_Ef_to_Eloss_multipliers",
+                                     type = "csv",
+                                     release = Release)),
+
+  ## Product I: exiobase_Ef_to_Eu_multipliers
+  targets::tar_target(
+    ReleaseExiobaseEftoEuMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseEftoEuMultipliers,
+                                     pin_name = "exiobase_Ef_to_Eu_multipliers",
+                                     type = "csv",
+                                     release = Release)),
+
+  ## Product J: exiobase_Ef_to_Xf_multipliers
+  targets::tar_target(
+    ReleaseExiobaseEftoXfMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseEftoXfMultipliers,
+                                     pin_name = "exiobase_Ef_to_Xf_multipliers",
+                                     type = "csv",
+                                     release = Release)),
+
+  ## Product K: exiobase_Ef_to_Xloss_multipliers
+  targets::tar_target(
+    ReleaseExiobaseEftoXlossMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                           targ = ExiobaseEftoXlossMultipliers,
+                                           pin_name = "exiobase_Ef_to_Xloss_multipliers",
+                                           type = "csv",
+                                           release = Release)),
+
+  ## Product L: exiobase_Ef_to_Xu_multipliers
+  targets::tar_target(
+    ReleaseExiobaseEftoXuMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseEftoXuMultipliers,
+                                     pin_name = "exiobase_Ef_to_Xu_multipliers",
+                                     type = "csv",
+                                     release = Release))
+
+
+
+
 ) |>
 
 
@@ -972,19 +1017,19 @@ list(
                    "MachineData", "CompletedAllocationTables")) |>
 
 
-  ## An inner hook for downloading data
-  ## for all countries and all years
-  tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = NULL, # Set NULL to download all data
-                                    years = NULL,     # Set NULL to download all data
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DM,
-                                    fk_parent_tables = FKTables),
-    names = c("PerformRelease"),
-    names_wrap = c("CompletedAllocationTables")) |>
+  # ## An inner hook for downloading data
+  # ## for all countries and all years
+  # tarchetypes::tar_hook_inner(
+  #   hook = download_dependency_hook(.x,
+  #                                   countries = NULL, # Set NULL to download all data
+  #                                   years = NULL,     # Set NULL to download all data
+  #                                   index_map = IndexMap,
+  #                                   rctypes = MatnameRCType,
+  #                                   conn = conn,
+  #                                   schema = DM,
+  #                                   fk_parent_tables = FKTables),
+  #   names = c("ReleaseExiobaseEftoElossMultipliers"),
+  #   names_wrap = c("ExiobaseEftoElossMultipliers")) |>
 
 
   # tar_hook_outer -------------------------------------------------------------

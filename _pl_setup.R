@@ -54,7 +54,7 @@ specify_non_energy_flows <- TRUE
 apply_fixes <- TRUE
 
 # Should we do a release?
-release <- TRUE
+release <- FALSE
 
 # For parallel processing.
 # Set worker_threads equal to or slightly less than
@@ -73,7 +73,7 @@ if (parallel::detectCores() == 10) {
 # For debugging in a single thread
 crew_controller <- NULL
 # For parallel processing
-# crew_controller <- crew::crew_controller_local(workers = worker_threads)
+crew_controller <- crew::crew_controller_local(workers = worker_threads)
 
 
 #
@@ -119,7 +119,8 @@ iea_dataset <- paste0("IEAEWEB", iea_year)
 # See https://www.postgresql.org/docs/current/libpq-pgpass.html
 # for details.
 conn_params <- list(dbname = version,
-                    user = "postgres",
+                    # user = "postgres",
+                    user = "mkh2",
                     host = "eviz.cs.calvin.edu",
                     port = 5432)
 
