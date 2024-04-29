@@ -301,7 +301,7 @@ list(
                               countries = AllocAndEffCountries),
     pattern = map(AllocAndEffCountries)),
 
-  ## CompletedAllocationTables
+  ## Product D: CompletedAllocationTables
   targets::tar_target(
     CompletedAllocationTables,
     assemble_fu_allocation_tables(incomplete_allocation_tables = IncompleteAllocationTables,
@@ -340,7 +340,7 @@ list(
     clpfu_setup_paths[["machine_data_folder"]],
     format = "file"),
 
-  ## AllMachineData
+  ## Product N: AllMachineData
   targets::tar_target(
     AllMachineData,
     read_all_eta_files(eta_fin_paths = get_eta_filepaths(MachineDataPath))),
@@ -357,7 +357,7 @@ list(
                                           dependencies = AllMachineData,
                                           conn = conn)),
 
-  ## CompletedEfficiencyTables
+  ## Product E: CompletedEfficiencyTables
   targets::tar_target(
     CompletedEfficiencyTables,
     assemble_eta_fu_tables(incomplete_eta_fu_tables = MachineData,
@@ -427,7 +427,7 @@ list(
                      countries = Countries),
     pattern = map(Countries)),
 
-  ## Phivecs
+  ## Product F: Phivecs
   targets::tar_target(
     Phivecs,
     sum_phi_vecs(phi_pf_vecs = Phipfvecs,
@@ -487,7 +487,8 @@ list(
                    countries = Countries),
     pattern = map(Countries)),
 
-  ## YfuUEIOUfudetails
+  ## Product O: YfuUEIOUfudetails
+  #  Also now contains former Product Agg-I: Y_fu_U_EIOU_fu_details_Re_all
   #  Exergy quantification of energy for details matrices
   targets::tar_target(
     YfuUEIOUfudetails,
@@ -680,8 +681,12 @@ list(
     pattern = map(Countries)),
 
 
-  ## PSUT
-  #  Includes both WithNEU and WithoutNEU versions
+  ## Product A: PSUT
+  #  (also now contains former
+  #   Product B: PSUT_USA,
+  #   Product M: PSUTWithoutNEU,
+  #   Product Agg-J: psut_Re_all, and
+  #   Product Agg-K: psut_without_neu_Re_all)
   targets::tar_target(
     PSUT,
     stack_psut(PSUTWithNEU,
@@ -761,7 +766,8 @@ list(
 
   # Chopped, despecified, and grouped aggregations -----------------------------
 
-  ## PSUTReAllChopAllDsAllGrAll
+  ## Product Agg-E: PSUTReAllChopAllDsAllGrAll
+  #  (Also now contains former Product Agg-F: PSUTWithoutNEUReAllChopAllDsAllGrAll)
   targets::tar_target(
     PSUTReAllChopAllDsAllGrAll,
     pr_in_agg_pipeline(PSUTReAll,
@@ -778,7 +784,7 @@ list(
 
   # Efficiencies ---------------------------------------------------------------
 
-  ## EtafuYEIOU
+  ## Product C: EtafuYEIOU
   targets::tar_target(
     EtafuYEIOU,
     calc_fu_Y_EIOU_efficiencies(C_mats = Cmats,
@@ -787,14 +793,17 @@ list(
                                 countries = Countries),
     pattern = map(Countries)),
 
-  ## Etai
+  ## Product G: Etai
+  #  (Also now contains former
+  #   Product Agg-L: eta_i_Re_all and
+  #   Product Agg-M: eta_i_without_neu_Re_all)
   targets::tar_target(
     Etai,
     calc_eta_i(.psut = PSUTReAll,
                countries = CountriesRegionsContinentsWorld),
     pattern = map(CountriesRegionsContinentsWorld)),
 
-  ## SectorAggEtaFU
+  ## Product Agg-A: SectorAggEtaFU
   #  Final demand sector aggregates and efficiencies
   targets::tar_target(
     SectorAggEtaFU,
@@ -803,7 +812,8 @@ list(
                                 countries = CountriesRegionsContinentsWorld),
     pattern = map(CountriesRegionsContinentsWorld)),
 
-  ## AggEtaPFU
+  ## Product Agg-C: AggEtaPFU
+  #  (Also now contains former Product Agg-G: AggEtaPFUWithoutNEU)
   #  PFU aggregates and efficiencies
   targets::tar_target(
     AggEtaPFU,
@@ -878,6 +888,7 @@ list(
                                      release = Release)),
 
   ## Product Agg-D: agg_eta_pfu_csv
+  #  (Now also contains former product Agg-H: agg_eta_pfu_without_neu_csv)
   targets::tar_target(
     ReleaseAggEtaPFU,
     PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
