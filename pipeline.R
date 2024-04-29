@@ -866,6 +866,24 @@ list(
                                      targ = ExiobaseEftoXuMultipliers,
                                      pin_name = "exiobase_Ef_to_Xu_multipliers",
                                      type = "csv",
+                                     release = Release)),
+
+  ## Product Agg-B: sector_agg_eta_fu_csv
+  targets::tar_target(
+    ReleaseSectorAggEtaFU,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = SectorAggEtaFU,
+                                     pin_name = "sector_agg_eta_fu_csv",
+                                     type = "csv",
+                                     release = Release)),
+
+  ## Product Agg-D: agg_eta_pfu_csv
+  targets::tar_target(
+    ReleaseAggEtaPFU,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = AggEtaPFU,
+                                     pin_name = "agg_eta_pfu_csv",
+                                     type = "csv",
                                      release = Release))
 
 
@@ -1017,19 +1035,19 @@ list(
                    "MachineData", "CompletedAllocationTables")) |>
 
 
-  # ## An inner hook for downloading data
-  # ## for all countries and all years
-  # tarchetypes::tar_hook_inner(
-  #   hook = download_dependency_hook(.x,
-  #                                   countries = NULL, # Set NULL to download all data
-  #                                   years = NULL,     # Set NULL to download all data
-  #                                   index_map = IndexMap,
-  #                                   rctypes = MatnameRCType,
-  #                                   conn = conn,
-  #                                   schema = DM,
-  #                                   fk_parent_tables = FKTables),
-  #   names = c("ReleaseExiobaseEftoElossMultipliers"),
-  #   names_wrap = c("ExiobaseEftoElossMultipliers")) |>
+  ## An inner hook for downloading data
+  ## for all countries and all years
+  tarchetypes::tar_hook_inner(
+    hook = download_dependency_hook(.x,
+                                    countries = NULL, # Set NULL to download all data
+                                    years = NULL,     # Set NULL to download all data
+                                    index_map = IndexMap,
+                                    rctypes = MatnameRCType,
+                                    conn = conn,
+                                    schema = DM,
+                                    fk_parent_tables = FKTables),
+    names = c("ReleaseSectorAggEtaFU", "ReleaseAggEtaPFU"),
+    names_wrap = c("SectorAggEtaFU", "AggEtaPFU")) |>
 
 
   # tar_hook_outer -------------------------------------------------------------
