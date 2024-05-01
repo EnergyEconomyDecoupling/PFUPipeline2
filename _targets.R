@@ -71,7 +71,6 @@ source("_pl_setup.R")
 
 
 # Load packages required to define the pipeline:
-library(PFUPipeline2)
 library(tarchetypes)
 library(targets)
 

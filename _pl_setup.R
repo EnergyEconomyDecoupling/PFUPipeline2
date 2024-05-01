@@ -118,10 +118,18 @@ iea_dataset <- paste0("IEAEWEB", iea_year)
 # Rather, store passwords in the .pgpass file.
 # See https://www.postgresql.org/docs/current/libpq-pgpass.html
 # for details.
+
+# For regular connections
+# conn_params <- list(dbname = version,
+#                     user = "mkh2",
+#                     host = "eviz.cs.calvin.edu",
+#                     port = 5432)
+
+# Use pgbouncer
 conn_params <- list(dbname = version,
-                    user = "mkh2",
+                    user = "dbcreator",
                     host = "eviz.cs.calvin.edu",
-                    port = 5432)
+                    port = 6432)
 
 # Calculate input data version from version
 # by trimming any alpha or beta information from the end of the version string.
