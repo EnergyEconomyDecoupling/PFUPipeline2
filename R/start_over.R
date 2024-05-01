@@ -26,6 +26,8 @@
 start_over <- function(drv = RPostgres::Postgres(),
                        dbname = "v2.0a1",
                        host = "eviz.cs.calvin.edu",
+                       # port = 5432,
+                       # user = "mkh2",
                        port = 6432,
                        user = "dbcreator",
                        conn = DBI::dbConnect(drv = drv,
