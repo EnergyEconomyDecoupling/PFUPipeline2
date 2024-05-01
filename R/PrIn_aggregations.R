@@ -100,13 +100,13 @@ rename_suffixed_psut_columns <- function(.psut_data,
 #'                          See `Recca::aggregate_cols`.
 #' @param R_aggregated_colname,U_aggregated_colname,V_aggregated_colname,Y_aggregated_colname,r_eiou_aggregated_colname,U_eiou_aggregated_colname,U_feed_aggregated_colname,S_units_aggregated_colname The names of output aggregated columns.
 #'                          Defaults are the matrix names with `aggregated_suffix` appended.
-#' @param product_aggregation,industry_aggregation,specified,despecified,grouped,product_sector See `PFUAggPipeline::aggregation_df_cols`.
+#' @param product_aggregation,industry_aggregation,specified,despecified,grouped,product_sector See `PFUPipelineTools::aggregation_df_cols`.
 #' @param chopped_mat,chopped_var Column names that indicate which matrix has been chopped, **R** or **Y**.
-#'                                Default values are from `PFUAggPipeline::aggregation_df_cols`.
+#'                                Default values are from `PFUPipelineTools::aggregation_df_cols`.
 #' @param Y_matname,R_matname Matrix names for the `chopped_mat` and `chopped_var` columns.
 #'                            Default values are from `Recca::psut_cols$R` and `Recca::psut_cols$Y`.
 #' @param none The string to specify no aggregations.
-#'             Default is `PFUAggPipeline::agg_metadata$none`.
+#'             Default is `PFUPipelineTools::agg_metadata$none`.
 #'
 #' @return A data frame of efficiencies for the original, despecified, and grouped versions
 #'         of `.psut_data`.
