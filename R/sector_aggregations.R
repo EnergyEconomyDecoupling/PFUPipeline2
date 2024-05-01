@@ -93,8 +93,6 @@ calculate_sector_agg_eta_fu <- function(.psut_data,
                                         useful = IEATools::all_stages$useful,
                                         eta_fu = Recca::efficiency_cols$eta_fu) {
 
-  browser()
-
   if (is.null(.psut_data)) {
     return(NULL)
   }

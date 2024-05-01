@@ -167,8 +167,6 @@ pr_in_agg_pipeline <- function(.psut_data,
                                product_sector = PFUPipelineTools::aggregation_df_cols$product_sector,
                                none = PFUPipelineTools::agg_metadata$none) {
 
-  browser()
-
   if (is.null(.psut_data)) {
     # Nothing to be done
     return(NULL)

@@ -16,8 +16,6 @@ perform_release <- function(pipeline_releases_folder,
                             pin_targs, pin_names, pin_types,
                             release = FALSE) {
 
-  browser()
-
   # Create a tibble from the pin arguments
   csv_info <- tibble::tibble(targ = pin_targs,
                              pin_name = pin_names,
