@@ -6,6 +6,13 @@ calc_db_coverage_stats <- function(completed_allcoation_tables,
                                    own_country = "Own country",
                                    exemplar = "Exemplar",
                                    continent = "Continent",
+                                   continents = c(PFUPipelineTools::all_countries$afri,
+                                                  PFUPipelineTools::all_countries$asia,
+                                                  PFUPipelineTools::all_countries$eurp,
+                                                  PFUPipelineTools::all_countries$mide,
+                                                  PFUPipelineTools::all_countries$namr,
+                                                  PFUPipelineTools::all_countries$ocen,
+                                                  PFUPipelineTools::all_countries$samr),
                                    wrld = PFUPipelineTools::all_countries$wrld,
                                    unknown = "Unknown") {
 
@@ -13,7 +20,7 @@ calc_db_coverage_stats <- function(completed_allcoation_tables,
     dplyr::mutate(
       "{c_source_category}" := dplyr::case_when(
         .data[[c_source]] == .data[[country]] ~ own_country,
-        .data[[c_source]] %in% c("AFRI", "ASIA", "EURP", "MIDE", "NAMR", "OCEN", "SAMR") ~ continent,
+        .data[[c_source]] %in% continents ~ continent,
         .data[[c_source]] == wrld ~ wrld,
         .data[[c_source]] %in% PFUPipelineTools::all_countries ~ exemplar,
         TRUE ~ unknown
