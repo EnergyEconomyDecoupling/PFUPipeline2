@@ -209,8 +209,9 @@ list(
   ## FAODataLocal
   targets::tar_target(
     FAODataLocal,
-    FAOSTAT::get_faostat_bulk(code = "QCL", # Live animals code
-                              data_folder = tempdir())),
+    # FAOSTAT::get_faostat_bulk(code = "QCL", # Live animals code
+    #                           data_folder = tempdir())),
+    load_fao_data(clpfu_setup_paths[["fao_data_path"]])),
 
   ## AMWPFUDataRaw
   targets::tar_target(
