@@ -11,11 +11,11 @@
 # countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN"
-countries <- "GHA"
+# countries <- "GHA"
 # countries <- "USA"
 # countries <- "WRLD"
 # countries <- c("GHA", "ZAF")
-# countries <- c("USA", "WRLD")
+countries <- c("USA", "WRLD")
 # countries <- c(PFUPipelineTools::canonical_countries[1:64], "WRLD") |> as.character()
 
 #
@@ -25,11 +25,11 @@ countries <- "GHA"
 
 # Set the years for IEA data analysis
 # years <- 1960:2020
-# years <- 1995:2020
+years <- 1995:2020
 # years <- 1995:1996
 # years <- 1971:1972
 # years <- 1971:1980
-years <- 1995
+# years <- 1995
 # years <- 1971
 
 # Set the years to provide exiobase coefficients
@@ -71,7 +71,7 @@ if (parallel::detectCores() == 10) {
 }
 
 # For debugging in a single thread
-crew_controller <- NULL
+# crew_controller <- NULL
 # For parallel processing
 crew_controller <- crew::crew_controller_local(workers = worker_threads)
 
@@ -150,7 +150,7 @@ clpfu_setup_paths <- list(
                               paste("IEA Extended Energy Balances", iea_year, "(TJ)")),
   base_iea_country_filename = "IEA Extended Energy Balances 2022 (TJ)",
   schema_path = file.path(input_data_path, "SchemaAndFKTables.xlsx"),
-  fao_data_path = file.path(input_data_path, "fao_qcl_data.rds"),
+  fao_data_path = file.path(input_data_path, "FAOSTAT", "fao_qcl_data.rds"),
   ilo_employment_data_path = file.path(input_data_path, "ilo_employment_data.rds"),
   ilo_working_hours_data_path = file.path(input_data_path, "ilo_working_hours_data.rds"),
   hmw_analysis_data_path = file.path(input_data_path, "hmw_analysis_data.xlsx"),
