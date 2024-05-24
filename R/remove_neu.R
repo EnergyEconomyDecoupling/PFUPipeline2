@@ -87,14 +87,30 @@ stack_psut <- function(.psut_with_neu,
                        includes_neu = Recca::psut_cols$includes_neu,
                        ieamw = PFUPipelineTools::ieamw_cols$ieamw) {
 
-  dplyr::bind_rows(.psut_with_neu |>
-                     dplyr::mutate(
-                       "{includes_neu}" := TRUE
-                     ),
-                   .psut_without_neu |>
-                     dplyr::mutate(
-                       "{includes_neu}" := FALSE
-                     )) |>
+  if (is.null(.psut_with_neu) & is.null(.psut_without_neu)) {
+    # Nothing to be done.
+    return(NULL)
+  }
+
+  if (is.null(.psut_with_neu)) {
+    out_psut_with_neu <- NULL
+  } else {
+    out_psut_with_neu <- .psut_with_neu |>
+      dplyr::mutate(
+        "{includes_neu}" := TRUE
+      )
+  }
+
+  if (is.null(.psut_without_neu)) {
+    out_psut_without_neu <- NULL
+  } else {
+    out_psut_without_neu <- .psut_without_neu |>
+      dplyr::mutate(
+        "{includes_neu}" := FALSE
+      )
+  }
+  # Return these data frame stacked atop one another.
+  dplyr::bind_rows(out_psut_with_neu, out_psut_without_neu) |>
     # Move to a reasonable position in the data frame
     dplyr::relocate(dplyr::all_of(includes_neu), .after = dplyr::all_of(ieamw))
 }

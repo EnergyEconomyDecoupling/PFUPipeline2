@@ -217,6 +217,8 @@ calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
                                    eta_fu_EIOU_E = "etafu_EIOU_E",
                                    eta = "eta") {
 
+  browser()
+
   # Filtering out non useful energy flows
   # So here we remove non-energy uses and losses
   list_useful_energy_flows <- full_list_exiobase_flows |>
@@ -224,9 +226,16 @@ calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
     dplyr::select(tidyselect::all_of(c(exiobase_flow, pfu_flow)))
 
   # Expanding the EIOU-wide efficiencies data frame to prepare the join
-  eta_fu_EIOU_wide_df <- eta_fu_Y_EIOU_agg |>
+  temp <- eta_fu_Y_EIOU_agg |>
     dplyr::filter(.data[[year]] %in% years_exiobase) |>
-    dplyr::filter(.data[[energy_type]] == energy_type_E) |>
+    dplyr::filter(.data[[energy_type]] == energy_type_E)
+
+  if (nrow(temp) == 0) {
+    # Nothing to do here!
+    return(NULL)
+  }
+
+  eta_fu_EIOU_wide_df <- temp |>
     # REPLACE THE TWO LINES COMMENTED OUT FOR FINAL VERSION.
     # dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou))) |>
     dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou_y))) |>
@@ -322,7 +331,12 @@ calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
 #' @return A data frame of the final energy to energy losses multipliers
 #'
 #' @export
-calc_Ef_to_Eloss_exiobase <- function(ExiobaseEftoEuMultipliers_df){
+calc_Ef_to_Eloss_exiobase <- function(ExiobaseEftoEuMultipliers_df) {
+
+  if (is.null(ExiobaseEftoEuMultipliers_df)) {
+    # Nothing to be done here!
+    return(NULL)
+  }
 
   Ef_to_Eloss_multipliers <- ExiobaseEftoEuMultipliers_df |>
     # Conditional if mutate to avoid putting 100% where efficiency is 0; which corresponds to a missing efficiency anyway.
@@ -387,8 +401,15 @@ calc_Ef_to_Xf_exiobase <- function(phi_vecs,
     dplyr::select(tidyselect::all_of(exiobase_flow))
 
   # Expanding to determine phi values for each Exiobase flow
-  phi_vals_df <- phi_vecs |>
-    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+  temp <- phi_vecs |>
+    dplyr::filter(.data[[year]] %in% years_exiobase)
+
+  if (nrow(temp) == 0) {
+    # Nothing to do here!
+    return(NULL)
+  }
+
+  temp |>
     tidyr::pivot_longer(cols = phi, names_to = matnames, values_to = matvals) |>
     matsindf::expand_to_tidy(rownames = product) |>
     dplyr::select(-tidyselect::any_of(c(matnames, colnames, rowtypes, coltypes))) |>
@@ -408,8 +429,6 @@ calc_Ef_to_Xf_exiobase <- function(phi_vecs,
     dplyr::filter(!is.na(.data[[iea_country_name]])) |>
     dplyr::relocate(dplyr::any_of(iea_country_name), .before = dplyr::all_of(year)) |>
     tidyr::pivot_wider(names_from = dplyr::all_of(year), values_from = dplyr::all_of(matvals))
-
-  return(phi_vals_df)
 }
 
 
@@ -420,7 +439,12 @@ calc_Ef_to_Xf_exiobase <- function(phi_vecs,
 #' @return A data frame of the final energy to exergy losses multipliers
 #'
 #' @export
-calc_Ef_to_Xloss_exiobase <- function(ExiobaseEftoXuMultipliers_df){
+calc_Ef_to_Xloss_exiobase <- function(ExiobaseEftoXuMultipliers_df) {
+
+  if (is.null(ExiobaseEftoXuMultipliers_df)) {
+    # Nothing to do here!
+    return(NULL)
+  }
 
   Ef_to_Xloss_multipliers <- ExiobaseEftoXuMultipliers_df |>
     # Conditional if mutate to avoid putting 100% where efficiency is 0; which corresponds to a missing efficiency anyway.
@@ -632,6 +656,8 @@ calc_Ef_to_Xu_exiobase <- function(EtafuYEIOU_mats,
                                    phi_eta_X = "phi_eta_X",
                                    eta = "eta") {
 
+  browser()
+
   # Filtering out non useful energy flows
   # So here we remove non-energy uses and losses
   list_useful_energy_flows <- full_list_exiobase_flows |>
@@ -639,15 +665,21 @@ calc_Ef_to_Xu_exiobase <- function(EtafuYEIOU_mats,
     dplyr::select(tidyselect::all_of(c(exiobase_flow, pfu_flow)))
 
   # Expanding the EIOU-wide efficiencies*phi values data frame to prepare the join
-  eta_times_phi_EIOU_wide_df <- eta_fu_phi_Y_EIOU_agg |>
-    dplyr::filter(.data[[year]] %in% years_exiobase) |>
-    # Thiw will need to be replaced
-    #dplyr::select(tidyselect::any_of(c(country, method, year, eta_phi_p_eiou))) |>
+  # eta_times_phi_EIOU_wide_df <- eta_fu_phi_Y_EIOU_agg |>
+  #   dplyr::filter(.data[[year]] %in% years_exiobase) |>
+  temp <- eta_fu_phi_Y_EIOU_agg |>
+    dplyr::filter(.data[[year]] %in% years_exiobase)
+
+  if (nrow(temp) == 0) {
+    # Nothing to do here!
+    return(NULL)
+  }
+
+  temp |>
     dplyr::select(tidyselect::any_of(c(country, method, year, eta_phi_p_eiou_y))) |>
-    #tidyr::pivot_longer(cols = tidyselect::any_of(eta_phi_p_eiou), values_to = matvals, names_to = matnames) |>
     tidyr::pivot_longer(cols = tidyselect::any_of(eta_phi_p_eiou_y), values_to = matvals, names_to = matnames) |>
     # This will need to go
-    dplyr::filter(! is.null(.data[[matvals]])) |>
+    # dplyr::filter(! is.null(.data[[matvals]])) |>
     matsindf::expand_to_tidy() |>
     dplyr::rename(
       "{product}" := dplyr::all_of(rownames),

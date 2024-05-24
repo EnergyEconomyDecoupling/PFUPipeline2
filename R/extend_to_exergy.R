@@ -132,6 +132,11 @@ extend_details_matrices_to_exergy <- function(fu_details_mats,
                                               country_colname = IEATools::iea_cols$country,
                                               year_colname = IEATools::iea_cols$year) {
 
+  if (is.null(fu_details_mats)) {
+    # Nothing to be done.
+    return(NULL)
+  }
+
   fu_details_mats |>
     # Add a column of phi vectors
     dplyr::left_join(phi_vecs, by = c(country_colname, year_colname)) |>

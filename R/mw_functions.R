@@ -278,7 +278,7 @@ filter_mw_to_iea_years <- function(.psut_mw,
                                    energy_type = IEATools::iea_cols$energy_type,
                                    last_stage = IEATools::iea_cols$last_stage) {
 
-  if (is.null(.psut_mw)) {
+  if (is.null(.psut_mw) | is.null(.psut_iea)) {
     # Nothing to be done.
     return(NULL)
   }

@@ -45,6 +45,11 @@ region_pipeline <- function(.psut_data,
                             continent = "Continent",
                             world = "World") {
 
+  if (is.null(.psut_data)) {
+    # Nothing to be done.
+    return(NULL)
+  }
+
   # The region_aggregation_map is not assumed to have unique
   # entries in the Many column for each Few entry.
   # So cycle through each Few entry.

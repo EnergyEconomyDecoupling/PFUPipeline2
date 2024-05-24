@@ -281,6 +281,11 @@ calc_agg_eta_pfu <- function(.psut_df,
                              fd_sectors,
                              countries) {
 
+  if (is.null(.psut_df)) {
+    # Nothing to do
+    return(NULL)
+  }
+
   .psut_df |>
     Recca::calc_agg_eta_pfus(p_industries = p_industries,
                              fd_sectors = fd_sectors)
