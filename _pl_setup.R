@@ -13,6 +13,7 @@
 # countries <- "BEN"
 # countries <- "GHA"
 # countries <- "USA"
+# countries <- "CMR"
 # countries <- "WRLD"
 # countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
@@ -25,8 +26,8 @@ countries <- c(PFUPipelineTools::canonical_countries[1:100], "WRLD") |> as.chara
 
 # Set the years for IEA data analysis
 # years <- 1960
-years <- 1960:1980
-# years <- 1960:2020
+# years <- 1960:1980
+years <- 1960:2020
 # years <- 1995:2020
 # years <- 1995:1996
 # years <- 1971:1972
