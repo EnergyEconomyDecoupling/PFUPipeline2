@@ -168,8 +168,6 @@ calc_C_mats_agg <- function(C_mats,
                                                            Alloc_mat_EIOU_Y)
     )
 
-  browser()
-
   # Clean out unneeded columns and return
   out |>
     dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU_agg, C_Y_agg, C_EIOU_Y_agg)))
