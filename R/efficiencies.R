@@ -2,7 +2,6 @@
 #'
 #' @param C_mats A data frame containing the C matrices.
 #' @param psut_iea A data frame containing IEA data at the final stage, in energy terms, in a PSUT format.
-#' @param countries The countries for which this calculation should be done.
 #' @param C_EIOU The name of the column containing the C_EIOU matrix in the input data frame.
 #' @param C_Y The name of the column containing the C_Y matrix in the input data frame.
 #' @param Y The name of the column containing the Y matrix in the input data frame.
@@ -17,7 +16,6 @@
 #' @export
 calc_C_mats_agg <- function(C_mats,
                             psut_iea,
-                            countries,
                             C_EIOU = "C_EIOU",
                             C_Y = "C_Y",
                             Y = "Y",
@@ -170,6 +168,8 @@ calc_C_mats_agg <- function(C_mats,
                                                            Alloc_mat_EIOU_Y)
     )
 
+  browser()
+
   # Clean out unneeded columns and return
   out |>
     dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU_agg, C_Y_agg, C_EIOU_Y_agg)))
@@ -189,7 +189,6 @@ calc_C_mats_agg <- function(C_mats,
 #' @param C_mats A data frame containing allocation matrices.
 #' @param eta_m_vecs A data frame containing vectors of machine efficiencies, probably the Etafuvecs target.
 #' @param phi_vecs A data frame containing vectors of exergy-to-energy ratios, probably the Phivecs target.
-#' @param countries The countries for which this analysis should be performed.
 #' @param country,last_stage,energy_type,method,year See `IEATools::iea_cols`.
 #'
 #' @return A data frame of final-to-useful efficiencies by energy sector and energy carrier.
@@ -198,7 +197,6 @@ calc_C_mats_agg <- function(C_mats,
 calc_fu_Y_EIOU_efficiencies <- function(C_mats,
                                         eta_m_vecs,
                                         phi_vecs,
-                                        countries,
                                         country = IEATools::iea_cols$country,
                                         last_stage = IEATools::iea_cols$last_stage,
                                         energy_type = IEATools::iea_cols$energy_type,
@@ -226,14 +224,12 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
 #' deleting some columns.
 #'
 #' @param .psut A data frame of PSUT matrices.
-#' @param countries The countries for which this analysis should be conducted.
 #' @param R_col,U_col,U_feed_col,U_eiou_col,r_eiou_col,V_col,Y_col,S_units_col See [Recca::psut_cols].
 #'
 #' @return A data frame with machine efficiencies.
 #'
 #' @export
 calc_eta_i <- function(.psut,
-                       countries,
                        R_col = Recca::psut_cols$R,
                        U_col = Recca::psut_cols$U,
                        U_feed_col = Recca::psut_cols$U_feed,
@@ -271,15 +267,13 @@ calc_eta_i <- function(.psut,
 #' @param .psut_df The data frame for which efficiencies should be calculated.
 #' @param p_industries Primary industries.
 #' @param fd_sectors Final demand sectors.
-#' @param countries The countries for this analysis.
 #'
 #' @return A data frame of aggregations and efficiencies.
 #'
 #' @export
 calc_agg_eta_pfu <- function(.psut_df,
                              p_industries,
-                             fd_sectors,
-                             countries) {
+                             fd_sectors) {
 
   if (is.null(.psut_df)) {
     # Nothing to do
