@@ -217,8 +217,6 @@ calc_Ef_to_Eu_exiobase <- function(eta_fu_Y_EIOU_mats,
                                    eta_fu_EIOU_E = "etafu_EIOU_E",
                                    eta = "eta") {
 
-  browser()
-
   # Filtering out non useful energy flows
   # So here we remove non-energy uses and losses
   list_useful_energy_flows <- full_list_exiobase_flows |>
@@ -655,8 +653,6 @@ calc_Ef_to_Xu_exiobase <- function(EtafuYEIOU_mats,
                                    eta_phi_p_eiou_y = "eta_phi_p_eiou_y",
                                    phi_eta_X = "phi_eta_X",
                                    eta = "eta") {
-
-  browser()
 
   # Filtering out non useful energy flows
   # So here we remove non-energy uses and losses
