@@ -671,7 +671,7 @@ calc_Ef_to_Xu_exiobase <- function(EtafuYEIOU_mats,
     return(NULL)
   }
 
-  temp |>
+  eta_times_phi_EIOU_wide_df <- temp |>
     dplyr::select(tidyselect::any_of(c(country, method, year, eta_phi_p_eiou_y))) |>
     tidyr::pivot_longer(cols = tidyselect::any_of(eta_phi_p_eiou_y), values_to = matvals, names_to = matnames) |>
     # This will need to go
