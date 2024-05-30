@@ -24,7 +24,7 @@
 #'
 #' @export
 start_over <- function(drv = RPostgres::Postgres(),
-                       dbname = "v2.0a2",
+                       dbname = "v2.0a3",
                        host = "eviz.cs.calvin.edu",
                        # port = 5432,
                        # user = "mkh2",

@@ -88,7 +88,7 @@ crew_controller <- crew::crew_controller_local(workers = worker_threads)
 # This should be a string of the form
 # v2.0a1, v3.0, v4.5b2
 # to indicate major version, minor version, and alpha/beta state.
-version <- "v2.0a2"
+version <- "v2.0a3"
 clpfu_dataset <- paste0("CLPFU", version)
 
 
