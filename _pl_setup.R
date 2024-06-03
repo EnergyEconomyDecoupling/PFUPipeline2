@@ -25,9 +25,9 @@ countries <- c(PFUPipelineTools::canonical_countries[101:157], "WRLD") |> as.cha
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-years <- 1960
+# years <- 1960
 # years <- 1960:1980
-# years <- 1960:2020
+years <- 1960:2020
 # years <- 1995:2020
 # years <- 1995:1996
 # years <- 1971:1972
