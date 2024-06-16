@@ -20,8 +20,6 @@
 #' @export
 set_dm_fk_tables <- function(schema_file_path, conn) {
 
-  browser()
-
   # Read the schema table
   schema_table <- PFUPipelineTools::load_schema_table(schema_path = schema_file_path)
   # Read the simple foreign key tables
@@ -35,4 +33,34 @@ set_dm_fk_tables <- function(schema_file_path, conn) {
                                                        drop_db_tables = TRUE)
   return(list(dm = this_data_model,
               fk_tables = fk_tables))
+}
+
+
+#' Create the index map for row and column names
+#'
+#' The tables given by `*_table_name`
+#' are combined into an appropriate list for the pipeline.
+#'
+#' @param index_table_name Name of the Index row/col table in the database.
+#'                         Default is "Index".
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
+#'
+#' @return A named list appropriate to be an
+#'         index map for this database.
+#' @export
+create_index_map <- function(index_table_name = "Index",
+                             conn,
+                             schema = PFUPipelineTools::schema_from_conn(conn),
+                             fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)) {
+
+  index_table <- index_table_name |>
+    PFUPipelineTools::pl_filter_collect(collect = TRUE,
+                                        conn = conn,
+                                        schema = schema,
+                                        fk_parent_tables = fk_parent_tables)
 }

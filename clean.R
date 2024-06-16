@@ -5,7 +5,7 @@
 
 conn <- DBI::dbConnect(RPostgres::Postgres(),
                        dbname = "v1.4a1",
-                       user = "postgres",
+                       user = "mkh2",
                        host = "eviz.cs.calvin.edu",
                        port = 5432)
 on.exit(DBI::dbDisconnect(conn))

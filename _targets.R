@@ -5,64 +5,6 @@
 # targets::tar_make(callr_function = NULL) to debug.
 
 
-
-# # User-adjustable parameters ---------------------------------------------------
-#
-# # countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
-# countries <- c("USA", "WRLD")
-# # countries <- c('AGO', 'ALB', 'ARE', 'ARG', 'ARM', 'AUS', 'AUT', 'AZE', 'BEL', 'BEN',
-# #                'BGD', 'BGR', 'BHR', 'BIH', 'BLR', 'BOL', 'BRA', 'BRN', 'BWA', 'CAN',
-# #                'CHE', 'CHL', 'CHNM', 'CMR', 'COD', 'COG', 'COL', 'CIV', 'CRI', 'CUB',
-# #                'CUW', 'CYP', 'CZE', 'DEU', 'DNK', 'DOM', 'DZA', 'ECU', 'EGY', 'ERI',
-# #                'ESP', 'EST', 'ETH', 'FIN', 'FRA', 'GAB', 'GBR', 'GEO', 'GHA', 'GIB',
-# #                'GNQ', 'GRC', 'GTM', 'GUY', 'HKG', 'HND', 'HRV', 'HTI', 'HUN', 'IDN',
-# #                'IND', 'IRL', 'IRN', 'IRQ', 'ISL', 'ISR', 'ITA', 'JAM', 'JOR', 'JPN',
-# #                'KAZ', 'KEN', 'KGZ', 'KHM', 'KOR', 'KWT', 'LAO', 'LBN', 'LBY', 'LKA',
-# #                'LTU', 'LUX', 'LVA', 'MAR', 'MDA', 'MDG', 'MEX', 'MKD', 'MLT', 'MMR',
-# #                'MNE', 'MNG', 'MOZ', 'MUS', 'MYS', 'NAM', 'NER', 'NGA', 'NIC', 'NLD',
-# #                'NOR', 'NPL', 'NZL', 'OAFR', 'OAMR', 'OASI', 'OMN', 'PAK', 'PAN', 'PER',
-# #                'PHL', 'POL', 'PRK', 'PRT', 'PRY', 'QAT', 'ROU', 'RUS', 'RWA', 'SAU',
-# #                'SDN', 'SEN', 'SGP', 'SLV', 'SRB', 'SSD', 'SUN', 'SUR', 'SVK', 'SVN',
-# #                'SWE', 'SWZ', 'SYR', 'TGO', 'THA', 'TJK', 'TKM', 'TTO', 'TUN', 'TUR',
-# #                'TWN', 'TZA', 'UGA', 'UKR', 'URY', 'USA', 'UZB', 'VEN', 'VNM', 'WABK',
-# #                'WMBK', 'XKX', 'YEM', 'YUG', 'ZAF', 'ZMB', 'ZWE', 'AFRI', 'ASIA', 'BUNK',
-# #                'EURP', 'MIDE', 'NAMR', 'OCEN', 'SAMR', 'WRLD', 'FoSUN', 'FoYUG', 'FoCZK', 'UnDEU',
-# #                'Africa', 'Asia_', 'Europe', 'MidEast', 'NoAmr', 'Oceania', 'SoCeAmr')
-#
-# # Set the years for IEA data analysis
-# years <- 1960:2020
-#
-# # Set the years to provide exiobase coefficients
-# years_exiobase <- 1995:2020
-#
-# # Tell whether to do chops
-# do_chops <- FALSE
-#
-# # Should we specify non-energy flows?
-# specify_non_energy_flows <- TRUE
-#
-# # Should we apply fixes to the IEA data?
-# apply_fixes <- TRUE
-#
-#
-# # Set versions
-# iea_dataset <- "IEAEWEB2022"
-# input_data_version <- "v2.0"
-# output_version <- "v2.0a1"
-#
-# worker_threads <- 8 # For parallel processing
-# # worker_threads <- 16 # For parallel processing
-#
-# conn_params <- list(dbname = output_version,
-#                     user = "postgres",
-#                     host = "eviz.cs.calvin.edu",
-#                     port = 5432)
-
-
-# Copy the file local_setup_template.R to local_setup.R.
-# Edit user-adjustable parameters in the file local_setup.R
-
-
 # Get local machine setup information ------------------------------------------
 # Duplicate file _pl_setup_template.R and
 # rename as _pl_setup.R.
@@ -71,7 +13,6 @@ source("_pl_setup.R")
 
 
 # Load packages required to define the pipeline:
-library(PFUPipeline2)
 library(tarchetypes)
 library(targets)
 
@@ -101,8 +42,6 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
   # Add WRLD to additional_exemplar_countries
   additional_exemplar_countries <- c("WRLD", additional_exemplar_countries)
 }
-
-
 
 
 # Set target options -----------------------------------------------------------

@@ -14,27 +14,16 @@
 #' This behavior can be modified by setting argument `generate_missing_fu_allocation_template` to `FALSE`.
 #'
 #' @param fu_analysis_folder The folder from which final-to-useful analyses will be loaded.
-#' @param specified_iea_data A data frame of specified IEA data for `countries`.
+#' @param specified_iea_data A ticket to recover a data frame of specified IEA data for `countries`.
 #' @param countries The countries for which allocation tables should be loaded.
 #' @param file_suffix The suffix for the FU analysis files. Default is "`r IEATools::fu_analysis_file_info$fu_analysis_file_suffix`".
 #' @param use_subfolders Tells whether to look for files in subfolders named by `countries`. Default is `TRUE`.
 #' @param generate_missing_fu_allocation_template Tells whether to generate a missing final-to-useful allocation template from `specified_iea_data`. Default is `TRUE`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
-#' @param fu_allocations_tab_name The name of the tab for final-to-useful allocations in the Excel file containing final-to-useful allocation data. Default is "`r IEATools::fu_analysis_file_info$fu_allocation_tab_name`".
-#' @param country The string name of the country column.
-#'                Default is `IEATools::iea_cols$country`.
-#' @param table_name_colname The name of a column in `specified_iea_data` that gives
-#'                           the table in the database in which specified IEA data are to be found.
-#'                           Default is `PFUPipelineTools::hashed_table_colnames$db_table_name`.
 #'
 #' @export
 #'
-#' @return A data frame of tidy FU Allocation tables read by `IEATools::load_fu_allocation_data()`.
+#' @return A ticket to recover a
+#'         data frame of tidy FU Allocation tables read by `IEATools::load_fu_allocation_data()`.
 #'         If no FU Allocation data are found and `generate_missing_fu_allocation_template` is `TRUE`,
 #'         an empty template written to disk and the empty template is returned.
 #'         If no FU Allocation data are found and `generate_missing_fu_allocation_template` is `FALSE`,
@@ -45,15 +34,10 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
                                       file_suffix = IEATools::fu_analysis_file_info$fu_analysis_file_suffix,
                                       use_subfolders = TRUE,
                                       generate_missing_fu_allocation_template = TRUE,
-                                      version = clpfu_dataset,
-                                      dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
-                                      conn,
-                                      schema = schema_from_conn(conn = conn),
-                                      fk_parent_tables = get_all_fk_tables(conn = conn, schema = schema),
-                                      fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name,
-                                      country_colname = IEATools::iea_cols$country,
-                                      table_name_colname = PFUPipelineTools::hashed_table_colnames$db_table_name) {
+                                      fu_allocations_tab_name = IEATools::fu_analysis_file_info$fu_allocation_tab_name) {
+
   out <- lapply(countries, FUN = function(coun) {
+
     folder <- ifelse(use_subfolders, file.path(fu_analysis_folder, coun), fu_analysis_folder)
     fpath <- file.path(folder, paste0(coun, file_suffix))
     fexists <- file.exists(fpath)
@@ -62,17 +46,19 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
     }
     if (!fexists & generate_missing_fu_allocation_template) {
       # Create and write the template
-      iea_data <- specified_iea_data |>
-        dplyr::filter(.data[[IEATools::iea_cols$country]] == coun)
+      # If there is no iea_data for coun, simply return NULL.
+      if (is.null(specified_iea_data)) {
+        return(NULL)
+      }
       # Writing the allocation table is pointless if we don't have any IEA
       # data for that country.
       # So only write a template file if we have a non-zero number
       # of rows in the IEA data.
-      if (nrow(iea_data) > 0) {
+      if (nrow(specified_iea_data) > 0) {
         # Make sure we have the folder we need
         dir.create(folder, showWarnings = FALSE)
         # Now write the template
-        IEATools::fu_allocation_template(iea_data) |>
+        IEATools::fu_allocation_template(specified_iea_data) |>
           IEATools::write_fu_allocation_template(fpath)
       }
     }
@@ -88,12 +74,8 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
   if (nrow(out) == 0) {
     return(NULL)
   }
-  out <- IEATools::tidy_fu_allocation_table(out) |>
-    dplyr::mutate(
-      "{dataset_colname}" := version
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname))
-  return(out)
+  out |>
+    IEATools::tidy_fu_allocation_table()
 }
 
 
@@ -107,21 +89,23 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 #' Information from exemplar countries is used to complete incomplete final-to-useful efficiency tables.
 #' See examples for how to construct `exemplar_lists`.
 #'
+#' @param incomplete_allocation_tables
 #' @param exemplar_lists A data frame containing `country` and `year` columns along with a column of ordered vectors of strings
 #'                       telling which countries should be considered exemplars for the country and year of this row.
 #' @param specified_iea_data Specified IEA data.
-#' @param version The version of the database being created.
 #' @param countries A vector of countries for which completed final-to-useful allocation tables are to be assembled.
 #' @param years The years for which analysis is desired.
-#' @param dataset See `PFUPipelineTools::dataset_info`.
-#' @param incomplete_allocation_tables
-#' @param country
-#' @param year
-#' @param exemplars
-#' @param exemplar_tables
-#' @param iea_data
-#' @param incomplete_alloc_tables
-#' @param complete_alloc_tables
+#' @param dataset The name of the dataset to which these data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
+#' @param country,year See `IEATools::iea_cols`.
+#' @param exemplars,exemplar_tables,iea_data,incomplete_alloc_tables,complete_alloc_tables See `IEATools::exemplar_names`.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A tidy data frame containing completed final-to-useful allocation tables.
 #'
@@ -164,9 +148,13 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
 assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           exemplar_lists,
                                           specified_iea_data,
-                                          dataset,
                                           countries,
                                           years,
+                                          dataset,
+                                          db_table_name,
+                                          conn,
+                                          schema = PFUPipelineTools::schema_from_conn(conn),
+                                          fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                                           country = IEATools::iea_cols$country,
                                           year = IEATools::iea_cols$year,
                                           exemplars = PFUPipelineTools::exemplar_names$exemplars,
@@ -176,20 +164,45 @@ assemble_fu_allocation_tables <- function(incomplete_allocation_tables,
                                           complete_alloc_tables = PFUPipelineTools::exemplar_names$complete_alloc_table,
                                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
-  # The incomplete tables are easier to deal with when they are tidy.
-  tidy_incomplete_allocation_tables <- IEATools::tidy_fu_allocation_table(incomplete_allocation_tables) |>
-    dplyr::filter(.data[[year]] %in% years) |>
+  if (is.null(specified_iea_data)) {
+    # No reason to assemble allocation data,
+    # because there is no IEA data to be allocated.
+    return(NULL)
+  }
+
+  tidy_incomplete_allocation_tables <- incomplete_allocation_tables
+  if (is.null(tidy_incomplete_allocation_tables)) {
+    incomplete_allocation_tables_name <-
+      incomplete_allocation_tables[[PFUPipelineTools::hashed_table_colnames$db_table_name]] |>
+      unique()
+    # Get a zero-row version of the table
+    tidy_incomplete_allocation_tables <- schema |>
+      dm::dm_get_tables() |>
+      magrittr::extract2(incomplete_allocation_tables_name) |>
+      # Empty out the rows
+      dplyr::filter(FALSE) |>
+      # This decode step is necessary,
+      # despite the data frame being empty of rows,
+      # to convert data types in the columns.
+      PFUPipelineTools::decode_fks(db_table_name = incomplete_allocation_tables_name,
+                                   conn = conn,
+                                   schema = schema,
+                                   fk_parent_tables = fk_parent_tables)
+  }
+  tidy_incomplete_allocation_tables <- tidy_incomplete_allocation_tables |>
     dplyr::mutate(
       # Eliminate the dataset column for now.
       "{dataset_colname}" := NULL
     ) |>
     PFUPipelineTools::tar_ungroup()
+
   specified_iea_data <- specified_iea_data |>
     dplyr::mutate(
       # Eliminate the dataset column, because it conflicts with the dataset name for the
       # incomplete_allocation_tables.
       "{dataset_colname}" := NULL
-    )
+    ) |>
+    PFUPipelineTools::tar_ungroup()
 
   completed_tables_by_year <- lapply(countries, FUN = function(coun) {
     coun_exemplar_strings <- exemplar_lists |>
@@ -272,41 +285,54 @@ get_one_exemplar_table_list <- function(tidy_incomplete_tables,
 
 #' Add allocation matrices to a data frame
 #'
-#' This function adds allocation matrices (`C_Y` and `C_EIOU`) to the previously-created
+#' This function adds allocation matrices (**C_Y** and **C_EIOU**) to the previously-created
 #' `CompletedAllocationTables` target.
 #'
-#' @param completed_allocation_tables The completed allocation tables from which allocation (`C`) matrices should be created.
+#' @param completed_allocation_tables The completed allocation tables from which allocation (**C**) matrices should be created.
 #'                                    This data frame is most likely to be the `CompletedAllocationTables` target.
-#' @param countries The countries for which `C` matrices should be formed.
+#' @param countries The countries for which **C** matrices should be formed.
+#' @param index_map The index map for the matrices, used for uploading to the database.
 #' @param matrix_class The type of matrix that should be produced.
 #'                     One of "matrix" (the default and not sparse) or "Matrix" (which may be sparse).
+#' @param dataset The name of the dataset to which these data belong.
+#' @param db_table_name The name of the specified IEA data table in `conn`.
+#' @param conn The database connection.
+#' @param schema The data model (`dm` object) for the database in `conn`.
+#'               See details.
+#' @param fk_parent_tables A named list of all parent tables
+#'                         for the foreign keys in `db_table_name`.
+#'                         See details.
 #' @param country,year See `IEATools::iea_cols`.
 #' @param c_source,.values,C_Y,C_EIOU See `IEATools::template_cols`.
+#' @param industry_type,product_type See `IEATools::row_col_types`.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A data frame with `C_Y` and `C_EIOU` columns containing allocation matrices.
 #'
 #' @export
 calc_C_mats <- function(completed_allocation_tables,
                         countries,
-                        matrix_class = c("matrix", "Matrix"),
-                        country = IEATools::iea_cols$country,
-                        year = IEATools::iea_cols$year,
+                        matrix_class = "Matrix",
                         c_source = IEATools::template_cols$c_source,
                         .values = IEATools::template_cols$.values,
                         C_Y = IEATools::template_cols$C_Y,
                         C_EIOU  = IEATools::template_cols$C_eiou) {
-  matrix_class <- match.arg(matrix_class)
-  tables <- completed_allocation_tables %>%
-    dplyr::filter(.data[[country]] %in% countries) %>%
+
+  if (is.null(completed_allocation_tables)) {
+    # No reason to calculate allocation matrices.
+    return(NULL)
+  }
+
+  completed_allocation_tables |>
     dplyr::mutate(
       # Eliminate the c_source column (if it exists) before sending
       # the completed_allocation_tables into form_C_mats().
       # The c_source column applies to individual C values, and we're making matrices out of them.
       # In other words, form_C_mats() doesn't know what to do with that column.
       "{c_source}" := NULL
-    )
-  # Need to form C matrices from completed_allocation_tables.
-  # Use the IEATools::form_C_mats() function for this task.
-  # The function accepts a tidy data frame in addition to wide-by-year data frames.
-  IEATools::form_C_mats(tables, matvals = .values, matrix_class = matrix_class)
+    ) |>
+    # Need to form C matrices from completed_allocation_tables.
+    # Use the IEATools::form_C_mats() function for this task.
+    # The function accepts a tidy data frame in addition to wide-by-year data frames.
+    IEATools::form_C_mats(matvals = .values, matrix_class = matrix_class)
 }

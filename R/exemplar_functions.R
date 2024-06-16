@@ -139,9 +139,12 @@ exemplar_lists <- function(exemplar_table,
     unique() %>%
     # Eliminate the current name of the country from its list of previous names.
     dplyr::filter(.data[[country]] != .data[[prev_names]]) |>
+    # Ungroup before summarising to eliminate a warning
+    dplyr::ungroup() |>
     # Build a list column containing all previous names for the given country.
     dplyr::summarise(
-      "{prev_names_list}" := list(.data[[prev_names]] |> rev())
+      "{prev_names_list}" := list(.data[[prev_names]] |> rev()),
+      .by = dplyr::all_of(c(country, year))
     )
 
   out <- exemplar_table %>%

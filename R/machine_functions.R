@@ -65,12 +65,9 @@ get_eta_filepaths <- function(filepath,
 #' @param eta_fin_paths A list of the file paths to machine excel files containing
 #'                      FIN_ETA front sheets, and therefore usable data.
 #'                      Created by calling the `get_eta_filepaths()` function.
-#' @param version A string containing the version of the database you are creating.
 #' @param efficiency_tab_name See `PFUPipelineTools::machine_constants`.
 #' @param year See `IEATools::iea_cols`.
 #' @param .values See `IEATools::template_cols`.
-#' @param dataset_colname The name of the dataset column in the output file.
-#'                        Default is `PFUPipelineTools::dataset_info$dataset_colname`.
 #' @param hidden_excel_file_prefix The prefix for hidden Excel files.
 #'                                 These files appear when an Excel file is open
 #'                                 and should be ignored.
@@ -78,23 +75,14 @@ get_eta_filepaths <- function(filepath,
 #'
 #' @return A data frame containing all Eta.fu and Phi.u values present
 #'         in all Machine excel files, with the following column names:
-#'         "Country", "Energy.type", "Last.stage", "Method", "Machine",
-#'         "Eu.product", "Quantity", "Year", "Value".
+#'         "Country", "EnergyType", "LastStage", "Method", "Machine",
+#'         "Euproduct", "Quantity", "Year", "Value".
 #'
 #' @export
 read_all_eta_files <- function(eta_fin_paths,
-                               dataset,
                                efficiency_tab_name = PFUPipelineTools::machine_constants$efficiency_tab_name,
-                               country = IEATools::iea_cols$country,
-                               energy_type = IEATools::iea_cols$energy_type,
-                               last_stage = IEATools::iea_cols$last_stage,
-                               method = IEATools::iea_cols$method,
-                               machine = IEATools::template_cols$machine,
-                               eu_product = IEATools::template_cols$eu_product,
-                               quantity = IEATools::template_cols$quantity,
                                year = IEATools::iea_cols$year,
                                .values = IEATools::template_cols$.values,
-                               dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                hidden_excel_file_prefix = "~$") {
 
   # Check if eta_fin_paths is a directory. If so, call get_eta_filepaths() before loading the files.
@@ -127,24 +115,10 @@ read_all_eta_files <- function(eta_fin_paths,
     raw_etas <- raw_etas %>%
       tidyr::pivot_longer(cols = dplyr::all_of(year_columns),
                           names_to = year,
-                          values_to = .values) |>
-      dplyr::mutate(
-        # Add the dataset column
-        "{dataset_colname}" := dataset
-      ) |>
-      # Move it to the left
-      dplyr::relocate(dplyr::all_of(dataset_colname))
+                          values_to = .values)
 
-    # Sets column classes
-    raw_etas[[country]] <- as.character(raw_etas[[country]])
-    raw_etas[[energy_type]] <- as.character(raw_etas[[energy_type]])
-    raw_etas[[last_stage]] <- as.character(raw_etas[[last_stage]])
-    raw_etas[[method]] <- as.character(raw_etas[[method]])
-    raw_etas[[machine]] <- as.character(raw_etas[[machine]])
-    raw_etas[[eu_product]] <- as.character(raw_etas[[eu_product]])
-    raw_etas[[quantity]] <- as.character(raw_etas[[quantity]])
+    # Sets column type
     raw_etas[[year]] <- as.numeric(raw_etas[[year]])
-    raw_etas[[.values]] <- as.numeric(raw_etas[[.values]])
 
     # Binds values from individual excel FIN_ETA sheet into etas tibble.
     etas <- etas %>%
@@ -184,7 +158,6 @@ read_all_eta_files <- function(eta_fin_paths,
 #'                       telling which countries should be considered exemplars for the country and year of this row.
 #' @param completed_fu_allocation_tables A data frame containing completed final-to-useful allocation data,
 #'                                       typically the result of calling `assemble_fu_allocation_tables`.
-#' @param version The version of the database being created.
 #' @param countries A vector of countries for which completed final-to-useful allocation tables are to be assembled.
 #' @param years The years for which analysis is desired. Default is `NULL`, meaning analyze all years.
 #' @param which_quantity A vector of quantities to be completed in the eta_FU table.
@@ -193,7 +166,6 @@ read_all_eta_files <- function(eta_fin_paths,
 #' @param country,method,energy_type,last_stage,year,unit,e_dot See `IEATools::iea_cols`.
 #' @param machine,eu_product,eta_fu,phi_u,c_source,eta_fu_source,e_dot_machine,e_dot_machine_perc,quantity,maximum_values,e_dot_perc,.values See `IEATools::template_cols`.
 #' @param exemplars,exemplar_tables,alloc_data,incomplete_eta_tables,complete_eta_tables See `PFUPipelineTools::exemplar_names`.
-#' @param dataset See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A tidy data frame containing completed final-to-useful efficiency tables.
 #'
@@ -226,7 +198,6 @@ read_all_eta_files <- function(eta_fin_paths,
 assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
                                    exemplar_lists,
                                    completed_fu_allocation_tables,
-                                   dataset,
                                    countries,
                                    years = NULL,
                                    which_quantity = c(IEATools::template_cols$eta_fu),
@@ -256,42 +227,22 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
                                    incomplete_eta_tables = PFUPipelineTools::exemplar_names$incomplete_eta_table,
                                    complete_eta_tables = PFUPipelineTools::exemplar_names$complete_eta_table,
 
-                                   .values = IEATools::template_cols$.values,
-                                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                                   .values = IEATools::template_cols$.values) {
+
+  if (is.null(completed_fu_allocation_tables)) {
+    # No need to assemble eta_fu tables,
+    # because there is no allocation for which efficiency must be calculated.
+    return(NULL)
+  }
 
   which_quantity <- match.arg(which_quantity, several.ok = FALSE)
 
-  # The FU allocation tables and the incomplete efficiency tables are easier to deal with when they are tidy.
-  tidy_incomplete_eta_fu_tables <- IEATools::tidy_eta_fu_table(incomplete_eta_fu_tables,
-                                                               year = year,
-                                                               e_dot_machine = e_dot_machine,
-                                                               e_dot_machine_perc = e_dot_machine_perc,
-                                                               quantity = quantity,
-                                                               maximum_values = maximum_values,
-                                                               .values = .values) |>
-    dplyr::filter(.data[[year]] %in% years) |>
-    dplyr::mutate(
-      # Eliminate the dataset column for now.
-      "{dataset_colname}" := NULL
-    ) |>
-    PFUPipelineTools::tar_ungroup()
+  tidy_incomplete_eta_fu_tables <- incomplete_eta_fu_tables
 
-  tidy_allocation_tables <- IEATools::tidy_fu_allocation_table(completed_fu_allocation_tables,
-                                                               year = year,
-                                                               e_dot = e_dot,
-                                                               e_dot_perc = e_dot_perc,
-                                                               quantity = quantity,
-                                                               maximum_values = maximum_values,
-                                                               .values = .values) |>
-    dplyr::filter(.data[[year]] %in% years) |>
-    dplyr::mutate(
-      # Eliminate the dataset column for now.
-      "{dataset_colname}" := NULL
-    ) |>
-    PFUPipelineTools::tar_ungroup()
+  tidy_allocation_tables <- completed_fu_allocation_tables
 
   completed_tables_by_year <- lapply(countries, FUN = function(coun) {
-    coun_exemplar_strings <- exemplar_lists %>%
+    coun_exemplar_strings <- exemplar_lists |>
       dplyr::filter(.data[[country]] == coun)
 
     # For each combination of Country and Year (the rows of coun_exemplar_strings),
@@ -328,7 +279,6 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
                                        exemplar_eta_fu_tables = .data[[exemplar_tables]],
                                        fu_allocation_table = .data[[alloc_data]],
                                        which_quantity = list(which_quantity),
-
                                        country = country,
                                        method = method,
                                        energy_type = energy_type,
@@ -355,11 +305,8 @@ assemble_eta_fu_tables <- function(incomplete_eta_fu_tables,
   # The only information we need to return is the completed efficiency tables.
   # Expand (un-nest) only the completed efficiency table column to give one data frame of all the FU efficiencies
   # for all years and all countries.
-  completed_tables_by_year %>%
-    dplyr::select(dplyr::all_of(complete_eta_tables)) %>%
-    tidyr::unnest(cols = dplyr::all_of(complete_eta_tables)) |>
-    dplyr::mutate(
-      "{dataset_colname}" := dataset
-    ) |>
-    dplyr::relocate(dplyr::all_of(dataset_colname))
+
+  completed_tables_by_year |>
+    dplyr::select(dplyr::all_of(complete_eta_tables)) |>
+    tidyr::unnest(cols = dplyr::all_of(complete_eta_tables))
 }
