@@ -232,7 +232,6 @@ list(
   # Human muscle work data -----------------------------------------------------
 
   # Dependencies among HMW targets
-
   #                                                HMWPFUDataRaw ---> HMWPFUData
   #                                                      ^  ^  ^
   #                                                      |  |  |
