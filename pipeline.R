@@ -233,13 +233,25 @@ list(
 
   # Dependencies among HMW targets
 
-  #                         HMWPFUDataRaw ---> HMWPFUData
-  #                          ^  ^  ^
-  #                          |  |  |
-  #                          |  |  |
-  # HMWAnalysisDataPath -----|  |  |
-  # ILOEmploymentDataLocal -----|  |
-  # ILOWorkingHoursDataLocal ------|
+  #                                                HMWPFUDataRaw ---> HMWPFUData
+  #                                                      ^  ^  ^
+  #                                                      |  |  |
+  #                                                      |  |  |
+  # HMWAnalysisDataPath ---------------------------------|  |  |
+  # ILOEmploymentDataPath ----> ILOEmploymentDataLocal -----|  |
+  # ILOWorkingHoursDataPath --> ILOWorkingHoursDataLocal ------|
+
+  ## ILOEmploymentDataPath
+  targets::tar_target_raw(
+    "ILOEmploymentDataPath",
+    clpfu_setup_paths[["ilo_employment_data_path"]],
+    format = "file"),
+
+  ## ILOWorkingHoursDataPath
+  targets::tar_target_raw(
+    "ILOWorkingHoursDataPath",
+    clpfu_setup_paths[["ilo_working_hours_data_path"]],
+    format = "file"),
 
   ## HMWAnalysisDataPath
   targets::tar_target_raw(
@@ -248,38 +260,14 @@ list(
     format = "file"),
 
   ## ILOEmploymentDataLocal
-  # targets::tar_target(
-  #   ILOEmploymentDataLocal,
-  #   Rilostat::get_ilostat(id = "EMP_TEMP_SEX_ECO_NB_A", # Employment code
-  #                         quiet = TRUE) |>
-  #     Rilostat::label_ilostat(code = c("ref_area"))),
   targets::tar_target(
     ILOEmploymentDataLocal,
-    read.csv(file.path("~",
-                       "OneDrive - University of Leeds",
-                       "Fellowship 1960-2015 PFU database research",
-                       "InputData",
-                       "v2.0",
-                       "External data sources",
-                       "ILO",
-                       "EMP_TEMP_SEX_ECO_NB_A.csv"))),
+    read.csv(ILOEmploymentDataPath)),
 
   ## ILOWorkingHoursDataLocal
-  # targets::tar_target(
-  #   ILOWorkingHoursDataLocal,
-  #   Rilostat::get_ilostat(id = "HOW_TEMP_SEX_ECO_NB_A", # Working hours code
-  #                         quiet = TRUE) |>
-  #     Rilostat::label_ilostat(code = c("ref_area"))),
   targets::tar_target(
     ILOWorkingHoursDataLocal,
-    read.csv(file.path("~",
-                       "OneDrive - University of Leeds",
-                       "Fellowship 1960-2015 PFU database research",
-                       "InputData",
-                       "v2.0",
-                       "External data sources",
-                       "ILO",
-                       "HOW_TEMP_SEX_ECO_NB_A.csv"))),
+    read.csv(ILOWorkingHoursDataPath)),
 
   ## HMWPFUDataRaw
   targets::tar_target(
