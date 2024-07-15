@@ -48,7 +48,7 @@ list(
     FKTables,
     SetDMAndFKTables[["fk_tables"]]),
 
-  ## matnameRCType
+  ## MatnameRCType
   #  Get the mapping between matrix names and row/col types
   #  for later downloading matsindf data frames
   targets::tar_target(
