@@ -153,7 +153,7 @@ clpfu_setup_paths <- list(
                               paste("IEA Extended Energy Balances", iea_year, "(TJ)")),
   base_iea_country_filename = "IEA Extended Energy Balances 2022 (TJ)",
   schema_path = file.path(input_data_path, "SchemaAndFKTables.xlsx"),
-  fao_data_path = file.path(input_data_path, "FAOSTAT", "fao_qcl_data.rds"),
+  fao_data_path = file.path(input_data_path, "External data sources", "FAO", "FAOSTAT_data.csv"),
   ilo_employment_data_path = file.path(input_data_path, "External data sources", "ILO", "EMP_TEMP_SEX_ECO_NB_A.csv"),
   ilo_working_hours_data_path = file.path(input_data_path, "External data sources", "ILO", "HOW_TEMP_SEX_ECO_NB_A.csv"),
   hmw_analysis_data_path = file.path(input_data_path, "hmw_analysis_data.xlsx"),

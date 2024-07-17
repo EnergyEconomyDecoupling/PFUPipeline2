@@ -200,6 +200,12 @@ list(
   #                           |
   # AMWAnalysisDataPath ---> FAODataLocal
 
+  ## FAODataPath
+  targets::tar_target_raw(
+    "FAODataPath",
+    clpfu_setup_paths[["fao_data_path"]],
+    format = "file"),
+
   ## AMWAnalysisDataPath
   targets::tar_target_raw(
     "AMWAnalysisDataPath",
@@ -209,9 +215,7 @@ list(
   ## FAODataLocal
   targets::tar_target(
     FAODataLocal,
-    # FAOSTAT::get_faostat_bulk(code = "QCL", # Live animals code
-    #                           data_folder = tempdir())),
-    load_fao_data(clpfu_setup_paths[["fao_data_path"]])),
+    read.csv(FAODataPath)),
 
   ## AMWPFUDataRaw
   targets::tar_target(

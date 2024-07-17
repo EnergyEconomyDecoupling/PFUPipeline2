@@ -27,7 +27,7 @@ aggcountries_mw_to_iea <- function(mw_df,
                                    agg_code_col = PFUPipelineTools::exemplar_names$agg_code_col,
                                    region_code = PFUPipelineTools::exemplar_names$region_code,
                                    exemplar_country = PFUPipelineTools::exemplar_names$exemplar_country,
-                                   species = MWTools::mw_constants$species,
+                                   species = MWTools::conc_cols$species,
                                    stage_col = MWTools::mw_constants$stage_col,
                                    sector_col = MWTools::mw_constants$sector_col) {
 
