@@ -74,7 +74,7 @@ if (parallel::detectCores() == 10) {
 }
 
 # For debugging in a single thread. Also set callr_function = NULL.
-crew_controller <- NULL
+# crew_controller <- NULL
 # For parallel processing
 crew_controller <- crew::crew_controller_local(workers = worker_threads)
 
