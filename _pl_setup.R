@@ -75,8 +75,14 @@ if (parallel::detectCores() == 10) {
 
 # For debugging in a single thread. Also set callr_function = NULL.
 # crew_controller <- NULL
-# For parallel processing
-crew_controller <- crew::crew_controller_local(workers = worker_threads)
+# For parallel processing.
+# Install {crewargs} with
+# devtools::install_github("rpruim/crewargs")
+crew_controller <- crewargs::crewargs_controller_local_args(
+    workers = worker_threads,
+    seconds_idle = 60,
+    cmdargs = "--max-connections=512"
+  )
 
 
 #
