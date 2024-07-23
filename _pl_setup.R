@@ -25,11 +25,11 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-# years <- 1960:2020
+years <- 1960:2020
 # years <- 1960
 # years <- 1960:1980
 # years <- 1995:2020
-years <- 1995:1996
+# years <- 1995:1996
 # years <- 1971:1972
 # years <- 1971:1980
 # years <- 1995
@@ -81,8 +81,7 @@ if (parallel::detectCores() == 10) {
 crew_controller <- crewargs::crewargs_controller_local_args(
     workers = worker_threads,
     seconds_idle = 60,
-    cmdargs = "--max-connections=512"
-  )
+    cmdargs = "--max-connections=512")
 
 
 #
