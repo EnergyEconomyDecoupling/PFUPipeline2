@@ -139,7 +139,10 @@ conn_params <- list(dbname = dbname,
 
 # Calculate input data version from version
 # by trimming any alpha or beta information from the end of the version string.
-input_data_version <- sub(pattern = "[ab]\\d*$", "", version)
+input_data_version <- sub(pattern = "[ab]\\d*$", "", clpfu_version)
+if (!startsWith(input_data_version, "v")) {
+  input_data_version <- paste0("v", input_data_version)
+}
 
 
 # Create a list of important paths for the CL-PFU pipeline
