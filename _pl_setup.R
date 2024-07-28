@@ -92,7 +92,7 @@ crew_controller <- crew::crew_controller_local(
 # Version information ----------------------------------------------------------
 
 # Tells what database, dataset, and version you are targeting
-database <- "SandboxDB"
+dbname <- "SandboxDB"
 dataset <- "CL-PFU"
 version <- "2.0a5"
 
@@ -134,7 +134,7 @@ iea_dataset <- paste0("IEAEWEB", iea_year)
 #                     port = 5432)
 
 # Use pgbouncer
-conn_params <- list(dbname = version,
+conn_params <- list(dbname = dbname,
                     user = "dbcreator",
                     host = "eviz.cs.calvin.edu",
                     port = 6432)
