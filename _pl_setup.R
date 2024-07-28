@@ -138,8 +138,9 @@ conn_params <- list(dbname = dbname,
                     port = 6432)
 
 # Calculate input data version from version
-# by trimming any alpha or beta information from the end of the version string.
+# by trimming any alpha or beta information from the end of the version string ...
 input_data_version <- sub(pattern = "[ab]\\d*$", "", clpfu_version)
+# ... and by adding a leading "v" if it is missing.
 if (!startsWith(input_data_version, "v")) {
   input_data_version <- paste0("v", input_data_version)
 }
