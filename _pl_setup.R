@@ -8,14 +8,14 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+# countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN"
 # countries <- "GHA"
 # countries <- "USA"
 # countries <- "CMR"
 # countries <- "WRLD"
-# countries <- c("GHA", "ZAF")
+countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c(PFUPipelineTools::canonical_countries[101:157], "WRLD") |> as.character()
 
@@ -25,12 +25,12 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1960
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
-# years <- 1971:1972
+years <- 1971:1972
 # years <- 1971:1980
 # years <- 1995
 # years <- 1971
@@ -76,12 +76,14 @@ if (parallel::detectCores() == 10) {
 # For debugging in a single thread. Also set callr_function = NULL.
 # crew_controller <- NULL
 # For parallel processing.
-# Install {crewargs} with
-# devtools::install_github("rpruim/crewargs")
-crew_controller <- crewargs::crewargs_controller_local_args(
+# crew_controller <- crewargs::crewargs_controller_local_args(
+#   workers = worker_threads,
+#   seconds_idle = 60,
+#   cmdargs = "--max-connections=512")
+crew_controller <- crew::crew_controller_local(
   workers = worker_threads,
   seconds_idle = 60,
-  cmdargs = "--max-connections=512")
+  r_arguments = "--max-connections=512")
 
 
 #
