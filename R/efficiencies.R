@@ -204,6 +204,8 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
                                         energy_type = IEATools::iea_cols$energy_type,
                                         method = IEATools::iea_cols$method,
                                         year = IEATools::iea_cols$year,
+                                        valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
+                                        valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname,
                                         etafu_colname = "etafu") {
 
   if (is.null(C_mats) & is.null(eta_m_vecs) & is.null(phi_vecs)) {
@@ -212,8 +214,10 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
   }
 
   # Make one large data frame.
-  dplyr::full_join(C_mats, eta_m_vecs, by = c(country, last_stage, energy_type, method, year)) |>
-    dplyr::full_join(phi_vecs, by = c(country, year)) |>
+  dplyr::full_join(C_mats, eta_m_vecs, by = c(country, last_stage, energy_type, method, year,
+                                              valid_from_version, valid_to_version)) |>
+    dplyr::full_join(phi_vecs, by = c(country, year,
+                                      valid_from_version, valid_to_version)) |>
     # Run the calculations
     Recca::calc_eta_fu_Y_eiou(eta_i = etafu_colname)
 }

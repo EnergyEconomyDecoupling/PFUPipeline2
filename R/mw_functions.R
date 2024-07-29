@@ -228,14 +228,12 @@ make_mw_psut <- function(.hmw_df,
 #' even if there are some years where there is no muscle work data available.
 #'
 #' @param .psut_df A data frame of muscle work PSUT matrices.
-#' @param countries The countries to be analyzed.
 #'
 #' @return A data frame with new boolean column ".balanced" that tells
 #'         whether the matrices are balanced.
 #'
 #' @export
-verify_mw_energy_balance <- function(.psut_df,
-                                     countries) {
+verify_mw_energy_balance <- function(.psut_df) {
 
   if (is.null(.psut_df)) {
     return(TRUE)
@@ -243,6 +241,7 @@ verify_mw_energy_balance <- function(.psut_df,
   if (nrow(.psut_df) == 0) {
     return(TRUE)
   }
+
   # We have some rows. Perform the check.
   .psut_df |>
     Recca::verify_SUT_energy_balance(SUT_energy_balance = ".balanced") |>

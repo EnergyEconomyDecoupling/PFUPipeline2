@@ -16,6 +16,7 @@ list(
   targets::tar_target_raw("AdditionalExemplarCountries", list(additional_exemplar_countries)),
   targets::tar_target_raw("SpecifyNonEnergyFlows", list(specify_non_energy_flows)),
   targets::tar_target_raw("ApplyFixes", list(apply_fixes)),
+  targets::tar_target_raw("ResetSchema", list(reset_schema)),
 
   targets::tar_target(
     AllocAndEffCountries,
@@ -34,7 +35,7 @@ list(
   #  Create and upload the schema from SchemaFilePath
   targets::tar_target(
     SetDMAndFKTables,
-    set_dm_fk_tables(SchemaFilePath, conn = conn)),
+    set_dm_fk_tables(SchemaFilePath, reset_schema = ResetSchema, conn = conn)),
 
   ## DM
   #  Extract the data model
@@ -523,8 +524,7 @@ list(
   ## BalancedPSUTMW
   targets::tar_target(
     BalancedPSUTMW,
-    verify_mw_energy_balance(PSUTMWEnergy,
-                             countries = Countries),
+    verify_mw_energy_balance(PSUTMWEnergy),
     pattern = map(Countries)),
 
   # Don't continue if there is a problem with the MW data.
@@ -919,8 +919,9 @@ list(
 
   ## This hook supplies the following items to all targets:
   ## * the database connection,
-  ## * the table name, and
-  ## * the dataset.
+  ## * the table name,
+  ## * the dataset, and
+  ## * the version.
   tarchetypes::tar_hook_before(
     hook = {
       # Ensure each target has access to the database,
@@ -1084,9 +1085,11 @@ list(
       # emitting an error from not finding
       # db_table_name_from_hook_before.
       db_table_name_from_hook_outer <- db_table_name_hook(targets::tar_name())
+      version_from_hook_outer <- clpfu_version
       upsert_hook(.x,
                   db_table_name = db_table_name_from_hook_outer,
                   dataset = dataset_from_hook,
+                  version = version_from_hook_outer,
                   index_map = IndexMap,
                   conn = conn,
                   schema = DM,

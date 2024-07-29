@@ -114,6 +114,8 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
                             method = IEATools::iea_cols$method,
                             energy_type = IEATools::iea_cols$energy_type,
                             last_stage = IEATools::iea_cols$last_stage,
+                            valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
+                            valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname,
                             # Output column names
                             r_eiou = IEATools::psut_cols$r_eiou) {
 
@@ -169,7 +171,8 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
 
   # Join the data frames.
   joined <- dplyr::full_join(iea_specific, mw_specific,
-                             by = c(country, year, method, energy_type, last_stage))
+                             by = c(country, year, method, energy_type, last_stage,
+                                    valid_from_version, valid_to_version))
   if (nrow(joined) == 0) {
     # We zero-row data frames.
     # Make the columns, but don't do the math (which fails)

@@ -43,6 +43,6 @@ start_over <- function(drv = RPostgres::Postgres(),
   if (yesno::yesno(paste0("\nAre you sure you want to start over?\n\n**** ",
                           dbname,
                           " ****\n"))) {
-    PFUPipelineTools::pl_destroy(conn, destroy_cache = TRUE, drop_tables = TRUE)
+    PFUPipelineTools::pl_destroy(conn, destroy_cache = TRUE, drop_tables = FALSE)
   }
 }

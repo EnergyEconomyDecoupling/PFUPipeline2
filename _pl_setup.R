@@ -74,12 +74,12 @@ if (parallel::detectCores() == 10) {
 }
 
 # For debugging in a single thread. Also set callr_function = NULL.
-# crew_controller <- NULL
+crew_controller <- NULL
 # For parallel processing.
-crew_controller <- crew::crew_controller_local(
-  workers = worker_threads,
-  seconds_idle = 60,
-  r_arguments = "--max-connections=512")
+# crew_controller <- crew::crew_controller_local(
+#   workers = worker_threads,
+#   seconds_idle = 60,
+#   r_arguments = "--max-connections=512")
 
 
 #
@@ -92,10 +92,13 @@ dbname <- "SandboxDB"
 
 # Tells what CL-PFU dataset you are creating
 clpfu_dataset <- "CL-PFU"
-clpfu_version <- "2.0a5"
+clpfu_dataset_iea <- "CL-PFU IEA"
+clpfu_dataset_mw <- "CL-PFU MW"
+clpfu_dataset_both <- "CL-PFU IEA+MW"
+clpfu_version <- "v2.0a6"
 
 # Tells what IEAEWEB dataset you are using
-iea_dataset <- "IEA-EWEB"
+iea_dataset <- "IEA EWEB"
 iea_version <- "2022"
 
 #
@@ -108,6 +111,9 @@ project_path <- file.path("~",
                           "Fellowship 1960-2015 PFU database research")
 
 
+# Reset schema?
+# Think VERY CAREFULLY before setting this TRUE!
+reset_schema <- FALSE
 
 
 # In a typical setup, everything below this point
