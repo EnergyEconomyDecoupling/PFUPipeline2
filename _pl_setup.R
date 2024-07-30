@@ -88,14 +88,14 @@ crew_controller <- NULL
 # Dataset and version information ----------------------------------------------
 
 # Tells what database you are targeting
-dbname <- "SandboxDB"
+dbname <- "ScratchMDB"
 
 # Tells what CL-PFU dataset you are creating
 clpfu_dataset <- "CL-PFU"
 clpfu_dataset_iea <- "CL-PFU IEA"
 clpfu_dataset_mw <- "CL-PFU MW"
 clpfu_dataset_both <- "CL-PFU IEA+MW"
-clpfu_version <- "v2.0a6"
+clpfu_version <- "v2.0a5"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"

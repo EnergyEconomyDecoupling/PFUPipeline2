@@ -24,7 +24,7 @@
 #'
 #' @export
 start_over <- function(drv = RPostgres::Postgres(),
-                       dbname = "SandboxDB",
+                       dbname = "ScratchMDB",
                        host = "eviz.cs.calvin.edu",
                        # port = 5432,
                        # user = "mkh2",
@@ -34,7 +34,8 @@ start_over <- function(drv = RPostgres::Postgres(),
                                              dbname = dbname,
                                              host = host,
                                              port = port,
-                                             user = user)) {
+                                             user = user),
+                       drop_tables = FALSE) {
 
   if (dbname == "MexerDB") {
     stop("You cannot start_over() with the MexerDB")
@@ -43,6 +44,6 @@ start_over <- function(drv = RPostgres::Postgres(),
   if (yesno::yesno(paste0("\nAre you sure you want to start over?\n\n**** ",
                           dbname,
                           " ****\n"))) {
-    PFUPipelineTools::pl_destroy(conn, destroy_cache = TRUE, drop_tables = FALSE)
+    PFUPipelineTools::pl_destroy(conn, destroy_cache = TRUE, drop_tables = drop_tables)
   }
 }
