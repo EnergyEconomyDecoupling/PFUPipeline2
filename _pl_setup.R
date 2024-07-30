@@ -114,6 +114,7 @@ project_path <- file.path("~",
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
 reset_schema <- FALSE
+# Set back to FALSE quickly!
 
 
 # In a typical setup, everything below this point
