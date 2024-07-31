@@ -941,13 +941,81 @@ list(
       # if it exists in the string.
       db_table_name_from_hook_before <- db_table_name_hook(targets::tar_name())
 
+      # # Now use the db_table_name to decide which dataset is being created
+      # if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
+      #   # Working on the IEA data
+      #   dataset_from_hook <- iea_dataset
+      # } else {
+      #   # Everything else is in the CL-PFU dataset
+      #   dataset_from_hook <- clpfu_dataset
+      # }}
+
+
+
       # Now use the db_table_name to decide which dataset is being created
-      if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
-        # Working on the IEA data
+      if (db_table_name_from_hook_before %in%
+          # Working with raw IEA data
+          c("AllIEAData",
+            "IEAData",
+            "BalancedIEAData",
+            "SpecifiedIEAData")) {
         dataset_from_hook <- iea_dataset
-      } else {
-        # Everything else is in the CL-PFU dataset
+      } else if (db_table_name_from_hook_before %in%
+                 # Working with raw FAO data
+                 c("AMWPFUDataRaw")) {
+        dataset_from_hook <- fao_dataset
+      } else if (db_table_name_from_hook_before %in%
+                 # Working with raw ILO data
+                 c("HMWPFUDataRaw")) {
+        dataset_from_hook <- ilo_dataset
+      } else if (db_table_name_from_hook_before %in%
+                 # Working with generic CL-PFU data
+                 c("PhiConstants",
+                   "CompletedPhiuTables",
+                   "Phipfvecs",
+                   "EtafuPhiuvecs",
+                   "Etafuvecs",
+                   "Phiuvecs",
+                   "Phivecs")) {
         dataset_from_hook <- clpfu_dataset
+      } else if (db_table_name_from_hook_before %in%
+                 # Working with CL-PFU IEA data
+                 c("PSUTFinalIEA",
+                   "IncompleteAllocationTables",
+                   "CompletedAllocationTables",
+                   "Cmats",
+                   "AllMachineData",
+                   "MachineData",
+                   "CompletedEfficiencyTables",
+                   "PSUTUsefulIEAWithDetails",
+                   "PSUTUsefulIEA",
+                   "YfuUEIOUfudetailsEnergy",
+                   "PSUTIEA",
+                   "YfuUEIOUfudetails",
+                   "CmatsAgg",
+                   "EtafuYEIOU",
+                   "EtafuYEIOUagg",
+                   "Etai",
+                   "SectorAggEtaFU",
+                   "AggEtaPFU")) {
+        dataset_from_hook <- clpfu_iea_dataset
+      } else if (db_table_name_from_hook_before %in%
+                 # Working with CL-PFU MW data
+                 c("HMWPFUData",
+                   "AMWPFUData",
+                   "PSUTMWEnergy",
+                   "BalancedPSUTMW",
+                   "PhivecsMW",
+                   "PSUTMWAllYears",
+                   "PSUTMW")) {
+        dataset_from_hook <- clpfu_mw_dataset
+      } else if (db_table_name_from_hook_before %in%
+                 # Working with CL-PFU IEA+MW data
+                 c("PSUTIEAMW")) {
+        dataset_from_hook <- clpfu_both_dataset
+      } else {
+        # For everything else, the target manages the Dataset column
+        dataset_from_hook <- NULL
       }}
   ) |>
 
