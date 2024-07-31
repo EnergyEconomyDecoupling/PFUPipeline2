@@ -11,11 +11,11 @@
 # countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN"
-# countries <- "GHA"
+countries <- "GHA"
 # countries <- "USA"
 # countries <- "CMR"
 # countries <- "WRLD"
-countries <- c("GHA", "ZAF")
+# countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c(PFUPipelineTools::canonical_countries[101:157], "WRLD") |> as.character()
 
@@ -30,10 +30,10 @@ countries <- c("GHA", "ZAF")
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
-years <- 1971:1972
+# years <- 1971:1972
 # years <- 1971:1980
 # years <- 1995
-# years <- 1971
+years <- 1971
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -74,12 +74,12 @@ if (parallel::detectCores() == 10) {
 }
 
 # For debugging in a single thread. Also set callr_function = NULL.
-crew_controller <- NULL
+# crew_controller <- NULL
 # For parallel processing.
-# crew_controller <- crew::crew_controller_local(
-#   workers = worker_threads,
-#   seconds_idle = 60,
-#   r_arguments = "--max-connections=512")
+crew_controller <- crew::crew_controller_local(
+  workers = worker_threads,
+  seconds_idle = 60,
+  r_arguments = "--max-connections=512")
 
 
 #
