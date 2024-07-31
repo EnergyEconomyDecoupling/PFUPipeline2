@@ -130,7 +130,9 @@ extend_details_matrices_to_exergy <- function(fu_details_mats,
                                               phi_vecs,
                                               countries,
                                               country_colname = IEATools::iea_cols$country,
-                                              year_colname = IEATools::iea_cols$year) {
+                                              year_colname = IEATools::iea_cols$year,
+                                              valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
+                                              valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname) {
 
   if (is.null(fu_details_mats)) {
     # Nothing to be done.
@@ -139,7 +141,8 @@ extend_details_matrices_to_exergy <- function(fu_details_mats,
 
   fu_details_mats |>
     # Add a column of phi vectors
-    dplyr::left_join(phi_vecs, by = c(country_colname, year_colname)) |>
+    dplyr::left_join(phi_vecs, by = c(country_colname, year_colname,
+                                      valid_from_version, valid_to_version)) |>
     # Leverage Recca::extend_fu_details_to_exergy()
     # to move to exergy.
     # That function arranges the column of phi vectors

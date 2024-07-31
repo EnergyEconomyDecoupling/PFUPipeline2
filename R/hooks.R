@@ -104,6 +104,7 @@ download_dependency_hook <- function(.hashed_dependency,
 #'            in the database at `conn`.
 #' @param db_table_name The name of the table into which `.df` will be upserted.
 #' @param dataset The name of the dataset to which these data belong.
+#' @param version The name of the version for which these data are valid.
 #' @param index_map The mapping for matrix row and column indices,
 #'                  a two-column data frame with an integer column
 #'                  for indices and a string column for names.
@@ -120,7 +121,7 @@ download_dependency_hook <- function(.hashed_dependency,
 #'                         Default is `PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema)`.
 #'                         Override if you want to avoid the overhead
 #'                         of readhing the schema with every upsert.
-#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
+#' @param dataset_colname,valid_from_version_colname,valid_to_version_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A hashed data frame that serves as the "ticket"
 #'         with which the full data frame can be retrieved at a later time.
@@ -129,21 +130,32 @@ download_dependency_hook <- function(.hashed_dependency,
 upsert_hook <- function(.df,
                         db_table_name,
                         dataset,
+                        version,
                         index_map,
                         retain_zero_structure = TRUE,
                         conn,
                         schema = PFUPipelineTools::schema_from_conn(conn),
                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
-                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                        valid_from_version_colname = PFUPipelineTools::dataset_info$valid_from_version_colname,
+                        valid_to_version_colname = PFUPipelineTools::dataset_info$valid_to_version_colname) {
 
   if (is.null(.df)) {
     return(NULL)
   }
 
   .df |>
-    # Add dataset column
     dplyr::mutate(
-      "{dataset_colname}" := dataset
+      # Add dataset column
+      "{dataset_colname}" := dataset,
+      # Add version columns.
+      # The single incoming version is applied to both
+      # valid_from and valid_to columns.
+      # Later (with a server-side command),
+      # identical values will be deleted and the valid_to_version
+      # entry will be increased.
+      "{valid_from_version_colname}" := version,
+      "{valid_to_version_colname}" := version
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     # Upload to the database and return the "ticket"

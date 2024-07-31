@@ -8,6 +8,8 @@
 #' for further extraction into separate targets.
 #'
 #' @param schema_file_path The path to the schema file.
+#' @param reset_schema Tells whether to reset the schema in the database.
+#'                     Default is `FALSE`.
 #' @param conn The connection to the database.
 #'
 #' @return A list containing two items,
@@ -18,19 +20,21 @@
 #'         by its table name in the database).
 #'
 #' @export
-set_dm_fk_tables <- function(schema_file_path, conn) {
+set_dm_fk_tables <- function(schema_file_path, reset_schema = FALSE, conn) {
 
-  # Read the schema table
+  # Read the schema table from local disk
   schema_table <- PFUPipelineTools::load_schema_table(schema_path = schema_file_path)
-  # Read the simple foreign key tables
+  # Read the simple foreign key tables from local disk
   fk_tables <- PFUPipelineTools::load_fk_tables(simple_tables_path = schema_file_path)
   # Create the data model
   this_data_model <- schema_table |>
     PFUPipelineTools::schema_dm()
-  PFUPipelineTools::pl_upload_schema_and_simple_tables(schema = this_data_model,
-                                                       simple_tables = fk_tables,
-                                                       conn = conn,
-                                                       drop_db_tables = TRUE)
+  if (reset_schema) {
+    PFUPipelineTools::pl_upload_schema_and_simple_tables(schema = this_data_model,
+                                                         simple_tables = fk_tables,
+                                                         conn = conn,
+                                                         drop_db_tables = FALSE)
+  }
   return(list(dm = this_data_model,
               fk_tables = fk_tables))
 }
