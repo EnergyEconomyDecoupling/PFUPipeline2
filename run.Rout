@@ -1,0 +1,126 @@
+
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin20
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #!/usr/bin/env Rscript
+> 
+> # This is a helper script to run the pipeline.
+> # Choose how to execute the pipeline below.
+> # See https://books.ropensci.org/targets/hpc.html
+> # to learn about your options.
+> 
+> targets::tar_make()
+✔ skipped target PipelineReleasesFolder
+✔ skipped target Release
+✔ skipped target PIndustryPrefixes
+✔ skipped target Countries
+✔ skipped target Years
+✔ skipped target AdditionalExemplarCountries
+✔ skipped target AggregationMapsPath
+✔ skipped target AggregationMaps
+✔ skipped target Regions
+✔ skipped target FinalDemandSectors
+✔ skipped target FAODataPath
+✔ skipped target MWConcordancePath
+✔ skipped target IndustryAggMap
+✔ skipped target ProductAggMap
+✔ skipped target AllocAndEffCountries
+✔ skipped target FUAnalysisFolder
+✔ skipped target PhiConstantsPath
+✔ skipped target ILOEmploymentDataPath
+✔ skipped target ILOEmploymentDataLocal
+✔ skipped target ApplyFixes
+✔ skipped target IEADataFolder
+✔ skipped target SpecifyNonEnergyFlows
+✔ skipped target ExiobaseYears
+✔ skipped target Continents
+✔ skipped target CountriesRegionsContinentsWorld
+✔ skipped target MachineDataPath
+✔ skipped target ExemplarTablePath
+✔ skipped target ExemplarTable
+✔ skipped target ExemplarLists
+✔ skipped target HMWAnalysisDataPath
+✔ skipped target AMWAnalysisDataPath
+✔ skipped target CountryConcordancePath
+✔ skipped target CountryConcordanceTable
+✔ skipped target FAODataLocal
+✔ skipped target ILOWorkingHoursDataPath
+✔ skipped target ILOWorkingHoursDataLocal
+✔ skipped target ExiobaseEnergyFlowsPath
+✔ skipped target ListExiobaseEnergyFlows
+✔ skipped target SchemaFilePath
+✔ skipped target SetDMAndFKTables
+✔ skipped target DM
+✔ skipped target FKTables
+✔ skipped target IndexMap
+✔ skipped target MatnameRCType
+▶ dispatched target AllIEAData
+▶ dispatched target AllMachineData
+▶ dispatched target PhiConstants
+▶ dispatched target AMWPFUDataRaw
+▶ dispatched target HMWPFUDataRaw
+✖ errored target AllIEAData
+✖ errored pipeline [11.753 seconds]
+Error:
+! Error running targets::tar_make()
+Error messages: targets::tar_meta(fields = error, complete_only = TRUE)
+Debugging guide: https://books.ropensci.org/targets/debugging.html
+How to ask for help: https://books.ropensci.org/targets/help.html
+Last error message:
+    all 128 connections are in use
+Last error traceback:
+    upsert_hook({     {         conn <- DBI::dbConnect(drv = RPostgres::Post...
+    load_iea_data(iea_data_path = IEADataFolder, countries = AllocAndEffCoun...
+    dplyr::filter(IEATools::load_tidy_iea_df(iea_data_path, override_df = ov...
+    IEATools::load_tidy_iea_df(iea_data_path, override_df = override_df,    ...
+    augment_iea_df(use_iso_countries(clean_iea_whitespace(rename_iea_df_cols...
+    .iea_df %>% tibble::remove_rownames() %>% dplyr::mutate(`:=`("{flow}",  ...
+    dplyr::ungroup(.)
+    dplyr::select(., dplyr::all_of(c(country, method, energy_type,      last...
+    dplyr::select(., -dplyr::any_of(.rownum))
+    dplyr::mutate(., `:=`("{method}", method_val), `:=`("{last_stage}",     ...
+    dplyr::group_modify(., function(ctry_tbl, ctry) {     supply_consumption...
+    dplyr::group_by(., .data[[country]])
+    dplyr::mutate(., `:=`("{flow}", dplyr::case_when(endsWith(.data[[flow]],...
+    tibble::remove_rownames(.)
+    stopifnot(is.data.frame(.data))
+    is.data.frame(.data)
+    use_iso_countries(clean_iea_whitespace(rename_iea_df_cols(iea_df(.iea_fi...
+    dplyr::left_join(.iea_df, CountryCodeInfo, by = country) %>%      dplyr:...
+    dplyr::select(., dplyr::all_of(country), dplyr::everything())
+    dplyr::rename(., `:=`("{country}", dplyr::all_of(pfu_code)))
+    dplyr::select(., -dplyr::all_of(c(override_col_name, country)))
+    dplyr::mutate(., `:=`("{pfu_code}", dplyr::case_when(!is.na(.data[[overr...
+    dplyr::left_join(., override_df %>% dplyr::rename(`:=`("{country}",     ...
+    dplyr::left_join(.iea_df, CountryCodeInfo, by = country)
+    clean_iea_whitespace(rename_iea_df_cols(iea_df(.iea_file)))
+    .iea_df %>% dplyr::mutate(`:=`(!!as.name(flow), gsub(pattern = "^\\s+", ...
+    dplyr::mutate(., `:=`(!!as.name(flow), gsub(pattern = "^\\s+",      repl...
+    rename_iea_df_cols(iea_df(.iea_file))
+    .iea_df %>% dplyr::rename(`:=`("{new_country}", dplyr::all_of(country)),...
+    dplyr::rename(., `:=`("{new_country}", dplyr::all_of(country)),      `:=...
+    iea_df(.iea_file)
+    slurp_iea_to_raw_df(.iea_file = .iea_file, text = text, expected_1st_lin...
+    lapply(.iea_file, FUN = function(this_iea_file) {     file(this_iea_file...
+    FUN(X[[i]], ...)
+    file(this_iea_file, open = "rt")
+    .handleSimpleError(function (condition)  {     state$error <- build_mess...
+    h(simpleError(msg, call))
+Execution halted
