@@ -80,10 +80,11 @@ download_dependency_hook <- function(.hashed_dependency,
     # No country data
     return(NULL)
   }
-  out |>
-    dplyr::mutate(
-      "{dataset_colname}" := NULL
-    )
+  # out |>
+  #   dplyr::mutate(
+  #     "{dataset_colname}" := NULL
+  #   )
+  return(out)
 }
 
 
@@ -104,6 +105,9 @@ download_dependency_hook <- function(.hashed_dependency,
 #'            in the database at `conn`.
 #' @param db_table_name The name of the table into which `.df` will be upserted.
 #' @param dataset The name of the dataset to which these data belong.
+#'                Default is `NULL`, meaning that no `dataset_colname` column will be added.
+#'                In this case, the target assumes responsibility for
+#'                managing `dataset_colname`.
 #' @param version The name of the version for which these data are valid.
 #' @param index_map The mapping for matrix row and column indices,
 #'                  a two-column data frame with an integer column
@@ -129,7 +133,7 @@ download_dependency_hook <- function(.hashed_dependency,
 #' @export
 upsert_hook <- function(.df,
                         db_table_name,
-                        dataset,
+                        dataset = NULL,
                         version,
                         index_map,
                         retain_zero_structure = TRUE,
@@ -144,15 +148,23 @@ upsert_hook <- function(.df,
     return(NULL)
   }
 
-  .df |>
+  to_upload <- .df
+
+  if (!is.null(dataset)) {
+    to_upload <- to_upload |>
+      dplyr::mutate(
+        # Add dataset column
+        "{dataset_colname}" := dataset
+      )
+  }
+
+  to_upload |>
     dplyr::mutate(
-      # Add dataset column
-      "{dataset_colname}" := dataset,
       # Add version columns.
       # The single incoming version is applied to both
       # valid_from and valid_to columns.
       # Later (with a server-side command),
-      # identical values will be deleted and the valid_to_version
+      # identical rows will be deleted and the valid_to_version
       # entry will be increased.
       "{valid_from_version_colname}" := version,
       "{valid_to_version_colname}" := version

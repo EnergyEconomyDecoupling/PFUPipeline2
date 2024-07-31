@@ -191,6 +191,8 @@ calc_C_mats_agg <- function(C_mats,
 #' @param phi_vecs A data frame containing vectors of exergy-to-energy ratios, probably the Phivecs target.
 #' @param countries The countries for which this analysis should be performed.
 #' @param country,last_stage,energy_type,method,year See `IEATools::iea_cols`.
+#' @param dataset_colname,valid_from_version,valid_to_version See `PFUPipelineTools::dataset_info`.
+#' @param etafu_colname The name of the etafu column.
 #'
 #' @return A data frame of final-to-useful efficiencies by energy sector and energy carrier.
 #'
@@ -204,6 +206,7 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
                                         energy_type = IEATools::iea_cols$energy_type,
                                         method = IEATools::iea_cols$method,
                                         year = IEATools::iea_cols$year,
+                                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                         valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
                                         valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname,
                                         etafu_colname = "etafu") {
@@ -213,11 +216,33 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
     return(NULL)
   }
 
+  # Check the dataset for C_mats
+  ds_C_mats <- C_mats[[dataset_colname]] |>
+    unique()
+  if (length(ds_C_mats) != 1) {
+    stop(paste0("Need only 1 dataset in calc_fu_Y_EIOU_efficiencies(). Found ", length(ds_C_mats), "."))
+  }
+
   # Make one large data frame.
-  dplyr::full_join(C_mats, eta_m_vecs, by = c(country, last_stage, energy_type, method, year,
-                                              valid_from_version, valid_to_version)) |>
-    dplyr::full_join(phi_vecs, by = c(country, year,
-                                      valid_from_version, valid_to_version)) |>
+  C_mats |>
+  dplyr::full_join(eta_m_vecs |>
+                     dplyr::mutate(
+                       # Set the dataset to be the same as the dataset of the incoming C_mats
+                       # data frame.
+                       # eta_m_vecs will likely have a different (and less-specific) dataset.
+                       "{dataset_colname}" := ds_C_mats
+                     ),
+                   by = c(country, last_stage, energy_type, method, year,
+                          dataset_colname, valid_from_version, valid_to_version)) |>
+    dplyr::full_join(phi_vecs |>
+                       dplyr::mutate(
+                         # Set the dataset to be the same as the dataset of the incoming psut_final
+                         # data frame.
+                         # eta_phi_vecs will likely have a different (and less-specific) dataset.
+                         "{dataset_colname}" := ds_C_mats
+                       ),
+                     by = c(country, year,
+                                      dataset_colname, valid_from_version, valid_to_version)) |>
     # Run the calculations
     Recca::calc_eta_fu_Y_eiou(eta_i = etafu_colname)
 }
@@ -251,6 +276,8 @@ calc_eta_i <- function(.psut,
     # Nothing to be done.
     return(NULL)
   }
+
+  browser()
 
   .psut |>
     Recca::calc_eta_i() |>

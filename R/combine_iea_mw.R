@@ -90,6 +90,7 @@ aggcountries_mw_to_iea <- function(mw_df,
 #' @param method The name of the method column. Default is `IEATools$iea_cols$method`.
 #' @param energy_type The name of the energy type column. Default is `IEATools$iea_cols$energy_type`.
 #' @param last_stage The name of the last_stage column. Default is `IEATools$iea_cols$last_stage`.
+#' @param dataset_colname,valid_from_version,valid_to_version See `PFUPipelineTools::dataset_info`.
 #' @param r_eiou The name of the r_eiou column. Default is `IEATools$iea_cols$r_eiou`.
 #'
 #' @return A data frame of summed matrices.
@@ -114,8 +115,10 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
                             method = IEATools::iea_cols$method,
                             energy_type = IEATools::iea_cols$energy_type,
                             last_stage = IEATools::iea_cols$last_stage,
+                            dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                             valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
                             valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname,
+                            ieamw = PFUPipelineTools::ieamw_cols$both,
                             # Output column names
                             r_eiou = IEATools::psut_cols$r_eiou) {
 
@@ -125,6 +128,7 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
   if (is.null(.iea_psut)) {
     return(.mw_psut)
   }
+
   # Define new column names.
   R_iea <- paste0(R, iea_suffix)
   U_iea <- paste0(U, iea_suffix)
@@ -153,6 +157,7 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
       "{s_units_iea}" := dplyr::all_of(s_units)
     ) %>%
     dplyr::mutate(
+      "{dataset_colname}" := ieamw,
       "{r_eiou}" := NULL
     )
   mw_specific <- .mw_psut %>%
@@ -166,13 +171,14 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
       "{s_units_mw}" := dplyr::all_of(s_units)
     ) %>%
     dplyr::mutate(
+      "{dataset_colname}" := ieamw,
       "{r_eiou}" := NULL
     )
 
   # Join the data frames.
   joined <- dplyr::full_join(iea_specific, mw_specific,
                              by = c(country, year, method, energy_type, last_stage,
-                                    valid_from_version, valid_to_version))
+                                    dataset_colname, valid_from_version, valid_to_version))
   if (nrow(joined) == 0) {
     # We zero-row data frames.
     # Make the columns, but don't do the math (which fails)
@@ -235,9 +241,7 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
 #' @param countries The countries to be calculated.
 #' @param country_colname,method_colname,energy_type_colname,last_stage_colname,year_colname Column names.
 #'                                                                                           See `IEATools::iea_cols` for defaults.
-#' @param ieamw_colname The name of the column that identifies whether data are for the IEA,
-#'                      muscle work (MW) or both.
-#'                      Default is [PFUPipelineTools::ieamw_cols$ieamw].
+#' @param dataset_colname,valid_from_version,valid_to_version See `PFUPipelineTools::dataset_info`.
 #' @param R_colname,U_colname,U_feed_colname,U_eiou_colname,r_eiou_colname,V_colname,Y_colname,S_units_colname Names of matrix columns.
 #'                                                                                                             See `IEATools::psut_cols`.
 #' @param iea The string that identifies ECC data are from the IEA only.
@@ -259,7 +263,9 @@ build_psut_dataframe <- function(psutiea = NULL,
                                  energy_type_colname = IEATools::iea_cols$energy_type,
                                  last_stage_colname = IEATools::iea_cols$last_stage,
                                  year_colname = IEATools::iea_cols$year,
-                                 ieamw_colname = PFUPipelineTools::ieamw_cols$ieamw,
+                                 dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                                 valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
+                                 valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname,
                                  R_colname = IEATools::psut_cols$R,
                                  U_colname = IEATools::psut_cols$U,
                                  U_feed_colname = IEATools::psut_cols$U_feed,
@@ -270,7 +276,9 @@ build_psut_dataframe <- function(psutiea = NULL,
                                  S_units_colname = IEATools::psut_cols$s_units,
                                  iea = PFUPipelineTools::ieamw_cols$iea,
                                  mw = PFUPipelineTools::ieamw_cols$mw,
-                                 both = PFUPipelineTools::ieamw_cols$both) {
+                                 ieamw_colname = PFUPipelineTools::ieamw_cols$ieamw,
+                                 both = PFUPipelineTools::ieamw_cols$both
+                                 ) {
 
   if (is.null(psutiea) & is.null(psutmw) & is.null(psutieamw)) {
     # Nothing to be done.
@@ -281,29 +289,32 @@ build_psut_dataframe <- function(psutiea = NULL,
   if (!is.null(psutiea)) {
     psutiea <- psutiea %>%
       dplyr::mutate(
-        "{ieamw_colname}" := iea
+        IEAMW = iea
       )
   }
   if (!is.null(psutmw)) {
     psutmw <- psutmw %>%
       dplyr::mutate(
-        "{ieamw_colname}" := mw
+        IEAMW = mw
       )
   }
   if (!is.null(psutieamw)) {
     psutieamw <- psutieamw %>%
       dplyr::mutate(
-        "{ieamw_colname}" := both
+        IEAMW = both
       )
   }
   dplyr::bind_rows(psutiea, psutmw, psutieamw) |>
     # Reorder columns into a sensible sequence.
-    dplyr::select(dplyr::all_of(country_colname),
+    dplyr::select(dplyr::all_of(dataset_colname),
+                  dplyr::all_of(valid_from_version),
+                  dplyr::all_of(valid_to_version),
+                  dplyr::all_of(country_colname),
                   dplyr::all_of(method_colname),
                   dplyr::all_of(energy_type_colname),
                   dplyr::all_of(last_stage_colname),
+                  IEAMW,
                   dplyr::all_of(year_colname),
-                  dplyr::all_of(ieamw_colname),
                   dplyr::all_of(R_colname),
                   dplyr::all_of(U_colname),
                   dplyr::all_of(U_feed_colname),
