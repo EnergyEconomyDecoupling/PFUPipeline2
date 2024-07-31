@@ -95,7 +95,7 @@ clpfu_dataset <- "CL-PFU"
 clpfu_dataset_iea <- "CL-PFU IEA"
 clpfu_dataset_mw <- "CL-PFU MW"
 clpfu_dataset_both <- "CL-PFU IEA+MW"
-clpfu_version <- "v2.0a5"
+clpfu_version <- "v2.0a7"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -142,7 +142,10 @@ conn_params <- list(dbname = dbname,
 
 # Calculate input data version from version
 # by trimming any alpha or beta information from the end of the version string ...
-input_data_version <- sub(pattern = "[ab]\\d*$", "", clpfu_version)
+# input_data_version <- sub(pattern = "[ab]\\d*$", "", clpfu_version)
+# New policy: Input data folder name must match the version we are creating.
+# This policy will enable reverting back to creating earlier versions.
+input_data_version <- clpfu_version
 # ... and by adding a leading "v" if it is missing.
 if (!startsWith(input_data_version, "v")) {
   input_data_version <- paste0("v", input_data_version)
