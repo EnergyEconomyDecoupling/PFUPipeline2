@@ -285,25 +285,6 @@ build_psut_dataframe <- function(psutiea = NULL,
     return(NULL)
   }
 
-  # # Bind the data frames, with each one having the new IEAMW column.
-  # if (!is.null(psutiea)) {
-  #   psutiea <- psutiea %>%
-  #     dplyr::mutate(
-  #       IEAMW = iea
-  #     )
-  # }
-  # if (!is.null(psutmw)) {
-  #   psutmw <- psutmw %>%
-  #     dplyr::mutate(
-  #       IEAMW = mw
-  #     )
-  # }
-  # if (!is.null(psutieamw)) {
-  #   psutieamw <- psutieamw %>%
-  #     dplyr::mutate(
-  #       IEAMW = both
-  #     )
-  # }
   dplyr::bind_rows(psutiea, psutmw, psutieamw) |>
     # Reorder columns into a sensible sequence.
     dplyr::select(dplyr::all_of(dataset_colname),
@@ -313,7 +294,6 @@ build_psut_dataframe <- function(psutiea = NULL,
                   dplyr::all_of(method_colname),
                   dplyr::all_of(energy_type_colname),
                   dplyr::all_of(last_stage_colname),
-                  # IEAMW,
                   dplyr::all_of(year_colname),
                   dplyr::all_of(R_colname),
                   dplyr::all_of(U_colname),
