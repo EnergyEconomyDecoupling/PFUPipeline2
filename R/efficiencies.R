@@ -46,56 +46,6 @@ calc_C_mats_agg <- function(C_mats,
   f_Y <- NULL
   f_EIOU_Y <- NULL
 
-  # C_mats_agg <- dplyr::left_join(
-  #   C_mats, psut_iea, by = c({country}, {method}, {energy_type}, {last_stage}, {year})
-  # ) |>
-  #   dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU, C_Y, Y, U_EIOU))) |>
-  #   # Calculating all the bunch of vectors and matrices needed now:
-  #   dplyr::mutate(
-  #     # Total use of product p industry EIOU industry i, as a vector. U_EIOU vectorised.
-  #     eiou_vec = matsbyname::vectorize_byname(a = .data[[U_EIOU]], notation = list(RCLabels::arrow_notation)),
-  #     # Total use of product p in final demand sector s, as a vector. Y vectorised.
-  #     y_vec = matsbyname::vectorize_byname(a = .data[[Y]], notation = list(RCLabels::arrow_notation)),
-  #     # Total use of product p in machine m across all EIOU industries aggregated
-  #     Alloc_mat_EIOU = matsbyname::matrixproduct_byname(matsbyname::hatize_byname(eiou_vec, keep = "rownames"),
-  #                                                       .data[[C_EIOU]]) |>
-  #       matsbyname::aggregate_pieces_byname(piece = "noun",
-  #                                           margin = 1,
-  #                                           notation = list(RCLabels::arrow_notation)),
-  #     # Total use of product p in final demand sector s across all final demand sectors aggregated
-  #     Alloc_mat_Y = matsbyname::matrixproduct_byname(matsbyname::hatize_byname(y_vec, keep = "rownames"),
-  #                                                    .data[[C_Y]]) |>
-  #       matsbyname::aggregate_pieces_byname(piece = "noun",
-  #                                           margin = 1,
-  #                                           notation = list(RCLabels::arrow_notation)),
-  #     # Total use of product p in machine m Y and EIOU aggregated
-  #     Alloc_mat_EIOU_Y = matsbyname::sum_byname(Alloc_mat_EIOU, Alloc_mat_Y),
-  #     # Total use of product p in EIOU industries
-  #     f_EIOU = matsbyname::rowsums_byname(Alloc_mat_EIOU),
-  #     # Total use of product p in Y
-  #     f_Y = matsbyname::rowsums_byname(Alloc_mat_Y),
-  #     # Total use of product p in EIOU and Y
-  #     f_EIOU_Y = matsbyname::rowsums_byname(Alloc_mat_EIOU_Y),
-  #     # Share of product p used in each machine m across EIOU. Sum by product yields 1.
-  #     "{C_EIOU_agg}" := matsbyname::matrixproduct_byname(matsbyname::hatinv_byname(f_EIOU, keep = "rownames"),
-  #                                                        Alloc_mat_EIOU),
-  #     # Share of product p used in each machine m across final demand. Sum by product yields 1.
-  #     "{C_Y_agg}" := matsbyname::matrixproduct_byname(matsbyname::hatinv_byname(f_Y, keep = "rownames"),
-  #                                                     Alloc_mat_Y),
-  #     # Share of product p used in each machine m across final demand and EIOU. Sum by product yields 1.
-  #     "{C_EIOU_Y_agg}" := matsbyname::matrixproduct_byname(matsbyname::hatinv_byname(f_EIOU_Y, keep = "rownames"),
-  #                                                          Alloc_mat_EIOU_Y),
-  #   ) |>
-  #   dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU_agg, C_Y_agg, C_EIOU_Y_agg)))
-  #
-  # return(C_mats_agg)
-
-  # Previous code did not correctly account
-  # for possible missing matrices.
-  # The code below does, as of 22 April 2024.
-  # If this works, code above can be deleted
-  # after, say, July 2024.
-
   out <- C_mats_agg <- dplyr::left_join(C_mats, psut_iea,
                                         by = c({country}, {method}, {energy_type}, {last_stage}, {year})) |>
     dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, C_EIOU, C_Y, Y, U_EIOU)))
@@ -191,6 +141,8 @@ calc_C_mats_agg <- function(C_mats,
 #' @param phi_vecs A data frame containing vectors of exergy-to-energy ratios, probably the Phivecs target.
 #' @param countries The countries for which this analysis should be performed.
 #' @param country,last_stage,energy_type,method,year See `IEATools::iea_cols`.
+#' @param dataset_colname,valid_from_version,valid_to_version See `PFUPipelineTools::dataset_info`.
+#' @param etafu_colname The name of the etafu column.
 #'
 #' @return A data frame of final-to-useful efficiencies by energy sector and energy carrier.
 #'
@@ -204,6 +156,7 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
                                         energy_type = IEATools::iea_cols$energy_type,
                                         method = IEATools::iea_cols$method,
                                         year = IEATools::iea_cols$year,
+                                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                         valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
                                         valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname,
                                         etafu_colname = "etafu") {
@@ -213,11 +166,33 @@ calc_fu_Y_EIOU_efficiencies <- function(C_mats,
     return(NULL)
   }
 
+  # Check the dataset for C_mats
+  ds_C_mats <- C_mats[[dataset_colname]] |>
+    unique()
+  if (length(ds_C_mats) != 1) {
+    stop(paste0("Need only 1 dataset in calc_fu_Y_EIOU_efficiencies(). Found ", length(ds_C_mats), "."))
+  }
+
   # Make one large data frame.
-  dplyr::full_join(C_mats, eta_m_vecs, by = c(country, last_stage, energy_type, method, year,
-                                              valid_from_version, valid_to_version)) |>
-    dplyr::full_join(phi_vecs, by = c(country, year,
-                                      valid_from_version, valid_to_version)) |>
+  C_mats |>
+  dplyr::full_join(eta_m_vecs |>
+                     dplyr::mutate(
+                       # Set the dataset to be the same as the dataset of the incoming C_mats
+                       # data frame.
+                       # eta_m_vecs will likely have a different (and less-specific) dataset.
+                       "{dataset_colname}" := ds_C_mats
+                     ),
+                   by = c(country, last_stage, energy_type, method, year,
+                          dataset_colname, valid_from_version, valid_to_version)) |>
+    dplyr::full_join(phi_vecs |>
+                       dplyr::mutate(
+                         # Set the dataset to be the same as the dataset of the incoming psut_final
+                         # data frame.
+                         # eta_phi_vecs will likely have a different (and less-specific) dataset.
+                         "{dataset_colname}" := ds_C_mats
+                       ),
+                     by = c(country, year,
+                                      dataset_colname, valid_from_version, valid_to_version)) |>
     # Run the calculations
     Recca::calc_eta_fu_Y_eiou(eta_i = etafu_colname)
 }
@@ -259,7 +234,6 @@ calc_eta_i <- function(.psut,
       "{U_col}" := NULL,
       "{U_feed_col}" := NULL,
       "{U_eiou_col}" := NULL,
-      "{r_eiou_col}" := NULL,
       "{r_eiou_col}" := NULL,
       "{V_col}" := NULL,
       "{Y_col}" := NULL,

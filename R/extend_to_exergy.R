@@ -11,6 +11,7 @@
 #' @param countries The countries for which this task should be performed.
 #' @param country See `IEATools::iea_cols`.
 #' @param phi_colname See `IEATools::phi_constants`.
+#' @param dataset_colname See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A version of `psut_energy` with additional rows
 #'
@@ -19,7 +20,8 @@ move_to_exergy <- function(psut_energy,
                            phi_vecs,
                            countries,
                            country = IEATools::iea_cols$country,
-                           phi_colname = IEATools::phi_constants_names$phi_colname) {
+                           phi_colname = IEATools::phi_constants_names$phi_colname,
+                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
   # If the psut_energy data frame is NULL, just return NULL.
   if (is.null(psut_energy)) {
@@ -34,12 +36,26 @@ move_to_exergy <- function(psut_energy,
 
   # We have a non-zero number of rows, so proceed with the calculations.
 
+  # Check the dataset for psut_energy
+  ds_psut_energy <- psut_energy[[dataset_colname]] |>
+    unique()
+  if (length(ds_psut_energy) != 1) {
+    stop(paste0("Need only 1 dataset in move_to_exergy(). Found ", length(ds_psut_energy), "."))
+  }
+
   # Get the metadata columns for the phi_vecs data frame.
   meta_cols <- matsindf::everything_except(phi_vecs, phi_colname, .symbols = FALSE)
 
   psut_energy |>
     # Join the phi vectors to the psut_energy data frame
-    dplyr::left_join(phi_vecs, by = meta_cols) |>
+    dplyr::left_join(phi_vecs |>
+                       dplyr::mutate(
+                         # Set the dataset to be the same as the dataset of the incoming psut_energy
+                         # data frame.
+                         # phi_vecs may have a different (and less-specific) dataset.
+                         "{dataset_colname}" := ds_psut_energy
+                       ),
+                     by = meta_cols) |>
     # Calculate exergy versions of the ECC.
     # Need to specify the mat_piece here, because the default value ("all")
     # is not appropriate.
@@ -121,7 +137,7 @@ calc_phi_vecs_mw <- function(psut_energy_mw,
 #' @param fu_details_mats A data frame containing final-to-useful details matrices.
 #' @param phi_vecs The name of the phi vectors column in `fu_details_mats`.
 #' @param countries The countries for which this function should be applied.
-#' @param country_colname,year_colname Names of columns in `fu_details_mats`.
+#' @param dataset_colname,country_colname,year_colname Names of columns in `fu_details_mats`.
 #'
 #' @return A version of `fu_details_mats` with matrices containing exergy at the useful stage.
 #'
@@ -131,6 +147,7 @@ extend_details_matrices_to_exergy <- function(fu_details_mats,
                                               countries,
                                               country_colname = IEATools::iea_cols$country,
                                               year_colname = IEATools::iea_cols$year,
+                                              dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                               valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
                                               valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname) {
 
@@ -139,10 +156,25 @@ extend_details_matrices_to_exergy <- function(fu_details_mats,
     return(NULL)
   }
 
+  # Check the dataset for fu_details_mats
+  ds_fu_details_mats <- fu_details_mats[[dataset_colname]] |>
+    unique()
+  if (length(ds_fu_details_mats) != 1) {
+    stop(paste0("Need only 1 dataset in extend_details_matrices_to_exergy(). Found ", length(ds_fu_details_mats), "."))
+  }
+
+
   fu_details_mats |>
     # Add a column of phi vectors
-    dplyr::left_join(phi_vecs, by = c(country_colname, year_colname,
-                                      valid_from_version, valid_to_version)) |>
+    dplyr::left_join(phi_vecs |>
+                       dplyr::mutate(
+                         # Set the dataset to be the same as the dataset of the incoming fu_details_mats
+                         # data frame.
+                         # phi_vecs will likely have a different (and less-specific) dataset.
+                         "{dataset_colname}" := ds_fu_details_mats
+                       ),
+                     by = c(country_colname, year_colname,
+                            dataset_colname, valid_from_version, valid_to_version)) |>
     # Leverage Recca::extend_fu_details_to_exergy()
     # to move to exergy.
     # That function arranges the column of phi vectors

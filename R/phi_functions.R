@@ -58,7 +58,7 @@ load_phi_values <- function(phi_constants_path) {
 #' @param machine,quantity,phi_u,.values,eu_product,eta_fu_source See `IEATools::template_cols`.
 #' @param phi_colname,phi_source_colname,is_useful See `IEATools::phi_constants_names`.
 #' @param eta_fu_tables,phi_constants See `PFUPipelineTools::phi_sources`.
-#' @param valid_from_version,valid_to_version See `PFUPipelineTools::dataset_info`.
+#' @param dataset_colname,valid_from_version,valid_to_version See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A data frame of phi values for every combination of country, year, machine, destination, etc.
 #'
@@ -120,6 +120,7 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
                                   is_useful = IEATools::phi_constants_names$is_useful_colname,
                                   eta_fu_tables = PFUPipelineTools::phi_sources$eta_fu_tables,
                                   phi_constants = PFUPipelineTools::phi_sources$phi_constants,
+                                  dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                                   valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
                                   valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname) {
 
@@ -230,12 +231,19 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
                          # Use only the useful data in phi_constants_table
                          dplyr::filter(.data[[is_useful]]) |>
                          dplyr::mutate(
-                           # Strip off the is.useful column, as it is no longer necessary.
-                           "{is_useful}" := NULL
+                           # Remove dataset and version columns from the constants table.
+                           # Presumably, they are relevant to the task at hand.
+                           # And, the missing_phi_u_cases table contains the
+                           # dataset and version that is being worked on at the moment.
+                           "{dataset_colname}" := NULL,
+                           "{valid_from_version}" := NULL,
+                           "{valid_to_version}" := NULL,
+                           # Remove the is.useful column, as it is no longer necessary.
+                           "{is_useful}" := NULL,
                           ) |>
                          # Rename the Product column to Eu.product to match found_phi_values
                          dplyr::rename("{eu_product}" := dplyr::all_of(product)),
-                       by = c(eu_product, valid_from_version, valid_to_version)) |>
+                       by = c(eu_product)) |>
       # At this point, we have the wrong column name.
       # Rename to match the expected column name.
       dplyr::rename(

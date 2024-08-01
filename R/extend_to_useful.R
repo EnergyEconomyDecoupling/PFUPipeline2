@@ -13,6 +13,7 @@
 #' @param countries The countries to be analyzed.
 #' @param country,year See IEATools::iea_cols.
 #' @param C_Y,C_eiou See IEATools::template_cols.
+#' @param dataset_colname,valid_from_version,valid_to_version See `PFUPipelineTools::dataset_info`.
 #'
 #' @return A data frame with energy conversion chain matrices with last stage as useful energy.
 #'
@@ -24,7 +25,10 @@ move_to_useful_with_details <- function(psut_final,
                                         country = IEATools::iea_cols$country,
                                         year = IEATools::iea_cols$year,
                                         C_Y = IEATools::template_cols$C_Y,
-                                        C_eiou = IEATools::template_cols$C_eiou) {
+                                        C_eiou = IEATools::template_cols$C_eiou,
+                                        dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                                        valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
+                                        valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname) {
 
   if (is.null(psut_final) & is.null(C_mats) & is.null(eta_phi_vecs)) {
     # No data to move to useful
@@ -36,11 +40,24 @@ move_to_useful_with_details <- function(psut_final,
     IEATools::meta_cols(return_names = TRUE,
                         years_to_keep = year,
                         not_meta = c(C_Y, C_eiou))
+  # Check the dataset for psut_final
+  ds_psut_final <- psut_final[[dataset_colname]] |>
+    unique()
+  if (length(ds_psut_final) != 1) {
+    stop(paste0("Need only 1 dataset in move_to_useful_with_details(). Found ", length(ds_psut_final), "."))
+  }
 
   psut_final |>
     # Join the matrices and vectors to the psut_final data frame.
     dplyr::full_join(C_mats, by = m_cols) |>
-    dplyr::full_join(eta_phi_vecs, by = m_cols) |>
+    dplyr::full_join(eta_phi_vecs |>
+                       dplyr::mutate(
+                         # Set the dataset to be the same as the dataset of the incoming psut_final
+                         # data frame.
+                         # eta_phi_vecs will likely have a different (and less-specific) dataset.
+                         "{dataset_colname}" := ds_psut_final
+                       ),
+                     by = c(m_cols)) |>
     # And, finally, extend to the useful stage.
     IEATools::extend_to_useful() |>
     IEATools::stack_final_useful_df(psut_final)
