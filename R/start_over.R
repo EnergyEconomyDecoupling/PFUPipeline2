@@ -38,7 +38,7 @@ start_over <- function(drv = RPostgres::Postgres(),
                        drop_tables = FALSE) {
 
   if (dbname == "MexerDB") {
-    stop("You cannot start_over() with the MexerDB")
+    stop("You cannot start_over() with MexerDB")
   }
 
   if (yesno::yesno(paste0("\nAre you sure you want to start over?\n\n**** ",
