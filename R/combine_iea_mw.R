@@ -118,7 +118,7 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
                             dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                             valid_from_version = PFUPipelineTools::dataset_info$valid_from_version_colname,
                             valid_to_version = PFUPipelineTools::dataset_info$valid_to_version_colname,
-                            ieamw = PFUPipelineTools::ieamw_cols$both,
+                            ieamw = PFUPipelineTools::dataset_info$both,
                             # Output column names
                             r_eiou = IEATools::psut_cols$r_eiou) {
 
@@ -245,11 +245,11 @@ add_iea_mw_psut <- function(.iea_psut = NULL,
 #' @param R_colname,U_colname,U_feed_colname,U_eiou_colname,r_eiou_colname,V_colname,Y_colname,S_units_colname Names of matrix columns.
 #'                                                                                                             See `IEATools::psut_cols`.
 #' @param iea The string that identifies ECC data are from the IEA only.
-#'            Default is [PFUPipelineTools::ieamw_cols$iea].
+#'            Default is [PFUPipelineTools::dataset_info$iea].
 #' @param mw The string that identifies ECC data are for muscle work only.
-#'           Default is [PFUPipelineTools::ieamw_cols$mw].
+#'           Default is [PFUPipelineTools::dataset_info$mw].
 #' @param both The string that identifies ECC data are for both IEA and muscle work.
-#'             Default is [PFUPipelineTools::ieamw_cols$both].
+#'             Default is [PFUPipelineTools::dataset_info$both].
 #' @return A data frame with `PSUTIEA`, `PSUTMW`, and `PSUTIEAMW` `rbind()`ed together,
 #'         and a new column (`IEAMW_colname`) that distinguishes among them.
 #'
@@ -274,11 +274,9 @@ build_psut_dataframe <- function(psutiea = NULL,
                                  V_colname = IEATools::psut_cols$V,
                                  Y_colname = IEATools::psut_cols$Y,
                                  S_units_colname = IEATools::psut_cols$s_units,
-                                 iea = PFUPipelineTools::ieamw_cols$iea,
-                                 mw = PFUPipelineTools::ieamw_cols$mw,
-                                 ieamw_colname = PFUPipelineTools::ieamw_cols$ieamw,
-                                 both = PFUPipelineTools::ieamw_cols$both
-                                 ) {
+                                 iea = PFUPipelineTools::dataset_info$iea,
+                                 mw = PFUPipelineTools::dataset_info$mw,
+                                 both = PFUPipelineTools::dataset_info$both) {
 
   if (is.null(psutiea) & is.null(psutmw) & is.null(psutieamw)) {
     # Nothing to be done.

@@ -85,7 +85,7 @@ stack_psut <- function(.psut_with_neu,
                        .psut_without_neu,
                        countries,
                        includes_neu = Recca::psut_cols$includes_neu,
-                       ieamw = PFUPipelineTools::ieamw_cols$ieamw) {
+                       dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
 
   if (is.null(.psut_with_neu) & is.null(.psut_without_neu)) {
     # Nothing to be done.
@@ -112,5 +112,5 @@ stack_psut <- function(.psut_with_neu,
   # Return these data frame stacked atop one another.
   dplyr::bind_rows(out_psut_with_neu, out_psut_without_neu) |>
     # Move to a reasonable position in the data frame
-    dplyr::relocate(dplyr::all_of(includes_neu), .after = dplyr::all_of(ieamw))
+    dplyr::relocate(dplyr::all_of(includes_neu), .after = dplyr::all_of(dataset_colname))
 }
