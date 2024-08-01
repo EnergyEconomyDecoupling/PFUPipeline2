@@ -994,10 +994,7 @@ list(
                    "YfuUEIOUfudetails",
                    "CmatsAgg",
                    "EtafuYEIOU",
-                   "EtafuYEIOUagg",
-                   "Etai",
-                   "SectorAggEtaFU",
-                   "AggEtaPFU")) {
+                   "EtafuYEIOUagg")) {
         dataset_from_hook <- clpfu_iea_dataset
       } else if (db_table_name_from_hook_before %in%
                  # Working with CL-PFU MW data
@@ -1014,7 +1011,9 @@ list(
                  c("PSUTIEAMW")) {
         dataset_from_hook <- clpfu_both_dataset
       } else {
-        # For everything else, the target manages the Dataset column
+        # Typically, all other targets will have
+        # more than one value in the Dataset column.
+        # So the target should manage the Dataset column.
         dataset_from_hook <- NULL
       }}
   ) |>

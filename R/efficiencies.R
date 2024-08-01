@@ -277,8 +277,6 @@ calc_eta_i <- function(.psut,
     return(NULL)
   }
 
-  browser()
-
   .psut |>
     Recca::calc_eta_i() |>
     dplyr::mutate(
@@ -286,7 +284,6 @@ calc_eta_i <- function(.psut,
       "{U_col}" := NULL,
       "{U_feed_col}" := NULL,
       "{U_eiou_col}" := NULL,
-      "{r_eiou_col}" := NULL,
       "{r_eiou_col}" := NULL,
       "{V_col}" := NULL,
       "{Y_col}" := NULL,

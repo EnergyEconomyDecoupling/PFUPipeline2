@@ -74,12 +74,12 @@ if (parallel::detectCores() == 10) {
 }
 
 # For debugging in a single thread. Also set callr_function = NULL.
-crew_controller <- NULL
+# crew_controller <- NULL
 # For parallel processing.
-# crew_controller <- crew::crew_controller_local(
-#   workers = worker_threads,
-#   seconds_idle = 60,
-#   r_arguments = "--max-connections=512")
+crew_controller <- crew::crew_controller_local(
+  workers = worker_threads,
+  seconds_idle = 60,
+  r_arguments = "--max-connections=512")
 
 
 #
@@ -121,7 +121,7 @@ project_path <- file.path("~",
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
 reset_schema <- FALSE
-# Set back to FALSE quickly [immediately after tar_make()]!
+# Set back to FALSE quickly, i.e. immediately after tar_make()!
 
 
 # In a typical setup, everything below this point
