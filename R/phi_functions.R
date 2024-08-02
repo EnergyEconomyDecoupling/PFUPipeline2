@@ -132,10 +132,13 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
     # Make a zero-row MachineData data frame so that
     # the code below this point doesn't fail.
     # Columns are
+    # dataset, valid_from_version, valid_to_version,
     # country, energy_type, last_stage, method, machine,
     # eu_product, quantity, year, and .values.
-
-    incomplete_phi_u_table <- data.frame("country",
+    incomplete_phi_u_table <- data.frame("dataset",
+                                         "valid_from_version",
+                                         "valid_to_version",
+                                         "country",
                                          "energy_type",
                                          "last_stage",
                                          "method",
@@ -145,7 +148,8 @@ assemble_phi_u_tables <- function(incomplete_phi_u_table,
                                          as.integer(1234), # year
                                          3.1415) |> # .values
       # Set column names
-      magrittr::set_colnames(c(country, energy_type, last_stage, method,
+      magrittr::set_colnames(c(dataset_colname, valid_from_version, valid_to_version,
+                               country, energy_type, last_stage, method,
                                machine, eu_product, quantity, year, .values)) |>
       # Eliminate the fake row
       dplyr::filter(FALSE)
