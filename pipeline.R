@@ -924,16 +924,6 @@ list(
   ## * the version.
   tarchetypes::tar_hook_before(
     hook = {
-      # Ensure each target has access to the database,
-      # using the hint found at https://github.com/ropensci/targets/discussions/1164.
-      conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
-                             dbname = conn_params$dbname,
-                             host = conn_params$host,
-                             port = conn_params$port,
-                             user = conn_params$user)
-      # Make sure that the connection will be closed
-      # after each target completes.
-      on.exit(DBI::dbDisconnect(conn))
 
       # By default, make the target name available as the name
       # of the database table in which the result should be stored.
@@ -941,16 +931,17 @@ list(
       # if it exists in the string.
       db_table_name_from_hook_before <- db_table_name_hook(targets::tar_name())
 
-      # # Now use the db_table_name to decide which dataset is being created
-      # if (db_table_name_from_hook_before %in% c("AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
-      #   # Working on the IEA data
-      #   dataset_from_hook <- iea_dataset
-      # } else {
-      #   # Everything else is in the CL-PFU dataset
-      #   dataset_from_hook <- clpfu_dataset
-      # }}
-
-
+      # Ensure each target has access to the database,
+      # using the hint found at https://github.com/ropensci/targets/discussions/1164.
+      conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
+                             dbname = conn_params$dbname,
+                             host = conn_params$host,
+                             port = conn_params$port,
+                             user = conn_params$user,
+                             application_name = db_table_name_from_hook_before)
+      # Make sure that the connection will be closed
+      # after each target completes.
+      on.exit(DBI::dbDisconnect(conn))
 
       # Now use the db_table_name to decide which dataset is being created
       if (db_table_name_from_hook_before %in%
@@ -1015,7 +1006,8 @@ list(
         # more than one value in the Dataset column.
         # So the target should manage the Dataset column.
         dataset_from_hook <- NULL
-      }}
+      }
+    }
   ) |>
 
 
