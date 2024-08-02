@@ -76,14 +76,11 @@ download_dependency_hook <- function(.hashed_dependency,
                                            conn = conn,
                                            schema = schema,
                                            fk_parent_tables = fk_parent_tables)
+
   if (is.null(out)) {
     # No country data
     return(NULL)
   }
-  # out |>
-  #   dplyr::mutate(
-  #     "{dataset_colname}" := NULL
-  #   )
   return(out)
 }
 
