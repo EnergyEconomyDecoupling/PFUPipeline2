@@ -772,8 +772,7 @@ list(
                     region_aggregation_map = AggregationMaps$region_aggregation,
                     continent_aggregation_map = AggregationMaps$continent_aggregation,
                     world_aggregation_map = AggregationMaps$world_aggregation,
-                    countries = Countries),
-    pattern = map(Countries)),
+                    countries = Countries)),
 
 
   # Chopped, despecified, and grouped aggregations -----------------------------
@@ -938,7 +937,8 @@ list(
                              host = conn_params$host,
                              port = conn_params$port,
                              user = conn_params$user,
-                             application_name = db_table_name_from_hook_before)
+                             # application_name = db_table_name_from_hook_before)
+                             application_name = targets::tar_name())
       # Make sure that the connection will be closed
       # after each target completes.
       on.exit(DBI::dbDisconnect(conn))
