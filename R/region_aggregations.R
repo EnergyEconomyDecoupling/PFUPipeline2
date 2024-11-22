@@ -3,6 +3,8 @@
 #' The database can benefit from continent and World aggregations.
 #' This function bundles those aggregations into a single function.
 #'
+#' All countries with official ISO abbreviations are 3 characters in length.
+#' All countries with unofficial abbreviatinos are 4 characters in length.
 #' All regional aggregations have names that are 5 characters or longer.
 #'
 #' @param .psut_data A data frame of PSUT information.
