@@ -454,10 +454,10 @@ list(
   ## PSUTUsefulIEAWithDetails
   targets::tar_target(
     PSUTUsefulIEAWithDetails,
-    move_to_useful_with_details(psut_final = PSUTFinalIEA,
-                                C_mats = Cmats,
-                                eta_phi_vecs = EtafuPhiuvecs,
-                                countries = Countries),
+    PSUTFinalIEA |>
+      move_to_useful_with_details(C_mats = Cmats,
+                                  eta_phi_vecs = EtafuPhiuvecs,
+                                  countries = Countries),
     pattern = map(Countries)),
 
   ## PSUTUsefulIEA
