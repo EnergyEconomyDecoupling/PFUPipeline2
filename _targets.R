@@ -1,5 +1,6 @@
 # targets::tar_make() to run the pipeline.
 # targets::tar_make(callr_function = NULL) to debug.
+# targets::tar_make_future(workers = 4) to run the pipeline in parallel.
 # targets::tar_read(<<target_name>>) to view the results.
 # PFUPipelineTools::pl_destroy() to start over.
 
