@@ -1,8 +1,7 @@
-# targets::tar_make() to run the pipeline
-# targets::tar_make(callr_function = NULL) to debug
+# targets::tar_make() to run the pipeline.
+# targets::tar_make(callr_function = NULL) to debug.
 # targets::tar_read(<<target_name>>) to view the results.
 # PFUPipelineTools::pl_destroy() to start over.
-# targets::tar_make(callr_function = NULL) to debug.
 
 
 # Get local machine setup information ------------------------------------------
