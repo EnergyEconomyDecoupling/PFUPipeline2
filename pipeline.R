@@ -37,10 +37,10 @@ list(
     SetDMAndFKTables,
     set_dm_fk_tables(SchemaFilePath, reset_schema = ResetSchema, conn = conn)),
 
-  ## DM
+  ## DataModel
   #  Extract the data model
   targets::tar_target(
-    DM,
+    DataModel,
     SetDMAndFKTables[["dm"]]),
 
   ## FKTables
@@ -57,7 +57,7 @@ list(
     PFUPipelineTools::pl_filter_collect("matnameRCType",
                                         conn = conn,
                                         collect = TRUE,
-                                        schema = DM,
+                                        schema = DataModel,
                                         fk_parent_tables = FKTables)),
 
   ## IndexMap
@@ -65,7 +65,7 @@ list(
   targets::tar_target(
     IndexMap,
     create_index_map(conn = conn,
-                     schema = DM,
+                     schema = DataModel,
                      fk_parent_tables = FKTables)),
 
 
@@ -325,7 +325,7 @@ list(
                                   dataset = clpfu_dataset,
                                   db_table_name = db_table_name_from_hook_before,
                                   conn = conn,
-                                  schema = DM,
+                                  schema = DataModel,
                                   fk_parent_tables = FKTables),
     pattern = map(Countries)),
 
@@ -1023,7 +1023,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("Cmats",
               "AMWPFUData", "HMWPFUData",
@@ -1063,7 +1063,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
               "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
@@ -1079,7 +1079,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("PSUTReAllChopAllDsAllGrAll",
               "Etai", "SectorAggEtaFU"),
@@ -1095,7 +1095,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("CompletedAllocationTables"),
     names_wrap = c("SpecifiedIEAData")) |>
@@ -1110,7 +1110,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("CompletedAllocationTables",
               "CompletedEfficiencyTables"),
@@ -1127,7 +1127,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("ReleaseSectorAggEtaFU", "ReleaseAggEtaPFU"),
     names_wrap = c("SectorAggEtaFU", "AggEtaPFU")) |>
@@ -1151,7 +1151,7 @@ list(
                   version = version_from_hook_outer,
                   index_map = IndexMap,
                   conn = conn,
-                  schema = DM,
+                  schema = DataModel,
                   fk_parent_tables = FKTables,
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
