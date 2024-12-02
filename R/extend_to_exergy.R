@@ -163,7 +163,6 @@ extend_details_matrices_to_exergy <- function(fu_details_mats,
     stop(paste0("Need only 1 dataset in extend_details_matrices_to_exergy(). Found ", length(ds_fu_details_mats), "."))
   }
 
-
   fu_details_mats |>
     # Add a column of phi vectors
     dplyr::left_join(phi_vecs |>
