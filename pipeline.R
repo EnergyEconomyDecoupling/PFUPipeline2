@@ -481,7 +481,6 @@ list(
                    countries = Countries),
     pattern = map(Countries)),
 
-
   ## YfuUEIOUfudetailsEnergy
   #  Keep only the details matrices for a different database product
   targets::tar_target(
@@ -501,16 +500,26 @@ list(
     pattern = map(Countries)),
 
 
-  ## Product O: YfuUEIOUfudetails
-  #  Also now contains former Product Agg-I: Y_fu_U_EIOU_fu_details_Re_all
+  ## YfuUEIOUfudetailsExergy
   #  Exergy quantification of energy for details matrices
   targets::tar_target(
-    YfuUEIOUfudetails,
+    YfuUEIOUfudetailsExergy,
     extend_details_matrices_to_exergy(YfuUEIOUfudetailsEnergy,
                                       phi_vecs = Phivecs,
                                       countries = Countries),
     pattern = map(Countries)),
 
+
+  ## Product O: YfuUEIOUfudetails
+  #  Also now contains former Product Agg-I: Y_fu_U_EIOU_fu_details_Re_all
+  #  Add regional aggregations
+  targets::tar_target(
+    YfuUEIOUfudetails,
+    region_pipeline(YfuUEIOUfudetailsExergy,
+                    region_aggregation_map = AggregationMaps$region_aggregation,
+                    continent_aggregation_map = AggregationMaps$continent_aggregation,
+                    world_aggregation_map = AggregationMaps$world_aggregation,
+                    countries = Countries)),
 
   # Make PSUT matrices for MW data ---------------------------------------------
 
@@ -982,6 +991,7 @@ list(
                    "PSUTUsefulIEAWithDetails",
                    "PSUTUsefulIEA",
                    "YfuUEIOUfudetailsEnergy",
+                   "YfuUEIOUfudetailsExergy",
                    "PSUTIEA",
                    "YfuUEIOUfudetails",
                    "CmatsAgg",
@@ -1030,7 +1040,7 @@ list(
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs", "PhivecMW",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
-              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetails",
+              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetailsExergy", "YfuUEIOUfudetails",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
@@ -1048,6 +1058,7 @@ list(
                    "Cmats", "CmatsAgg",
                    "EtafuYEIOU", "EtafuYEIOUagg",
                    "YfuUEIOUfudetailsEnergy",
+                   "YfuUEIOUfudetailsExergy",
                    "PSUTFinalIEA", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
@@ -1162,7 +1173,7 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
-              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetails",
+              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetailsExergy", "YfuUEIOUfudetails",
               "CmatsAgg", "EtafuYEIOU",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
               "PSUTIEA", "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
