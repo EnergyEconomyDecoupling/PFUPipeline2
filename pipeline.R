@@ -471,6 +471,17 @@ list(
               countries = Countries),
     pattern = map(Countries)),
 
+  # Extend useful IEA data to exergy -------------------------------------------
+
+  ## PSUTIEA
+  targets::tar_target(
+    PSUTIEA,
+    move_to_exergy(psut_energy = PSUTUsefulIEA,
+                   phi_vecs = Phivecs,
+                   countries = Countries),
+    pattern = map(Countries)),
+
+
   ## YfuUEIOUfudetailsEnergy
   #  Keep only the details matrices for a different database product
   targets::tar_target(
@@ -489,16 +500,6 @@ list(
               countries = Countries),
     pattern = map(Countries)),
 
-
-  # Extend useful IEA data to exergy -------------------------------------------
-
-  ## PSUTIEA
-  targets::tar_target(
-    PSUTIEA,
-    move_to_exergy(psut_energy = PSUTUsefulIEA,
-                   phi_vecs = Phivecs,
-                   countries = Countries),
-    pattern = map(Countries)),
 
   ## Product O: YfuUEIOUfudetails
   #  Also now contains former Product Agg-I: Y_fu_U_EIOU_fu_details_Re_all
