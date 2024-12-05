@@ -1,4 +1,4 @@
-# This script saves USA data from the PSUT table.
+# This script saves PSUT data from the database.
 # Carey King (University of Texas Energy Institute)
 # requested these data on 2 December 2024.
 #
@@ -15,13 +15,17 @@ conn <- DBI::dbConnect(drv = RPostgres::Postgres(),
                        user = conn_params$user)
 on.exit(DBI::dbDisconnect(conn))
 
-
-psut_usa <- PFUPipelineTools::pl_filter_collect("PSUT",
-                                                countries = "USA",
-                                                conn = conn,
-                                                collect = TRUE,
-                                                matrix_class = "matrix") |>
+psut <- PFUPipelineTools::pl_filter_collect("PSUT",
+                                            countries = NULL,
+                                            conn = conn,
+                                            collect = TRUE,
+                                            matrix_class = "matrix") |>
   dplyr::arrange(Year, LastStage, EnergyType)
+
+saveRDS(psut, "~/Desktop/psut.rds")
+
+psut_usa <- psut |>
+  dplyr::filter(Country == "USA")
 
 saveRDS(psut_usa, "~/Desktop/psut_usa.rds")
 
