@@ -8,14 +8,14 @@
 
 # Countries --------------------------------------------------------------------
 
-# countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN"
 # countries <- "GHA"
 # countries <- "USA"
 # countries <- "CMR"
 # countries <- "WRLD"
-countries <- c("GHA", "ZAF")
+# countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 
 #
@@ -24,12 +24,12 @@ countries <- c("GHA", "ZAF")
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-# years <- 1960:2020
+years <- 1960:2020
 # years <- 1960
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
-years <- 1971:1972
+# years <- 1971:1972
 # years <- 1971:1980
 # years <- 1995
 # years <- 1971
@@ -94,7 +94,7 @@ clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v2.1a1"
+clpfu_version <- "v2.1a2"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -119,7 +119,7 @@ project_path <- file.path("~",
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- FALSE
+reset_schema <- TRUE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
