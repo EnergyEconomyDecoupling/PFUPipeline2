@@ -11,6 +11,7 @@
 countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN"
+# countries <- "ZAF"
 # countries <- "GHA"
 # countries <- "USA"
 # countries <- "CMR"
@@ -119,7 +120,7 @@ project_path <- file.path("~",
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- TRUE
+reset_schema <- FALSE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
