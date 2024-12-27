@@ -10,11 +10,11 @@
 
 countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
-# countries <- "BEN"
-# countries <- "ZAF"
+# countries <- "BEN" # First country with no EIOU
+# countries <- "CMR"
 # countries <- "GHA"
 # countries <- "USA"
-# countries <- "CMR"
+# countries <- "ZAF"
 # countries <- "WRLD"
 # countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
@@ -27,13 +27,13 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # Set the years for IEA data analysis
 years <- 1960:2020
 # years <- 1960
+# years <- 1971
+# years <- 1995
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
 # years <- 1971:1972
 # years <- 1971:1980
-# years <- 1995
-# years <- 1971
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -120,7 +120,7 @@ project_path <- file.path("~",
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- FALSE
+reset_schema <- FASLE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
