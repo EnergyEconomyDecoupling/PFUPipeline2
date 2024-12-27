@@ -120,7 +120,7 @@ project_path <- file.path("~",
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- FASLE
+reset_schema <- FALSE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
