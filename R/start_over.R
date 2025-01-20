@@ -25,7 +25,7 @@
 #' @export
 start_over <- function(drv = RPostgres::Postgres(),
                        dbname = "ScratchMDB",
-                       host = "eviz.cs.calvin.edu",
+                       host = "mexer.site",
                        port = 6432,
                        user = "dbcreator",
                        conn = DBI::dbConnect(drv = drv,

@@ -145,7 +145,7 @@ reset_schema <- FALSE
 # Use pgbouncer
 conn_params <- list(dbname = dbname,
                     user = "dbcreator",
-                    host = "eviz.cs.calvin.edu",
+                    host = "mexer.site",
                     port = 6432)
 
 # Calculate input data version from version
