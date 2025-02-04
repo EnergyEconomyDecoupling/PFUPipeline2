@@ -1,8 +1,8 @@
-# targets::tar_make() to run the pipeline
-# targets::tar_make(callr_function = NULL) to debug
-# targets::tar_read(<<target_name>>) to view the results.
-# PFUPipelineTools::pl_destroy() to start over.
-# targets::tar_make(callr_function = NULL) to debug.
+# Run the pipeline: targets::tar_make()
+# To run in parallel: targets::tar_make_future(workers = 4)
+# To debug: targets::tar_make(callr_function = NULL) and insert browser() calls
+# To view results: targets::tar_read(<<target_name>>)
+# To completely start over: Source `start_over.R` and call `start_over(drop_tables = TRUE)`
 
 
 # Get local machine setup information ------------------------------------------
