@@ -17,6 +17,14 @@ on.exit(DBI::dbDisconnect(conn))
 
 
 
+# This one failed
+Y_fu_U_EIOU_fu_details <- PFUPipelineTools::pl_filter_collect("YfuUEIOUfudetails",
+                                                              years = 1971,
+                                                              countries = NULL,
+                                                              conn = conn,
+                                                              collect = TRUE,
+                                                              matrix_class = "matrix")
+saveRDS(Y_fu_U_EIOU_fu_details, "~/Desktop/For Emmanuel/YfuUEIOUfudetails.rds")
 
 
 eta_i <- PFUPipelineTools::pl_filter_collect("Etai",
@@ -27,14 +35,6 @@ eta_i <- PFUPipelineTools::pl_filter_collect("Etai",
 
 saveRDS(eta_i, "~/Desktop/For Emmanuel/Etai.rds")
 
-
-
-# This one failed
-Y_fu_U_EIOU_fu_details <- PFUPipelineTools::pl_filter_collect("YfuUEIOUfudetails",
-                                                              conn = conn,
-                                                              collect = TRUE,
-                                                              matrix_class = "matrix")
-saveRDS(Y_fu_U_EIOU_fu_details, "~/Desktop/For Emmanuel/YfuUEIOUfudetails.rds")
 
 
 phi_vecs <- PFUPipelineTools::pl_filter_collect("Phivecs",
