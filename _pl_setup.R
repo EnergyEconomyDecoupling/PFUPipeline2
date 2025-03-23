@@ -18,6 +18,7 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "WMBK"
 # countries <- "WABK"
 # countries <- "WRLD"
+# countries <- c("AGO", "BEN", "WMBK", "WABK", "WRLD", "GHA", "ZAF")
 # countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c("WMBK", "USA")
@@ -28,9 +29,9 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1960
-# years <- 1971
+years <- 1971
 # years <- 1995
 # years <- 1960:1980
 # years <- 1995:2020
@@ -76,8 +77,12 @@ if (parallel::detectCores() == 10) {
   worker_threads <- 2
 }
 
-# For debugging in a single thread. Also set callr_function = NULL.
+# For debugging in a single thread.
+# Also set callr_function = NULL.
+# Insert `browser()` calls in functions in this repository.
+# Add breakpoints in code from external packages.
 # crew_controller <- NULL
+
 # For parallel processing (but not debugging).
 crew_controller <- crew::crew_controller_local(
   workers = worker_threads,
