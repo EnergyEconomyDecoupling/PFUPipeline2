@@ -731,7 +731,7 @@ calc_Ef_to_Xu_exiobase <- function(EtafuYEIOU_mats,
     dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, eta_fu_Y_X, eta_fu_EIOU_X))) |>
     tidyr::pivot_longer(cols = tidyr::ends_with("_X"), names_to = matnames, values_to = matvals) |>
     # This will need to go
-    dplyr::filter(! is.null(.data[[matvals]])) |>
+    # dplyr::filter(! is.null(.data[[matvals]])) |>
     matsindf::expand_to_tidy(rownames = product, colnames = pfu_flow) |>
     dplyr::select(-tidyselect::all_of(c(rowtypes, coltypes, matnames))) |>
     dplyr::rename(
