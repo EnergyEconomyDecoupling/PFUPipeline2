@@ -17,9 +17,7 @@ on.exit(DBI::dbDisconnect(conn))
 
 
 
-# This one failed
 Y_fu_U_EIOU_fu_details <- PFUPipelineTools::pl_filter_collect("YfuUEIOUfudetails",
-                                                              years = 1971,
                                                               countries = NULL,
                                                               conn = conn,
                                                               collect = TRUE,
