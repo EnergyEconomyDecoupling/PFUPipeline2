@@ -636,7 +636,6 @@ list(
     ListExiobaseEnergyFlows,
     read_list_exiobase_energy_flows(path_to_list_exiobase_energy_flows = ExiobaseEnergyFlowsPath)),
 
-
   ## ExiobaseEftoEuMultipliers
   #  This target is NOT stored in the database.
   targets::tar_target(
