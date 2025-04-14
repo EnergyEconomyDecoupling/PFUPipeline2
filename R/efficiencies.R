@@ -259,6 +259,8 @@ calc_agg_eta_pfu <- function(.psut_df,
                              fd_sectors,
                              countries) {
 
+  browser()
+
   if (is.null(.psut_df)) {
     # Nothing to do
     return(NULL)
