@@ -841,8 +841,8 @@ list(
     calc_agg_eta_pfu(PSUTReAllChopAllDsAllGrAll,
                      p_industries = unlist(PIndustryPrefixes),
                      fd_sectors = unlist(FinalDemandSectors),
-                     countries = Countries),
-    pattern = map(Countries)),
+                     countries = CountriesRegionsContinentsWorld),
+    pattern = map(CountriesRegionsContinentsWorld)),
 
 
 
@@ -885,10 +885,10 @@ list(
   targets::tar_target(
     ReleaseExiobaseEftoXlossMultipliers,
     PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
-                                           targ = ExiobaseEftoXlossMultipliers,
-                                           pin_name = "exiobase_Ef_to_Xloss_multipliers",
-                                           type = "csv",
-                                           release = Release)),
+                                     targ = ExiobaseEftoXlossMultipliers,
+                                     pin_name = "exiobase_Ef_to_Xloss_multipliers",
+                                     type = "csv",
+                                     release = Release)),
 
   ## Product L: exiobase_Ef_to_Xu_multipliers
   targets::tar_target(
