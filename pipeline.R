@@ -1047,8 +1047,7 @@ list(
               "CmatsAgg", "EtafuYEIOU",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
-              "PSUTReAll",
-              "AggEtaPFU"),
+              "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
@@ -1093,7 +1092,7 @@ list(
                                     schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("PSUTReAllChopAllDsAllGrAll",
-              "Etai", "SectorAggEtaFU"),
+              "Etai", "SectorAggEtaFU", "AggEtaPFU"),
     names_wrap = c("PSUTReAll", "PSUTReAllChopAllDsAllGrAll")) |>
 
 
