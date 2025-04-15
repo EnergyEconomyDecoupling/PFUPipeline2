@@ -37,10 +37,10 @@ list(
     SetDMAndFKTables,
     set_dm_fk_tables(SchemaFilePath, reset_schema = ResetSchema, conn = conn)),
 
-  ## DM
+  ## DataModel
   #  Extract the data model
   targets::tar_target(
-    DM,
+    DataModel,
     SetDMAndFKTables[["dm"]]),
 
   ## FKTables
@@ -57,7 +57,7 @@ list(
     PFUPipelineTools::pl_filter_collect("matnameRCType",
                                         conn = conn,
                                         collect = TRUE,
-                                        schema = DM,
+                                        schema = DataModel,
                                         fk_parent_tables = FKTables)),
 
   ## IndexMap
@@ -65,7 +65,7 @@ list(
   targets::tar_target(
     IndexMap,
     create_index_map(conn = conn,
-                     schema = DM,
+                     schema = DataModel,
                      fk_parent_tables = FKTables)),
 
 
@@ -325,7 +325,7 @@ list(
                                   dataset = clpfu_dataset,
                                   db_table_name = db_table_name_from_hook_before,
                                   conn = conn,
-                                  schema = DM,
+                                  schema = DataModel,
                                   fk_parent_tables = FKTables),
     pattern = map(Countries)),
 
@@ -471,6 +471,16 @@ list(
               countries = Countries),
     pattern = map(Countries)),
 
+  # Extend useful IEA data to exergy -------------------------------------------
+
+  ## PSUTIEA
+  targets::tar_target(
+    PSUTIEA,
+    move_to_exergy(psut_energy = PSUTUsefulIEA,
+                   phi_vecs = Phivecs,
+                   countries = Countries),
+    pattern = map(Countries)),
+
   ## YfuUEIOUfudetailsEnergy
   #  Keep only the details matrices for a different database product
   targets::tar_target(
@@ -490,26 +500,26 @@ list(
     pattern = map(Countries)),
 
 
-  # Extend useful IEA data to exergy -------------------------------------------
-
-  ## PSUTIEA
-  targets::tar_target(
-    PSUTIEA,
-    move_to_exergy(psut_energy = PSUTUsefulIEA,
-                   phi_vecs = Phivecs,
-                   countries = Countries),
-    pattern = map(Countries)),
-
-  ## Product O: YfuUEIOUfudetails
-  #  Also now contains former Product Agg-I: Y_fu_U_EIOU_fu_details_Re_all
+  ## YfuUEIOUfudetailsExergy
   #  Exergy quantification of energy for details matrices
   targets::tar_target(
-    YfuUEIOUfudetails,
+    YfuUEIOUfudetailsExergy,
     extend_details_matrices_to_exergy(YfuUEIOUfudetailsEnergy,
                                       phi_vecs = Phivecs,
                                       countries = Countries),
     pattern = map(Countries)),
 
+
+  ## Product O: YfuUEIOUfudetails
+  #  Also now contains former Product Agg-I: Y_fu_U_EIOU_fu_details_Re_all
+  #  Add regional aggregations
+  targets::tar_target(
+    YfuUEIOUfudetails,
+    region_pipeline(YfuUEIOUfudetailsExergy,
+                    region_aggregation_map = AggregationMaps$region_aggregation,
+                    continent_aggregation_map = AggregationMaps$continent_aggregation,
+                    world_aggregation_map = AggregationMaps$world_aggregation,
+                    countries = Countries)),
 
   # Make PSUT matrices for MW data ---------------------------------------------
 
@@ -625,7 +635,6 @@ list(
   targets::tar_target(
     ListExiobaseEnergyFlows,
     read_list_exiobase_energy_flows(path_to_list_exiobase_energy_flows = ExiobaseEnergyFlowsPath)),
-
 
   ## ExiobaseEftoEuMultipliers
   #  This target is NOT stored in the database.
@@ -831,8 +840,8 @@ list(
     calc_agg_eta_pfu(PSUTReAllChopAllDsAllGrAll,
                      p_industries = unlist(PIndustryPrefixes),
                      fd_sectors = unlist(FinalDemandSectors),
-                     countries = Countries),
-    pattern = map(Countries)),
+                     countries = CountriesRegionsContinentsWorld),
+    pattern = map(CountriesRegionsContinentsWorld)),
 
 
 
@@ -875,10 +884,10 @@ list(
   targets::tar_target(
     ReleaseExiobaseEftoXlossMultipliers,
     PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
-                                           targ = ExiobaseEftoXlossMultipliers,
-                                           pin_name = "exiobase_Ef_to_Xloss_multipliers",
-                                           type = "csv",
-                                           release = Release)),
+                                     targ = ExiobaseEftoXlossMultipliers,
+                                     pin_name = "exiobase_Ef_to_Xloss_multipliers",
+                                     type = "csv",
+                                     release = Release)),
 
   ## Product L: exiobase_Ef_to_Xu_multipliers
   targets::tar_target(
@@ -981,6 +990,7 @@ list(
                    "PSUTUsefulIEAWithDetails",
                    "PSUTUsefulIEA",
                    "YfuUEIOUfudetailsEnergy",
+                   "YfuUEIOUfudetailsExergy",
                    "PSUTIEA",
                    "YfuUEIOUfudetails",
                    "CmatsAgg",
@@ -1023,13 +1033,13 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("Cmats",
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs", "PhivecMW",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecMW", "PhivecsMW",
-              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetails",
+              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetailsExergy", "YfuUEIOUfudetails",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA", "PSUTIEA",
               "PSUTMWEnergy", "BalancedPSUTMW",
               "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
@@ -1037,8 +1047,7 @@ list(
               "CmatsAgg", "EtafuYEIOU",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
-              "PSUTReAll",
-              "AggEtaPFU"),
+              "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
                    "MachineData", "PhiConstants", "CompletedEfficiencyTables", "Phiuvecs",
@@ -1047,6 +1056,7 @@ list(
                    "Cmats", "CmatsAgg",
                    "EtafuYEIOU", "EtafuYEIOUagg",
                    "YfuUEIOUfudetailsEnergy",
+                   "YfuUEIOUfudetailsExergy",
                    "PSUTFinalIEA", "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
                    "PSUTMWEnergy", "PSUTMWAllYears",
                    "PSUTIEA", "PSUTMW", "PSUTIEAMW", "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
@@ -1063,7 +1073,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
               "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
@@ -1079,10 +1089,10 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("PSUTReAllChopAllDsAllGrAll",
-              "Etai", "SectorAggEtaFU"),
+              "Etai", "SectorAggEtaFU", "AggEtaPFU"),
     names_wrap = c("PSUTReAll", "PSUTReAllChopAllDsAllGrAll")) |>
 
 
@@ -1095,7 +1105,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("CompletedAllocationTables"),
     names_wrap = c("SpecifiedIEAData")) |>
@@ -1110,7 +1120,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("CompletedAllocationTables",
               "CompletedEfficiencyTables"),
@@ -1127,7 +1137,7 @@ list(
                                     index_map = IndexMap,
                                     rctypes = MatnameRCType,
                                     conn = conn,
-                                    schema = DM,
+                                    schema = DataModel,
                                     fk_parent_tables = FKTables),
     names = c("ReleaseSectorAggEtaFU", "ReleaseAggEtaPFU"),
     names_wrap = c("SectorAggEtaFU", "AggEtaPFU")) |>
@@ -1151,7 +1161,7 @@ list(
                   version = version_from_hook_outer,
                   index_map = IndexMap,
                   conn = conn,
-                  schema = DM,
+                  schema = DataModel,
                   fk_parent_tables = FKTables,
                   dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
     },
@@ -1161,7 +1171,7 @@ list(
               "AllMachineData", "CompletedEfficiencyTables",
               "PhiConstants", "CompletedPhiuTables", "Phipfvecs", "Phiuvecs",
               "EtafuPhiuvecs", "Etafuvecs", "Phivecs", "PhivecsMW",
-              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetails",
+              "YfuUEIOUfudetailsEnergy", "YfuUEIOUfudetailsExergy", "YfuUEIOUfudetails",
               "CmatsAgg", "EtafuYEIOU",
               "PSUTUsefulIEAWithDetails", "PSUTUsefulIEA",
               "PSUTIEA", "PSUTMWEnergy", "PSUTMWAllYears", "PSUTMW", "PSUTIEAMW",
