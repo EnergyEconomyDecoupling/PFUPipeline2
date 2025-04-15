@@ -31,4 +31,5 @@ agg_eta_pfu |>
   write.csv("~/Desktop/For Gregor/AggEtaPFU.csv")
 
 
-
+agg_eta_pfu |>
+  saveRDS("~/Desktop/For Gregor/AggEtaPFU.rds")
