@@ -14,7 +14,7 @@
 #' @param host The database host.
 #'             Default is "eviz.cs.calvin.edu".
 #' @param port The database port.
-#'             Default is `5432`.
+#'             Default is `6432`.
 #' @param user The database user.
 #'             Default is "postgres".
 #' @param conn The database connection used internally.
