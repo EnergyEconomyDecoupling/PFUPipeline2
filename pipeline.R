@@ -1027,14 +1027,19 @@ list(
   ## is/are the mapped variables.
   ## This is the typical inner hook.
   tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = Countries,
-                                    years = Years,
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DataModel,
-                                    fk_parent_tables = FKTables),
+    # Pick up the version we are working on.
+    hook = {
+      version_from_hook_inner <- clpfu_version
+      download_dependency_hook(.x,
+                               version = version_from_hook_inner,
+                               countries = Countries,
+                               years = Years,
+                               index_map = IndexMap,
+                               rctypes = MatnameRCType,
+                               conn = conn,
+                               schema = DataModel,
+                               fk_parent_tables = FKTables)
+    },
     names = c("Cmats",
               "AMWPFUData", "HMWPFUData",
               "CompletedPhiuTables", "Phipfvecs", "Phiuvecs", "PhivecMW",
@@ -1067,14 +1072,18 @@ list(
   ## An inner hook for targets where AllocAndEffCountries
   ## is the mapped variable
   tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = AllocAndEffCountries,
-                                    years = Years,
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DataModel,
-                                    fk_parent_tables = FKTables),
+    hook = {
+      version_from_hook_inner <- clpfu_version
+      download_dependency_hook(.x,
+                               version = version_from_hook_inner,
+                               countries = AllocAndEffCountries,
+                               years = Years,
+                               index_map = IndexMap,
+                               rctypes = MatnameRCType,
+                               conn = conn,
+                               schema = DataModel,
+                               fk_parent_tables = FKTables)
+    },
     names = c("BalancedBeforeIEA", "BalancedIEAData", "BalancedAfterIEA",
               "SpecifiedIEAData", "PSUTFinalIEA", "IncompleteAllocationTables"),
     names_wrap = c("IEAData", "BalancedIEAData", "SpecifiedIEAData")) |>
@@ -1083,14 +1092,18 @@ list(
   ## An inner hook for targets where CountriesRegionsContinentsWorld
   ## is the mapped variable
   tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = CountriesRegionsContinentsWorld,
-                                    years = Years,
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DataModel,
-                                    fk_parent_tables = FKTables),
+    hook = {
+      version_from_hook_inner <- clpfu_version
+      download_dependency_hook(.x,
+                               version = version_from_hook_inner,
+                               countries = CountriesRegionsContinentsWorld,
+                               years = Years,
+                               index_map = IndexMap,
+                               rctypes = MatnameRCType,
+                               conn = conn,
+                               schema = DataModel,
+                               fk_parent_tables = FKTables)
+    },
     names = c("PSUTReAllChopAllDsAllGrAll",
               "Etai", "SectorAggEtaFU", "AggEtaPFU"),
     names_wrap = c("PSUTReAll", "PSUTReAllChopAllDsAllGrAll")) |>
@@ -1099,14 +1112,18 @@ list(
   ## An inner hook to download only relevant countries and years
   ## of SpecifiedIEAData for the CompletedAllocationTables target
   tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = Countries,
-                                    years = Years,
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DataModel,
-                                    fk_parent_tables = FKTables),
+    hook = {
+      version_from_hook_inner <- clpfu_version
+      download_dependency_hook(.x,
+                               version = version_from_hook_inner,
+                               countries = Countries,
+                               years = Years,
+                               index_map = IndexMap,
+                               rctypes = MatnameRCType,
+                               conn = conn,
+                               schema = DataModel,
+                               fk_parent_tables = FKTables)
+    },
     names = c("CompletedAllocationTables"),
     names_wrap = c("SpecifiedIEAData")) |>
 
@@ -1114,14 +1131,18 @@ list(
   ## An inner hook for downloading data
   ## for all countries but only specific years
   tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = NULL, # Set NULL to download all data
-                                    years = Years,
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DataModel,
-                                    fk_parent_tables = FKTables),
+    hook = {
+      version_from_hook_inner <- clpfu_version
+      download_dependency_hook(.x,
+                               version = version_from_hook_inner,
+                               countries = NULL, # Set NULL to download all data
+                               years = Years,
+                               index_map = IndexMap,
+                               rctypes = MatnameRCType,
+                               conn = conn,
+                               schema = DataModel,
+                               fk_parent_tables = FKTables)
+    },
     names = c("CompletedAllocationTables",
               "CompletedEfficiencyTables"),
     names_wrap = c("IncompleteAllocationTables",
@@ -1131,14 +1152,18 @@ list(
   ## An inner hook for downloading data
   ## for all countries and all years
   tarchetypes::tar_hook_inner(
-    hook = download_dependency_hook(.x,
-                                    countries = NULL, # Set NULL to download all data
-                                    years = NULL,     # Set NULL to download all data
-                                    index_map = IndexMap,
-                                    rctypes = MatnameRCType,
-                                    conn = conn,
-                                    schema = DataModel,
-                                    fk_parent_tables = FKTables),
+    hook = {
+      version_from_hook_inner <- clpfu_version
+      download_dependency_hook(.x,
+                               version_string = version_from_hook_inner,
+                               countries = NULL, # Set NULL to download all data
+                               years = NULL,     # Set NULL to download all data
+                               index_map = IndexMap,
+                               rctypes = MatnameRCType,
+                               conn = conn,
+                               schema = DataModel,
+                               fk_parent_tables = FKTables)
+    },
     names = c("ReleaseSectorAggEtaFU", "ReleaseAggEtaPFU"),
     names_wrap = c("SectorAggEtaFU", "AggEtaPFU")) |>
 

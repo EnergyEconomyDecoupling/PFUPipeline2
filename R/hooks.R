@@ -15,6 +15,7 @@
 #' @param .hashed_dependency A hashed data frame that is the "ticket"
 #'                           for downloading the real data.
 #'                           Usually the result of a prior target.
+#' @param version_string The version to be downloaded from the database.
 #' @param countries The countries that should be downloaded.
 #' @param index_map The mapping between row and column indices and
 #'                  row and column names.
@@ -41,6 +42,7 @@
 #'
 #' @export
 download_dependency_hook <- function(.hashed_dependency,
+                                     version = NULL,
                                      countries = NULL,
                                      years = NULL,
                                      index_map,
@@ -70,7 +72,7 @@ download_dependency_hook <- function(.hashed_dependency,
       dplyr::filter(.data[[year]] %in% years)
   }
   out <- .hashed_dependency |>
-    PFUPipelineTools::pl_collect_from_hash(set_tar_group = TRUE,
+    PFUPipelineTools::pl_collect_from_hash(version_string = version,
                                            index_map = index_map,
                                            rctypes = rctypes,
                                            conn = conn,
@@ -105,7 +107,7 @@ download_dependency_hook <- function(.hashed_dependency,
 #'                Default is `NULL`, meaning that no `dataset_colname` column will be added.
 #'                In this case, the target assumes responsibility for
 #'                managing `dataset_colname`.
-#' @param version The name of the version for which these data are valid.
+#' @param version_string The name of the version for which these data are valid.
 #' @param index_map The mapping for matrix row and column indices,
 #'                  a two-column data frame with an integer column
 #'                  for indices and a string column for names.
@@ -131,7 +133,7 @@ download_dependency_hook <- function(.hashed_dependency,
 upsert_hook <- function(.df,
                         db_table_name,
                         dataset = NULL,
-                        version,
+                        version_string,
                         index_map,
                         retain_zero_structure = TRUE,
                         conn,
@@ -140,6 +142,8 @@ upsert_hook <- function(.df,
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
                         valid_from_version_colname = PFUPipelineTools::dataset_info$valid_from_version_colname,
                         valid_to_version_colname = PFUPipelineTools::dataset_info$valid_to_version_colname) {
+
+  browser()
 
   if (is.null(.df)) {
     return(NULL)
@@ -163,8 +167,8 @@ upsert_hook <- function(.df,
       # Later (with a server-side command),
       # identical rows will be deleted and the valid_to_version
       # entry will be increased.
-      "{valid_from_version_colname}" := version,
-      "{valid_to_version_colname}" := version
+      "{valid_from_version_colname}" := version_string,
+      "{valid_to_version_colname}" := version_string
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     # Upload to the database and return the "ticket"
