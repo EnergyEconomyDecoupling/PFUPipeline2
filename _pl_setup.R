@@ -8,11 +8,11 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
+# countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
-# countries <- "GHA"
+countries <- "GHA"
 # countries <- "USA"
 # countries <- "ZAF"
 # countries <- "WMBK"
@@ -30,9 +30,9 @@ countries <- c(PFUPipelineTools::canonical_countries, "WRLD") |> as.character()
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1960
-# years <- 1971
+years <- 1971
 # years <- 1995
 # years <- 2010
 # years <- 1960:1980
@@ -97,8 +97,8 @@ crew_controller <- crew::crew_controller_local(
 # Dataset and version information ----------------------------------------------
 
 # Tells what database you are targeting
-dbname <- "ScratchMDB"
-# dbname <- "SandboxDB"
+# dbname <- "ScratchMDB"
+dbname <- "SandboxDB"
 
 # Tells what CL-PFU dataset you are creating
 clpfu_dataset <- "CL-PFU"
