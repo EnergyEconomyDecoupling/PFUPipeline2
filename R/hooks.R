@@ -185,7 +185,7 @@ upsert_hook <- function(.df,
                                 # absent.
                                 retain_zero_structure = TRUE,
                                 # Compress the table that has been uploaded.
-                                compress = TRUE,
+                                compress = FALSE,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
