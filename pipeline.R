@@ -23,6 +23,13 @@ list(
     combine_countries_exemplars(Countries, AdditionalExemplarCountries)),
 
 
+  # Install the compress function ----------------------------------------------
+  targets::tar_target(
+    InstallCompressFunction,
+    PFUPipelineTools::install_compress_function(conn = conn)
+  ),
+
+
   # Schema and data model ------------------------------------------------------
 
   ## SchemaFilePath
