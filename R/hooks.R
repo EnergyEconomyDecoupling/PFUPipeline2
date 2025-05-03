@@ -143,8 +143,6 @@ upsert_hook <- function(.df,
                         valid_from_version_colname = PFUPipelineTools::dataset_info$valid_from_version_colname,
                         valid_to_version_colname = PFUPipelineTools::dataset_info$valid_to_version_colname) {
 
-  browser()
-
   if (is.null(.df)) {
     return(NULL)
   }
@@ -188,8 +186,8 @@ upsert_hook <- function(.df,
                                 compress = TRUE,
                                 # Round any double columns to 15 digits to
                                 # assist with comparisons before compressing.
-                                round_double_columns = FALSE,
-                                digits = 3,
+                                round_double_columns = TRUE,
+                                digits = 15,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
