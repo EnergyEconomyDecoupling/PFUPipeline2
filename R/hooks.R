@@ -185,7 +185,11 @@ upsert_hook <- function(.df,
                                 # absent.
                                 retain_zero_structure = TRUE,
                                 # Compress the table that has been uploaded.
-                                compress = FALSE,
+                                compress = TRUE,
+                                # Round any double columns to 15 digits to
+                                # assist with comparisons before compressing.
+                                round_double_columns = FALSE,
+                                digits = 3,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
