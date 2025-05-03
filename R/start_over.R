@@ -24,7 +24,7 @@
 #'
 #' @export
 start_over <- function(drv = RPostgres::Postgres(),
-                       dbname = "SandboxDB",
+                       dbname = "ScratchMDB",
                        host = "mexer.site",
                        port = 6432,
                        user = "dbcreator",
