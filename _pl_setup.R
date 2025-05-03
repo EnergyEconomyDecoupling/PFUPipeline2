@@ -12,13 +12,13 @@
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
-# countries <- "GHA"
+countries <- "GHA"
 # countries <- "USA"
 # countries <- "ZAF"
 # countries <- "WMBK"
 # countries <- "WABK"
 # countries <- "WRLD"
-countries <- c("GHA", "ZAF")
+# countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c("WMBK", "USA")
 # countries <- c("AGO", "BEN", "WMBK")
@@ -97,15 +97,15 @@ crew_controller <- crew::crew_controller_local(
 # Dataset and version information ----------------------------------------------
 
 # Tells what database you are targeting
-# dbname <- "ScratchMDB"
-dbname <- "SandboxDB"
+dbname <- "ScratchMDB"
+# dbname <- "SandboxDB"
 
 # Tells what CL-PFU dataset you are creating
 clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v2.1a2"
+clpfu_version <- "v2.1a1"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -114,7 +114,7 @@ iea_version <- "2022"
 # Tells what FAO dataset you are using
 fao_dataset <- "FAOSTAT"
 
-# Tells what FAO dataset you are using
+# Tells what ILO dataset you are using
 ilo_dataset <- "ILOSTAT"
 
 
