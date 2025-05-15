@@ -17,8 +17,7 @@ on.exit(DBI::dbDisconnect(conn))
 
 
 
-Y_fu_U_EIOU_fu_details <- PFUPipelineTools::pl_filter_collect("YfuUEIOUfudetails",
-                                                              countries = NULL,
+Y_fu_U_EIOU_fu_details <- PFUPipelineTools::pl_filter_collect(db_table_name = "YfuUEIOUfudetails",
                                                               conn = conn,
                                                               collect = TRUE,
                                                               matrix_class = "matrix")
@@ -26,7 +25,6 @@ saveRDS(Y_fu_U_EIOU_fu_details, "~/Desktop/For Emmanuel/YfuUEIOUfudetails.rds")
 
 
 eta_i <- PFUPipelineTools::pl_filter_collect("Etai",
-                                             countries = NULL,
                                              conn = conn,
                                              collect = TRUE,
                                              matrix_class = "matrix")
@@ -36,8 +34,6 @@ saveRDS(eta_i, "~/Desktop/For Emmanuel/Etai.rds")
 
 
 phi_vecs <- PFUPipelineTools::pl_filter_collect("Phivecs",
-                                                datasets = PFUPipelineTools::dataset_info$clpfu,
-                                                countries = NULL,
                                                 conn = conn,
                                                 collect = TRUE,
                                                 matrix_class = "matrix")
@@ -47,7 +43,6 @@ saveRDS(phi_vecs, "~/Desktop/For Emmanuel/Phivecs.rds")
 
 
 psut_Re_all <- PFUPipelineTools::pl_filter_collect("PSUTReAll",
-                                                   countries = NULL,
                                                    conn = conn,
                                                    collect = TRUE,
                                                    matrix_class = "matrix")
