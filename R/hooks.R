@@ -187,7 +187,7 @@ upsert_hook <- function(.df,
                                 # Round any double columns to 15 digits to
                                 # assist with comparisons before compressing.
                                 round_double_columns = TRUE,
-                                digits = 15,
+                                digits = 14,
                                 conn = conn,
                                 schema = schema,
                                 fk_parent_tables = fk_parent_tables)
