@@ -32,13 +32,13 @@ countries <- "GHA"
 # Set the years for IEA data analysis
 # years <- 1960:2020
 # years <- 1960
-# years <- 1971
+years <- 1971
 # years <- 1995
 # years <- 2010
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
-years <- 1971:1972
+# years <- 1971:1972
 # years <- 1971:1980
 # years <- 1997:1998
 
@@ -105,7 +105,7 @@ clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v2.1a1"
+clpfu_version <- "v2.1a2"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
