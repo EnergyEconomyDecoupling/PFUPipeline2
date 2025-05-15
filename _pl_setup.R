@@ -12,13 +12,13 @@
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
-countries <- "GHA"
+# countries <- "GHA"
 # countries <- "USA"
 # countries <- "ZAF"
 # countries <- "WMBK"
 # countries <- "WABK"
 # countries <- "WRLD"
-# countries <- c("GHA", "ZAF")
+countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c("WMBK", "USA")
 # countries <- c("AGO", "BEN", "WMBK")
@@ -32,13 +32,13 @@ countries <- "GHA"
 # Set the years for IEA data analysis
 # years <- 1960:2020
 # years <- 1960
-years <- 1971
+# years <- 1971
 # years <- 1995
 # years <- 2010
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
-# years <- 1971:1972
+years <- 1971:1972
 # years <- 1971:1980
 # years <- 1997:1998
 
@@ -65,6 +65,9 @@ apply_fixes <- TRUE
 
 # Should we do a release?
 release <- FALSE
+
+# Should we compress data across versions upon upsert to a table?
+compress_data <- TRUE
 
 # For parallel processing.
 # Set worker_threads equal to or slightly less than
@@ -130,7 +133,7 @@ project_path <- file.path("~",
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- FALSE
+reset_schema <- TRUE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
