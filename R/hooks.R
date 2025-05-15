@@ -107,6 +107,9 @@ download_dependency_hook <- function(.hashed_dependency,
 #'                Default is `NULL`, meaning that no `dataset_colname` column will be added.
 #'                In this case, the target assumes responsibility for
 #'                managing `dataset_colname`.
+#' @param compress_data A boolean that tells whether to compress data
+#'                      across versions upon upserting to a table.
+#'                      Default is `TRUE`.
 #' @param version_string The name of the version for which these data are valid.
 #' @param index_map The mapping for matrix row and column indices,
 #'                  a two-column data frame with an integer column
@@ -133,6 +136,7 @@ download_dependency_hook <- function(.hashed_dependency,
 upsert_hook <- function(.df,
                         db_table_name,
                         dataset = NULL,
+                        compress_data = TRUE,
                         version_string,
                         index_map,
                         retain_zero_structure = TRUE,
@@ -182,9 +186,9 @@ upsert_hook <- function(.df,
                                 # other matrices when they're otherwise
                                 # absent.
                                 retain_zero_structure = TRUE,
-                                # Compress the table that has been uploaded.
-                                compress = TRUE,
-                                # Round any double columns to 15 digits to
+                                # Should we compress the table across verions?
+                                compress = compress_data,
+                                # Round any double columns to 14 digits to
                                 # assist with comparisons before compressing.
                                 round_double_columns = TRUE,
                                 digits = 14,

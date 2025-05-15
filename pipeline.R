@@ -1190,6 +1190,7 @@ list(
       upsert_hook(.x,
                   db_table_name = db_table_name_from_hook_outer,
                   dataset = dataset_from_hook,
+                  compress_data = compress_data,
                   version = version_from_hook_outer,
                   index_map = IndexMap,
                   conn = conn,
