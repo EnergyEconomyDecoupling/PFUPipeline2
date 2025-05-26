@@ -5,12 +5,13 @@
 # creating the CL-PFU database.
 # Duplicate this file and rename to "local_setup.R"
 
+# For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
 
 # Countries --------------------------------------------------------------------
 
-# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
 # countries <- "AGO"
-countries <- "BEN" # First country with no EIOU
+# countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
 # countries <- "GHA"
 # countries <- "USA"
@@ -30,7 +31,7 @@ countries <- "BEN" # First country with no EIOU
 # Years ------------------------------------------------------------------------
 
 # Set the years for IEA data analysis
-# years <- 1960:2020
+years <- 1960:2020
 # years <- 1960
 # years <- 1971
 # years <- 1996
@@ -40,7 +41,7 @@ countries <- "BEN" # First country with no EIOU
 # years <- 1995:1996
 # years <- 1971:1972
 # years <- 1971:1990
-years <- 1995:1996
+# years <- 1995:1996
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -67,9 +68,6 @@ release <- FALSE
 
 # Should we compress data across versions upon upsert to a table?
 compress_data <- FALSE
-
-# Are we debugging? If true, also tar_make(callr_function = NULL)
-debug_pipeline <- TRUE
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
