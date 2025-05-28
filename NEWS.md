@@ -4,6 +4,9 @@ output: html_document
 ---
 
 
+* Added a report script for Joao Santos query from May 2025.
+
+
 ## PFUPipeline2 v0.2.1 (2025-05-27) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15531641.svg)](https://doi.org/10.5281/zenodo.15531641)
 
 * Beginning to deal with multiple versions.
