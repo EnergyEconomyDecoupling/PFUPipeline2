@@ -5,7 +5,8 @@
 # creating the CL-PFU database.
 # Duplicate this file and rename to "local_setup.R"
 
-# For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
+# For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE),
+# set crew_controller <- FALSE
 # and
 # (1) insert browser() calls for functions in PFUPipeline2
 # (2) set breakpoints in functions from other packages.
@@ -36,6 +37,7 @@ years <- 1960:2020
 # years <- 1971
 # years <- 1996
 # years <- 2010
+# years <- 2013
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
@@ -115,6 +117,9 @@ crew_controller <- crew::crew_controller_local(
   workers = worker_threads,
   seconds_idle = 60,
   r_arguments = "--max-connections=512")
+
+# Debugging
+# crew_controller <- NULL
 
 # Directory for input and output data ------------------------------------------
 project_path <- file.path("~",
