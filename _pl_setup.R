@@ -29,6 +29,40 @@ countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.chara
 # countries <- c("AGO", "BEN", "WMBK")
 # countries <- c("AGO", "BEN", "WMBK", "WABK", "WRLD", "GHA", "ZAF")
 
+# Moved this code from _targets.R on 22 July 2025.
+# If things are still working after, say,
+# 22 Aug 2025, this comment can be deleted.
+# ---MKH
+
+# Additional exemplar countries are countries which aren't included in the workflow
+# as individual countries, but from which allocation or efficiency data may be
+# obtained and assigned to countries in the workflow using the exemplar system.
+additional_exemplar_countries <- c("AFRI", # Africa
+                                   "ASIA", # Asia
+                                   "EURP", # Europe
+                                   "MIDE", # Middle East
+                                   "NAMR", # North America
+                                   "OCEN", # Oceania
+                                   "SAMR", # South America
+                                   "BUNK") # Bunkers
+
+# WRLD should not be in both countries and additional_exemplar_countries
+if (("WRLD" %in% countries) & ("WRLD" %in% additional_exemplar_countries)) {
+  # Seems like we don't need this bit of code, because "WRLD"
+  # is not even in additional_exemplar_countries.
+  # I'm commenting the code in this if statement on 22 July 2025.
+  # If things are still working after, say, 22 Aug 2025,
+  # we can delete this if statement. ---MKH
+
+  # Remove WRLD from additional_exemplar_countries
+  additional_exemplar_countries <- additional_exemplar_countries[!(additional_exemplar_countries == "WRLD")]
+}
+
+# WRLD should always be in countries or in additional_exemplar_countries.
+if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
+  # Add WRLD to additional_exemplar_countries
+  additional_exemplar_countries <- c("WRLD", additional_exemplar_countries)
+}
 
 # Years ------------------------------------------------------------------------
 
