@@ -4,6 +4,7 @@ output: html_document
 ---
 
 
+* Organized code between _targets.R and _pl_setup.R.
 * Added a report script for Baptiste Andrieu query
   from June 2025.
 * Added a report script for Joao Santos query from May 2025.
