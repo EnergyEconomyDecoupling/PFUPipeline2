@@ -4,6 +4,7 @@ output: html_document
 ---
 
 
+* Fixed the calc_Ef_to_Xloss_exiobase function as there was a mistake in code.
 * Added a report script for Joao Santos query from May 2025.
 
 

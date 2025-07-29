@@ -683,7 +683,7 @@ list(
   #  This target is NOT stored in the database.
   targets::tar_target(
     ExiobaseEftoXuMultipliers,
-    calc_Ef_to_Xu_exiobase(EtafuYEIOU_mats = EtafuYEIOU,
+    calc_Ef_to_Xu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
                            phi_vecs = Phivecs,
                            eta_fu_phi_Y_EIOU_agg = EtafuPhiYEIOUagg,
                            years_exiobase = ExiobaseYears,
@@ -695,7 +695,12 @@ list(
   #  This target is NOT stored in the database.
   targets::tar_target(
     ExiobaseEftoXlossMultipliers,
-    calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
+    calc_Ef_to_Xloss_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
+                              eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
+                              phi_vecs = Phivecs,
+                              years_exiobase = ExiobaseYears,
+                              full_list_exiobase_flows = ListExiobaseEnergyFlows,
+                              country_concordance_table_df = CountryConcordanceTable)),
 
 
   # Remove NEU -----------------------------------------------------------------
