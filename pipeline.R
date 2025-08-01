@@ -1064,6 +1064,7 @@ list(
               "CmatsAgg", "EtafuYEIOU",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
+              "ExiobaseEftoXlossMultipliers",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
