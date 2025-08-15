@@ -175,6 +175,7 @@ calc_fu_Y_EIOU_agg_efficiencies <- function(C_mats_agg,
 #' @param matvals The name of the column containing matrices values after unpacking the matrices
 #' @param rowtypes The name of the column containing the matrices row types names after unpacking the matrices
 #' @param coltypes The name of the column containing matrices column types after unpacking the matrices
+#' @param energy_type_E The energy type to filter for the efficiencies
 #' @param eta_p_eiou The name of the column containing the efficiencies for products used in EIOU
 #' @param eta_p_eiou_y The name of the column containing the efficiencies for products used in final demand.
 #' @param country,year,product,flow,method,energy_type,last_stage See `IEATools::iea_cols`.
@@ -984,4 +985,210 @@ calc_Ef_to_Xu_exiobase <- function(eta_fu_Y_EIOU_mats,
     tidyr::pivot_wider(names_from = dplyr::all_of(year), values_from = dplyr::all_of(phi_eta_X))
 
   return(Ef_to_Xu_multipliers)
+}
+
+
+#' Calculates the final exergy to useful exergy multipliers
+#'
+#' @param eta_fu_Y_EIOU_mats The input data frame containing matrices with all the efficiencies by final demand sector and energy industry
+#' @param eta_fu_Y_EIOU_agg The input data frame containing matrices with the economy-wide efficiencies by energy product
+#' @param countries The countries to analyze.
+#' @param years_exiobase The years for which the coefficients are provided to the Exiobase team
+#' @param full_list_exiobase_flows The full list of energy flows used in the Exiobase pipeline led by KR
+#' @param country_concordance_table_df A data frame containing the country concordance table
+#' @param useful_energy_flow The name of the column stating whether a flow is a final energy flow or not
+#' @param exiobase_flow The name of the column stating the name of the Exiobase flow
+#' @param pfu_code The name of the column containing the PFU country name
+#' @param pfu_flow The name of the column containing the PFU flow names
+#' @param iea_country_name The name of the column containing the IEA country name
+#' @param iea_country_name_accented The name of the column containing the IEA country name with accents
+#' @param phi The name of the column containing the phi values
+#' @param matnames The name of the column containing matrices names after unpacking the matrices
+#' @param colnames The name of the column containing the column names after unpacking the matrices
+#' @param matvals The name of the column containing matrices values after unpacking the matrices
+#' @param rowtypes The name of the column containing the matrices row types names after unpacking the matrices
+#' @param coltypes The name of the column containing matrices column types after unpacking the matrices
+#' @param energy_type_X The energy type to filter for the efficiencies
+#' @param eta_p_eiou The name of the column containing the efficiencies for products used in EIOU
+#' @param eta_p_eiou_y The name of the column containing the efficiencies for products used in final demand.
+#' @param country,year,product,flow,method,energy_type,last_stage See `IEATools::iea_cols`.
+#' @param energy_type_E The letter standing for energy as energy type.
+#' @param eta_fu_Y_X The name of the the column containing the efficiencies of products when used as part of final demand.
+#' @param eta_fu_EIOU_X The name of the column containing the efficiencies of products when used as part of the EIOU matrix.
+#' @param eta The name of the column containing the efficiencies.
+#'
+#' @return A dataframe of the final energy to useful energy multipliers
+#'
+#' @export
+calc_Xf_to_Xu_exiobase <- function(eta_fu_Y_EIOU_mats,
+                                   eta_fu_Y_EIOU_agg,
+                                   years_exiobase,
+                                   full_list_exiobase_flows,
+                                   country_concordance_table_df,
+                                   useful_energy_flow = "Useful.energy.flow",
+                                   exiobase_flow = "Exiobase.Flow",
+                                   pfu_code = "PFU.code",
+                                   pfu_flow = "PFU.flow",
+                                   iea_country_name = "IEA.country.name",
+                                   iea_country_name_accented = "IEA.name.accented",
+                                   phi = "phi",
+                                   matnames = "matnames",
+                                   colnames = "colnames",
+                                   matvals = "matvals",
+                                   rowtypes = "rowtypes",
+                                   coltypes = "coltypes",
+                                   energy_type_X = IEATools::energy_types$x,
+                                   country = IEATools::iea_cols$country,
+                                   product = IEATools::iea_cols$product,
+                                   year = IEATools::iea_cols$year,
+                                   flow = IEATools::iea_cols$flow,
+                                   method = IEATools::iea_cols$method,
+                                   energy_type = IEATools::iea_cols$energy_type,
+                                   last_stage = IEATools::iea_cols$last_stage,
+                                   eta_p_eiou = "eta_p_eiou",
+                                   eta_p_eiou_y = "eta_p_eiou_y",
+                                   eta_fu_Y_X = "etafu_Y_X",
+                                   eta_fu_EIOU_X = "etafu_EIOU_X",
+                                   eta = "eta"){
+
+  # Filtering out non useful energy flows
+  # So here we remove non-energy uses and losses
+  list_useful_energy_flows <- full_list_exiobase_flows |>
+    dplyr::filter(.data[[useful_energy_flow]] == TRUE) |>
+    dplyr::select(tidyselect::all_of(c(exiobase_flow, pfu_flow)))
+
+  # Expanding the EIOU-wide efficiencies data frame to prepare the join
+  temp <- eta_fu_Y_EIOU_agg |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::filter(.data[[energy_type]] == energy_type_X)
+
+  if (nrow(temp) == 0) {
+    # Nothing to do here!
+    return(NULL)
+  }
+
+  # Determining the average efficiency, by product, at the EIOU-wide level.
+  # This is needed for some Exiobase EIOU flows for which there is no direct match in the PFU database and for which we use a EIOU-wide value.
+  # In practice we use the Economy-wide efficiency as proxy for the EIOU-wide efficiency to avoid issues due to missing values
+  eta_fu_EIOU_wide_df <- temp |>
+    # REPLACE THE TWO LINES COMMENTED OUT FOR FINAL VERSION.
+    # dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou))) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou_y))) |>
+    # tidyr::pivot_longer(cols = tidyselect::any_of(eta_p_eiou), values_to = matvals, names_to = matnames) |>
+    tidyr::pivot_longer(cols = tidyselect::any_of(eta_p_eiou_y), values_to = matvals, names_to = matnames) |>
+    # This will need to go, too.
+    dplyr::filter(! is.null(.data[[matvals]])) |>
+    matsindf::expand_to_tidy() |>
+    dplyr::rename(
+      "{product}" := rownames,
+      "{eta}" := dplyr::all_of(matvals)
+    ) |>
+    dplyr::select(tidyselect::all_of(c(country, method, energy_type, year, product, eta))) |>
+    dplyr::mutate(
+      "{pfu_flow}" := "EIOU-wide",
+      "{last_stage}" := "Final"
+    )
+
+  # Expanding the final-to-useful efficiencies to prepare the join
+  eta_fu_df <- eta_fu_Y_EIOU_mats |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, last_stage, year, eta_fu_Y_X, eta_fu_EIOU_X))) |>
+    tidyr::pivot_longer(cols = tidyr::ends_with("_X"), names_to = matnames, values_to = matvals) |>
+    # This will need to go
+    dplyr::filter(! is.null(.data[[matvals]])) |>
+    matsindf::expand_to_tidy(rownames = product, colnames = pfu_flow) |>
+    dplyr::select(-tidyselect::all_of(c(rowtypes, coltypes, matnames))) |>
+    dplyr::rename(
+      "{eta}" := dplyr::all_of(matvals)
+    ) |>
+    dplyr::filter(.data[[product]] %in% IEATools::products) |>
+    # Binding here the EIOU-wide values as these will have to be matched to Exiobase flows too
+    dplyr::bind_rows(eta_fu_EIOU_wide_df) |>
+    dplyr::filter(.data[[eta]] != 0) |>
+    dplyr::mutate("{energy_type}" := energy_type_X)
+
+  # Expanding the economy-wide efficiencies data frame to prepare the join
+  # These ones are not directly matched to a Exiobase flow but are used as a backstop if there is no multiplier
+  # matching the Exiobase flow when KR processes these results to produce the vectors in the Exiobase pipeline
+  eta_fu_economy_wide_df <- eta_fu_Y_EIOU_agg |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::filter(.data[[energy_type]] == energy_type_X) |>
+    dplyr::select(tidyselect::any_of(c(country, method, energy_type, year, eta_p_eiou_y))) |>
+    tidyr::pivot_longer(cols = eta_p_eiou_y, values_to = matvals, names_to = matnames) |>
+    # This will need to go
+    dplyr::filter(! is.null(.data[[matvals]])) |>
+    matsindf::expand_to_tidy() |>
+    dplyr::rename(
+      "{product}" := rownames,
+      "{pfu_code}" := dplyr::all_of(country),
+      "{eta}" := dplyr::all_of(matvals)
+    ) |>
+    dplyr::select(tidyselect::all_of(c(pfu_code, method, energy_type, year, product, eta))) |>
+    dplyr::mutate("{exiobase_flow}" := "Economy-wide") |>
+    dplyr::filter(.data[[eta]] != 0)
+
+  # Preparing the (Country, Year, Product) list
+  country_year_product_list <- eta_fu_df |>
+    dplyr::filter(.data[[year]] %in% years_exiobase) |>
+    dplyr::select(tidyselect::all_of(c(country, year, product))) |>
+    dplyr::distinct()
+
+  # List of Exiobase flows to be joined to the PFU results
+  expanded_exiobase_Ue_flows <- list_useful_energy_flows |>
+    tidyr::expand_grid(country_year_product_list) |>
+    dplyr::relocate(tidyselect::all_of(c(exiobase_flow, pfu_flow)), .after = dplyr::all_of(year))
+
+  # Now, joining to ascribe each Exiobase flow a PFU flow
+  Xf_to_Xu_multipliers <- expanded_exiobase_Ue_flows |>
+    dplyr::left_join(eta_fu_df, by = c(country, year, product, pfu_flow)) |>
+    dplyr::filter(!is.na(.data[[eta]])) |>
+    dplyr::rename(
+      "{pfu_code}" := dplyr::all_of(country)
+    ) |>
+    dplyr::select(-tidyselect::all_of(pfu_flow)) |>
+    # And binding here the economy-wide multipliers to be used by KR as backstop
+    dplyr::bind_rows(eta_fu_economy_wide_df) |>
+    dplyr::left_join(country_concordance_table_df %>% dplyr::select(tidyselect::all_of(c(iea_country_name_accented, pfu_code))),
+                     by = pfu_code) |>
+    dplyr::select(-tidyselect::all_of(pfu_code)) |>
+    dplyr::rename(
+      "{iea_country_name}" := dplyr::all_of(iea_country_name_accented),
+      "{flow}" := dplyr::all_of(exiobase_flow)
+    ) |>
+    dplyr::filter(!is.na(.data[[iea_country_name]])) |>
+    dplyr::select(tidyselect::all_of(c(iea_country_name, year, product, flow, eta))) |>
+    dplyr::relocate(tidyselect::all_of(flow), .before = dplyr::all_of(product)) |>
+    tidyr::pivot_wider(names_from = dplyr::all_of(year), values_from = dplyr::all_of(eta))
+
+  return(Xf_to_Xu_multipliers)
+}
+
+
+
+
+#' Calculates the final exergy to exergy losses multipliers
+#'
+#' @param ExiobaseXftoXuMultipliers_df The data frame of final exergy to useful exergy multipliers previously calculated
+#'
+#' @return A data frame of the final exergy to exergy losses multipliers
+#'
+#' @export
+calc_Xf_to_Xloss_exiobase <- function(ExiobaseXftoXuMultipliers_df) {
+
+  if (is.null(ExiobaseXftoXuMultipliers_df)) {
+    # Nothing to be done here!
+    return(NULL)
+  }
+
+  Xf_to_Xloss_multipliers <- ExiobaseXftoXuMultipliers_df |>
+    # Conditional if mutate to avoid putting 100% where efficiency is 0; which corresponds to a missing efficiency anyway.
+    # However we are now filtering out 0 efficiencies in the calc_Ef_to_Eu_exiobase() function to help identify potentially missing efficiencies
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::where(is.double), ~ dplyr::case_when(.x == 0 ~ .x,
+                                                    .x >= 1 ~ 0,
+                                                    TRUE ~ 1 - .x)
+      )
+    )
+  return(Xf_to_Xloss_multipliers)
 }

@@ -702,6 +702,23 @@ list(
                               full_list_exiobase_flows = ListExiobaseEnergyFlows,
                               country_concordance_table_df = CountryConcordanceTable)),
 
+  ## ExiobaseXftoXuMultipliers
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseXftoXuMultipliers,
+    calc_Xf_to_Xu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
+                           eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
+                           years_exiobase = ExiobaseYears,
+                           full_list_exiobase_flows = ListExiobaseEnergyFlows,
+                           country_concordance_table_df = CountryConcordanceTable)),
+
+  ## ExiobaseXftoXlossMultipliers
+  #  Multiplier to go from final energy to exergy losses
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseXftoXlossMultipliers,
+    calc_Xf_to_Xloss_exiobase(ExiobaseXftoXuMultipliers)),
+
 
   # Remove NEU -----------------------------------------------------------------
 
@@ -1063,7 +1080,7 @@ list(
               "PSUTWithNEU", "PSUTWithoutNEU", "PSUT",
               "CmatsAgg", "EtafuYEIOU",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
-              "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
+              "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers", "ExiobaseXftoXuMultipliers",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
