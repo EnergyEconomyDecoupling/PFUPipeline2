@@ -927,6 +927,24 @@ list(
                                      type = "csv",
                                      release = Release)),
 
+  ## exiobase_Xf_to_Xu_multipliers
+  targets::tar_target(
+    ReleaseExiobaseXftoXuMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseXftoXuMultipliers,
+                                     pin_name = "exiobase_Xf_to_Xu_multipliers",
+                                     type = "csv",
+                                     release = Release)),
+
+  ## exiobase_Xf_to_Xloss_multipliers
+  targets::tar_target(
+    ReleaseExiobaseXftoXlossMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseXftoXlossMultipliers,
+                                     pin_name = "exiobase_Xf_to_Xloss_multipliers",
+                                     type = "csv",
+                                     release = Release)),
+
   ## Product Agg-B: sector_agg_eta_fu_csv
   targets::tar_target(
     ReleaseSectorAggEtaFU,
