@@ -1185,7 +1185,7 @@ list(
     hook = {
       version_from_hook_inner <- clpfu_version
       download_dependency_hook(.x,
-                               version_string = version_from_hook_inner,
+                               version = version_from_hook_inner,
                                countries = NULL, # Set NULL to download all data
                                years = NULL,     # Set NULL to download all data
                                index_map = IndexMap,
