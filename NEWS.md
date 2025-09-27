@@ -4,9 +4,11 @@ output: html_document
 ---
 
 
+* Added a report script for Avery Sugg (University of Texas)
 * Organized code between _targets.R and _pl_setup.R.
 * Added a report script for Baptiste Andrieu query
   from June 2025.
+* Fixed the calc_Ef_to_Xloss_exiobase function as there was a mistake in code.
 * Added a report script for Joao Santos query from May 2025.
 
 

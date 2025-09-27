@@ -683,7 +683,7 @@ list(
   #  This target is NOT stored in the database.
   targets::tar_target(
     ExiobaseEftoXuMultipliers,
-    calc_Ef_to_Xu_exiobase(EtafuYEIOU_mats = EtafuYEIOU,
+    calc_Ef_to_Xu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
                            phi_vecs = Phivecs,
                            eta_fu_phi_Y_EIOU_agg = EtafuPhiYEIOUagg,
                            years_exiobase = ExiobaseYears,
@@ -695,7 +695,29 @@ list(
   #  This target is NOT stored in the database.
   targets::tar_target(
     ExiobaseEftoXlossMultipliers,
-    calc_Ef_to_Xloss_exiobase(ExiobaseEftoXuMultipliers)),
+    calc_Ef_to_Xloss_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
+                              eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
+                              phi_vecs = Phivecs,
+                              years_exiobase = ExiobaseYears,
+                              full_list_exiobase_flows = ListExiobaseEnergyFlows,
+                              country_concordance_table_df = CountryConcordanceTable)),
+
+  ## ExiobaseXftoXuMultipliers
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseXftoXuMultipliers,
+    calc_Xf_to_Xu_exiobase(eta_fu_Y_EIOU_mats = EtafuYEIOU,
+                           eta_fu_Y_EIOU_agg = EtafuYEIOUagg,
+                           years_exiobase = ExiobaseYears,
+                           full_list_exiobase_flows = ListExiobaseEnergyFlows,
+                           country_concordance_table_df = CountryConcordanceTable)),
+
+  ## ExiobaseXftoXlossMultipliers
+  #  Multiplier to go from final energy to exergy losses
+  #  This target is NOT stored in the database.
+  targets::tar_target(
+    ExiobaseXftoXlossMultipliers,
+    calc_Xf_to_Xloss_exiobase(ExiobaseXftoXuMultipliers)),
 
 
   # Remove NEU -----------------------------------------------------------------
@@ -905,6 +927,24 @@ list(
                                      type = "csv",
                                      release = Release)),
 
+  ## exiobase_Xf_to_Xu_multipliers
+  targets::tar_target(
+    ReleaseExiobaseXftoXuMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseXftoXuMultipliers,
+                                     pin_name = "exiobase_Xf_to_Xu_multipliers",
+                                     type = "csv",
+                                     release = Release)),
+
+  ## exiobase_Xf_to_Xloss_multipliers
+  targets::tar_target(
+    ReleaseExiobaseXftoXlossMultipliers,
+    PFUPipelineTools::release_target(pipeline_releases_folder = PipelineReleasesFolder,
+                                     targ = ExiobaseXftoXlossMultipliers,
+                                     pin_name = "exiobase_Xf_to_Xloss_multipliers",
+                                     type = "csv",
+                                     release = Release)),
+
   ## Product Agg-B: sector_agg_eta_fu_csv
   targets::tar_target(
     ReleaseSectorAggEtaFU,
@@ -1059,6 +1099,7 @@ list(
               "CmatsAgg", "EtafuYEIOU",
               "EtafuPhiYEIOUagg", "EtafuYEIOUagg",
               "ExiobaseEftoEuMultipliers", "ExiobaseEftoXfMultipliers", "ExiobaseEftoXuMultipliers",
+              "ExiobaseEftoXlossMultipliers", "ExiobaseXftoXuMultipliers", "ExiobaseXftoXlossMultipliers",
               "PSUTReAll"),
     names_wrap = c("CompletedAllocationTables",
                    "AMWPFUDataRaw", "HMWPFUDataRaw", "HMWPFUData", "AMWPFUData",
@@ -1162,7 +1203,7 @@ list(
     hook = {
       version_from_hook_inner <- clpfu_version
       download_dependency_hook(.x,
-                               version_string = version_from_hook_inner,
+                               version = version_from_hook_inner,
                                countries = NULL, # Set NULL to download all data
                                years = NULL,     # Set NULL to download all data
                                index_map = IndexMap,
