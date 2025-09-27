@@ -4,6 +4,8 @@ output: html_document
 ---
 
 
+## PFUPipeline2 v0.2.2 (2025-09-26)
+
 * Added a report script for Avery Sugg (University of Texas)
 * Organized code between _targets.R and _pl_setup.R.
 * Added a report script for Baptiste Andrieu query
