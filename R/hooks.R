@@ -15,7 +15,7 @@
 #' @param .hashed_dependency A hashed data frame that is the "ticket"
 #'                           for downloading the real data.
 #'                           Usually the result of a prior target.
-#' @param version_string The version to be downloaded from the database.
+#' @param version The version to be downloaded from the database.
 #' @param countries The countries that should be downloaded.
 #' @param index_map The mapping between row and column indices and
 #'                  row and column names.

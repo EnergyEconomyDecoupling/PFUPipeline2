@@ -5,7 +5,8 @@
 # creating the CL-PFU database.
 # Duplicate this file and rename to "local_setup.R"
 
-# For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
+# For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE),
+# set crew_controller <- FALSE
 # and
 # (1) insert browser() calls for functions in PFUPipeline2
 # (2) set breakpoints in functions from other packages.
@@ -28,6 +29,40 @@ countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.chara
 # countries <- c("AGO", "BEN", "WMBK")
 # countries <- c("AGO", "BEN", "WMBK", "WABK", "WRLD", "GHA", "ZAF")
 
+# Moved this code from _targets.R on 22 July 2025.
+# If things are still working after, say,
+# 22 Aug 2025, this comment can be deleted.
+# ---MKH
+
+# Additional exemplar countries are countries which aren't included in the workflow
+# as individual countries, but from which allocation or efficiency data may be
+# obtained and assigned to countries in the workflow using the exemplar system.
+additional_exemplar_countries <- c("AFRI", # Africa
+                                   "ASIA", # Asia
+                                   "EURP", # Europe
+                                   "MIDE", # Middle East
+                                   "NAMR", # North America
+                                   "OCEN", # Oceania
+                                   "SAMR", # South America
+                                   "BUNK") # Bunkers
+
+# WRLD should not be in both countries and additional_exemplar_countries
+if (("WRLD" %in% countries) & ("WRLD" %in% additional_exemplar_countries)) {
+  # Seems like we don't need this bit of code, because "WRLD"
+  # is not even in additional_exemplar_countries.
+  # I'm commenting the code in this if statement on 22 July 2025.
+  # If things are still working after, say, 22 Aug 2025,
+  # we can delete this if statement. ---MKH
+
+  # Remove WRLD from additional_exemplar_countries
+  additional_exemplar_countries <- additional_exemplar_countries[!(additional_exemplar_countries == "WRLD")]
+}
+
+# WRLD should always be in countries or in additional_exemplar_countries.
+if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
+  # Add WRLD to additional_exemplar_countries
+  additional_exemplar_countries <- c("WRLD", additional_exemplar_countries)
+}
 
 # Years ------------------------------------------------------------------------
 
@@ -36,6 +71,7 @@ years <- 1960:2020
 # years <- 1971
 # years <- 1996
 # years <- 2010
+# years <- 2013
 # years <- 1960:1980
 # years <- 1995:2020
 # years <- 1995:1996
@@ -83,7 +119,7 @@ clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v2.1a2"
+clpfu_version <- "v2.1a3"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -115,6 +151,9 @@ crew_controller <- crew::crew_controller_local(
   workers = worker_threads,
   seconds_idle = 60,
   r_arguments = "--max-connections=512")
+
+# Debugging
+# crew_controller <- NULL
 
 # Directory for input and output data ------------------------------------------
 project_path <- file.path("~",
