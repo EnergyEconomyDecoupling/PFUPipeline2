@@ -1,20 +1,21 @@
 # This script saves Germany natural gas consumption for
-# Carey King (University of Texas Energy Institute)
-# requested these data on 2 December 2024.
+# Carey King (University of Texas Energy Institute) and
+# Avery Sugg (also University of Texas).
 #
 # See emails among Avery, Carey, and me from April 2025.
-#
 # Also, see emails and discussion with Carey and Avery Suggs
-# around 18 Sept 2025
+# around 18 Sept 2025.
 
-# Request for starters:
+# This is a data delivery to get things started:
 # Germany 2019
 # Downstream swim from imported Natural gas
-# Also entire ECC for that year
+# Also the entire ECC for that year.
+# All data are in energy, not exergy.
 
-# Work on the scratchMDB, because that's where we have the
+# Working in scratchMDB, because that's where we have the
 # most up-to-date version of the database at this time.
 conn <- PFUPipelineTools::get_scratchmdb_conn()
+on.exit(DBI::dbDisconnect(conn))
 
 # Extract data for Germany 2019.
 # Energy only.
@@ -24,7 +25,7 @@ deu_2019 <- PFUPipelineTools::pl_filter_collect("PSUT",
                                                 Country == "DEU",
                                                 Year == 2019,
                                                 EnergyType == "E",
-                                                LastStage == "Useful",
+                                                # LastStage == "Useful",
                                                 IncludesNEU == TRUE,
                                                 conn = conn,
                                                 collect = TRUE)
@@ -53,7 +54,7 @@ for_avery <- dplyr::bind_rows(deu_2019 |>
                               downstream_swim |>
                                 dplyr::mutate(Swim = "downstream")) |>
   dplyr::mutate(
-    WorksheetNames = paste(Year, Swim, Country, sep = "_")
+    WorksheetNames = paste(Year, LastStage, Swim, Country, sep = "_")
   )
 
 for_avery |>
@@ -61,7 +62,4 @@ for_avery |>
                             worksheet_names = "WorksheetNames",
                             overwrite_file = TRUE)
 
-
-
-
-on.exit(DBI::dbDisconnect(conn))
+DBI::dbDisconnect(conn)
