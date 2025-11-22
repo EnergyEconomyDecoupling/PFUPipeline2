@@ -13,7 +13,7 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
@@ -25,9 +25,18 @@ countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.chara
 # countries <- "WRLD"
 # countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
+# countries <- c("USA", "AUS")
 # countries <- c("WMBK", "USA")
 # countries <- c("AGO", "BEN", "WMBK")
 # countries <- c("AGO", "BEN", "WMBK", "WABK", "WRLD", "GHA", "ZAF")
+# Countries with updated Road information as of 21 November 2025
+countries <- c("AUS", "AUT", "BEL", "BRA", "CAN", "CHL", "CYP", "CZE", "DEU", "DNK",
+               "ESP", "FIN", "FRA", "GRC", "HKG", "HRV", "HUN", "IRL", "ITA", "JPN",
+               "KOR", "LTU", "LUX", "LVA", "MAR", "NLD", "NZL", "POL", "PRT", "ROU",
+               "SLV", "SVN", "SWE", "SWZ", "URY", "USA")
+
+
+
 
 # Moved this code from _targets.R on 22 July 2025.
 # If things are still working after, say,
@@ -55,7 +64,7 @@ if (("WRLD" %in% countries) & ("WRLD" %in% additional_exemplar_countries)) {
   # we can delete this if statement. ---MKH
 
   # Remove WRLD from additional_exemplar_countries
-  additional_exemplar_countries <- additional_exemplar_countries[!(additional_exemplar_countries == "WRLD")]
+  # additional_exemplar_countries <- additional_exemplar_countries[!(additional_exemplar_countries == "WRLD")]
 }
 
 # WRLD should always be in countries or in additional_exemplar_countries.
@@ -78,6 +87,7 @@ years <- 1960:2020
 # years <- 1971:1972
 # years <- 1971:1990
 # years <- 1995:1996
+# years <- 1990:1995
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -119,7 +129,8 @@ clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v2.1a4"
+# clpfu_version <- "v2.1a4"
+clpfu_version <- "v3.0a1"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -150,7 +161,8 @@ if (parallel::detectCores() == 10) {
 crew_controller <- crew::crew_controller_local(
   workers = worker_threads,
   seconds_idle = 60,
-  r_arguments = "--max-connections=512")
+  r_arguments = "--max-connections=512"
+)
 
 # Debugging
 # crew_controller <- NULL
