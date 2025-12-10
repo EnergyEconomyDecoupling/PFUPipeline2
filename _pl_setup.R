@@ -6,7 +6,7 @@
 # Duplicate this file and rename to "local_setup.R"
 
 # For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE),
-# set crew_controller <- FALSE
+# set crew_controller <- NULL
 # and
 # (1) insert browser() calls for functions in PFUPipeline2
 # (2) set breakpoints in functions from other packages.
@@ -22,7 +22,7 @@
 # countries <- "ZAF"
 # countries <- "WMBK"
 # countries <- "WABK"
-# countries <- "WRLD"
+countries <- "WRLD"
 # countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c("USA", "AUS")
@@ -30,10 +30,13 @@
 # countries <- c("AGO", "BEN", "WMBK")
 # countries <- c("AGO", "BEN", "WMBK", "WABK", "WRLD", "GHA", "ZAF")
 # Countries with updated Road information as of 21 November 2025
-countries <- c("AUS", "AUT", "BEL", "BRA", "CAN", "CHL", "CYP", "CZE", "DEU", "DNK",
-               "ESP", "FIN", "FRA", "GRC", "HKG", "HRV", "HUN", "IRL", "ITA", "JPN",
-               "KOR", "LTU", "LUX", "LVA", "MAR", "NLD", "NZL", "POL", "PRT", "ROU",
-               "SLV", "SVN", "SWE", "SWZ", "URY", "USA")
+# countries <- c("AUS", "AUT", "BEL", "BRA", "CAN", "CHL", "CYP", "CZE", "DEU", "DNK",
+#                "ESP", "FIN", "FRA", "GRC", "HKG", "HRV", "HUN", "IRL", "ITA", "JPN",
+#                "KOR", "LTU", "LUX", "LVA", "MAR", "NLD", "NZL", "POL", "PRT", "ROU",
+#                "SLV", "SVN", "SWE", "SWZ", "URY", "USA")
+# Countries with updated Iron and steel and Chemical and petrochemical information
+# as of 10 Dec 2025
+# countries <- c("WRLD", "USA", "KOR", "MEX", "IND", "JPN", "DEU")
 
 
 
@@ -57,14 +60,8 @@ additional_exemplar_countries <- c("AFRI", # Africa
 
 # WRLD should not be in both countries and additional_exemplar_countries
 if (("WRLD" %in% countries) & ("WRLD" %in% additional_exemplar_countries)) {
-  # Seems like we don't need this bit of code, because "WRLD"
-  # is not even in additional_exemplar_countries.
-  # I'm commenting the code in this if statement on 22 July 2025.
-  # If things are still working after, say, 22 Aug 2025,
-  # we can delete this if statement. ---MKH
-
   # Remove WRLD from additional_exemplar_countries
-  # additional_exemplar_countries <- additional_exemplar_countries[!(additional_exemplar_countries == "WRLD")]
+  additional_exemplar_countries <- additional_exemplar_countries[!(additional_exemplar_countries == "WRLD")]
 }
 
 # WRLD should always be in countries or in additional_exemplar_countries.
@@ -75,9 +72,9 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1960
-# years <- 1971
+years <- 1971
 # years <- 1996
 # years <- 2010
 # years <- 2013
@@ -114,7 +111,7 @@ compress_data <- FALSE
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- FALSE
+reset_schema <- TRUE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
