@@ -22,7 +22,7 @@
 # countries <- "ZAF"
 # countries <- "WMBK"
 # countries <- "WABK"
-countries <- "WRLD"
+# countries <- "WRLD"
 # countries <- c("GHA", "ZAF")
 # countries <- c("USA", "WRLD")
 # countries <- c("USA", "AUS")
@@ -36,15 +36,11 @@ countries <- "WRLD"
 #                "SLV", "SVN", "SWE", "SWZ", "URY", "USA")
 # Countries with updated Iron and steel and Chemical and petrochemical information
 # as of 10 Dec 2025
-# countries <- c("WRLD", "USA", "KOR", "MEX", "IND", "JPN", "DEU")
-
-
-
-
-# Moved this code from _targets.R on 22 July 2025.
-# If things are still working after, say,
-# 22 Aug 2025, this comment can be deleted.
-# ---MKH
+# countries <- c("WRLD", "USA", "KOR", "MEX", "IND", "DEU",
+#                "FRA", "ESP", "DEU", "NGA", "RUS", "MEX") # Encountered a deadlock error
+# Countries with updated chemicals sectors
+# as of 16 Dec 2025
+countries <- c("AUS", "CAN", "CHNM")
 
 # Additional exemplar countries are countries which aren't included in the workflow
 # as individual countries, but from which allocation or efficiency data may be
@@ -72,9 +68,9 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-# years <- 1960:2020
+years <- 1960:2020
 # years <- 1960
-years <- 1971
+# years <- 1971
 # years <- 1996
 # years <- 2010
 # years <- 2013
