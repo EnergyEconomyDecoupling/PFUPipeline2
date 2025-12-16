@@ -37,10 +37,10 @@
 # Countries with updated Iron and steel and Chemical and petrochemical information
 # as of 10 Dec 2025
 # countries <- c("WRLD", "USA", "KOR", "MEX", "IND", "DEU",
-#                "FRA", "ESP", "DEU", "NGA", "RUS", "MEX") # Encountered a deadlock error
+#                "FRA", "ESP", "DEU", "NGA", "RUS", "MEX") # Encountered a deadlock error on PSUTWithoutNEU
 # Countries with updated chemicals sectors
 # as of 16 Dec 2025
-countries <- c("AUS", "CAN", "CHNM")
+countries <- c("AUS", "CAN", "CHNM") # No deadlock error on PSUTWithoutNEU
 
 # Additional exemplar countries are countries which aren't included in the workflow
 # as individual countries, but from which allocation or efficiency data may be
