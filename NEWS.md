@@ -4,6 +4,10 @@ output: html_document
 ---
 
 
+* Remove dependency on `Recca::verify_SUT_Energy_Balance()`,
+  which is now deprecated.
+
+
 ## PFUPipeline2 v0.2.2 (2025-09-26)
 
 * Added a report script for Avery Sugg (University of Texas)
