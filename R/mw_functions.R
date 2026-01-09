@@ -244,7 +244,7 @@ verify_mw_energy_balance <- function(.psut_df) {
 
   # We have some rows. Perform the check.
   .psut_df |>
-    Recca::verify_SUT_energy_balance(SUT_energy_balance = ".balanced") |>
+    Recca::verify_inter_industry_balance(balanced = ".balanced") |>
     magrittr::extract2(".balanced") |>
     unlist() |>
     all()
