@@ -4,6 +4,7 @@ output: html_document
 ---
 
 
+* Added new download script for Joao Santos.
 * Remove dependency on `Recca::verify_SUT_Energy_Balance()`,
   which is now deprecated.
 

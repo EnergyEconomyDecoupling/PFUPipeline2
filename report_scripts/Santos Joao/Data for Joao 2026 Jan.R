@@ -1,0 +1,58 @@
+# Based on a Teams call with Joao Santos and Joao Goncalves
+# on 16 Jan 2026, they would like
+#
+# - **Y** matrix with NEU, energy and exergy versions
+# - Start with USA for the first attempt, 1960-1961
+# - Show both Y matrices and RCV format
+# - Also send row and column sums.
+
+conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
+on.exit(DBI::dbDisconnect(conn))
+
+
+psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(db_table_name = "PSUTReAllChopAllDsAllGrAll",
+                                                            Dataset == "CL-PFU IEA+MW",
+                                                            ProductAggregation == "Specified",
+                                                            IndustryAggregation == "Specified",
+                                                            Country == "USA",
+                                                            IncludesNEU == TRUE,
+                                                            Year %in% c(1960, 1961),
+                                                            collect = TRUE,
+                                                            conn = conn)
+
+DBI::dbDisconnect(conn)
+
+psut_mats <- psut_mats_downloaded |>
+  dplyr::arrange(Country, Year, LastStage, EnergyType) |>
+  dplyr::mutate(
+    WorksheetNames = paste(Country, Year, LastStage, EnergyType, sep = "-")
+  )
+
+# ECC and XCC matrices
+psut_mats |>
+  Recca::write_ecc_to_excel(path = "~/Desktop/PSUT mats for Joaos.xlsx", worksheet_names = "WorksheetNames")
+
+# Row and column sums of the Y matrix
+psut_mats |>
+  dplyr::mutate(
+    R = NULL,
+    U = NULL,
+    V = NULL,
+    U_feed = NULL,
+    U_EIOU = NULL,
+    r_EIOU = NULL,
+    rowsums = Y |>
+      matsbyname::rowsums_byname(colname = "rowsums"),
+    colsums = Y |>
+      matsbyname::colsums_byname(rowname = "colsums"),
+    Y = NULL
+  ) |>
+  tidyr::pivot_longer(cols = c(rowsums, colsums), names_to = "matnames", values_to = "matvals") |>
+
+
+  dplyr::group_by_at(setdiff(colnames(.DF), matvals))
+
+
+  matsindf::expand_to_tidy(drop = 0)
+
+
