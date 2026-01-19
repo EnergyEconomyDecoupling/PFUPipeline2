@@ -32,6 +32,30 @@ psut_mats <- psut_mats_downloaded |>
 psut_mats |>
   Recca::write_ecc_to_excel(path = "~/Desktop/PSUT mats for Joaos.xlsx", worksheet_names = "WorksheetNames")
 
+# Y matrices in row col val format
+psut_mats |>
+  dplyr::mutate(
+    # Eliminate unneeded matrix columns
+    R = NULL,
+    U = NULL,
+    V = NULL,
+    U_feed = NULL,
+    U_EIOU = NULL,
+    r_EIOU = NULL,
+    S_units = NULL
+  ) |>
+  tidyr::pivot_longer(cols = Y, names_to = "matnames", values_to = "matvals") |>
+  matsindf::expand_to_tidy(drop = 0) |>
+  dplyr::mutate(
+    rowtypes = NULL,
+    coltypes = NULL
+  ) |>
+  dplyr::rename(
+    values = "matvals"
+  ) |>
+  openxlsx::write.xlsx("~/Desktop/rowcolvalues for Joaos.xlsx")
+
+
 # Row and column sums of the Y matrix
 psut_mats |>
   dplyr::mutate(
@@ -67,7 +91,9 @@ psut_mats |>
     rowtypes = NULL,
     coltypes = NULL
   ) |>
-  dplyr::relocate(Value, .after = dplyr::last_col()) |> View()
+  dplyr::relocate(Value, .after = dplyr::last_col()) |>
+  openxlsx::write.xlsx("~/Desktop/rowcolsums for Joaos.xlsx")
+
 
 
 
