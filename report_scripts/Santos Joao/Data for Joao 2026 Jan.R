@@ -35,24 +35,39 @@ psut_mats |>
 # Row and column sums of the Y matrix
 psut_mats |>
   dplyr::mutate(
+    # Eliminate unneeded matrix columns
     R = NULL,
     U = NULL,
     V = NULL,
     U_feed = NULL,
     U_EIOU = NULL,
     r_EIOU = NULL,
+    S_units = NULL,
+    # Calculate the row and column sums
     rowsums = Y |>
       matsbyname::rowsums_byname(colname = "rowsums"),
     colsums = Y |>
       matsbyname::colsums_byname(rowname = "colsums"),
+    # Get rid of the Y matrices, as we no longer need them
     Y = NULL
   ) |>
   tidyr::pivot_longer(cols = c(rowsums, colsums), names_to = "matnames", values_to = "matvals") |>
+  matsindf::expand_to_tidy(drop = 0) |>
+  dplyr::rename(
+    Value = "matvals",
+    SumType = "matnames"
+  ) |>
+  dplyr::mutate(
+    RowColName = dplyr::case_when(
+      SumType == "rowsums" ~ rownames,
+      SumType == "colsums" ~ colnames
+    ),
+    rownames = NULL,
+    colnames = NULL,
+    rowtypes = NULL,
+    coltypes = NULL
+  ) |>
+  dplyr::relocate(Value, .after = dplyr::last_col()) |> View()
 
-
-  dplyr::group_by_at(setdiff(colnames(.DF), matvals))
-
-
-  matsindf::expand_to_tidy(drop = 0)
 
 
