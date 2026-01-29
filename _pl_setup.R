@@ -43,7 +43,13 @@
 # countries <- c("AUS", "CAN", "CHNM") # No deadlock error on PSUTWithoutNEU
 # Countries with the following updates on 6 Jan 2026:
 # FRA (NMM), ESP (NFM) and DEU (Paper and pulp)
-countries <- c("WRLD", "FRA", "ESP", "DEU") # No deadlock error on PSUTWithoutNEU
+# countries <- c("WRLD", "FRA", "ESP", "DEU") # No deadlock error on PSUTWithoutNEU
+
+# Countries with updated allocations for industrial sectors
+# as of 29 Jan 2026
+countries <- c("ALB", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK", "EST", "GRC", "ESP",
+               "EURP", "FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
+               "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SVN", "SVK", "WRLD")
 
 # Additional exemplar countries are countries which aren't included in the workflow
 # as individual countries, but from which allocation or efficiency data may be
