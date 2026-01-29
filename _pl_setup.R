@@ -47,9 +47,9 @@
 
 # Countries with updated allocations for industrial sectors
 # as of 29 Jan 2026
-countries <- c("ALB", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK", "EST", "GRC", "ESP",
+countries <- c("ALB", "BEL", "BGR", "CHE", "CYP", "CZE", "DEU", "DNK", "EST", "GRC", "ESP",
                "EURP", "FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
-               "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SVN", "SVK", "WRLD")
+               "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SWZ", "SVN", "SVK", "WRLD")
 
 # Additional exemplar countries are countries which aren't included in the workflow
 # as individual countries, but from which allocation or efficiency data may be
