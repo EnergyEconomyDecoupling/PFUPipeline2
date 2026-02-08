@@ -51,8 +51,18 @@
 #                "FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
 #                "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SWZ", "SVN", "SVK", "WRLD")
 
-# Countries with updated allocations in NFM, NMM, and Paper and pulp sectors.
-countries <- c("AUT", "WRLD")
+# Countries with updated allocations in NFM, NMM, and Paper and pulp sectors.  4 Feb 2026.
+# Worked! No deadlock error.
+# countries <- c("AUT", "WRLD")
+
+# Countries to run on 5 Feb 2026
+countries <- c("ALB", "ARG", "AUS", "AUT", "BEL", "BGR", "BIH", "BLR", "CHE", "CHL", "GEO", "KAZ",
+               "MAR", "MDA", "MKD", "NZL", "SRB", "WRLD")
+# BEL 1960 has a problem with
+# ! Didn't complete FU Allocation table for the following final energy flows:
+# BEL, 1960, Transport, Domestic navigation, Patent fuel.
+# Try it only.
+countries <- c("BEL")
 
 # Additional exemplar countries are countries which aren't included in the workflow
 # as individual countries, but from which allocation or efficiency data may be
@@ -80,8 +90,8 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-years <- 1960:2020
-# years <- 1960
+# years <- 1960:2020
+years <- 1960
 # years <- 1971
 # years <- 1996
 # years <- 2010
