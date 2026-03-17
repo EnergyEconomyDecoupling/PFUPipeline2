@@ -7,7 +7,11 @@ author: Matthew Kuperus Heun
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(matsindf)
 ```
+
 
 ## Introduction
 
@@ -46,13 +50,53 @@ world_mats <- readRDS(file = "world_mats.rds")
 
 
 ```{r} 
-world_mats |>
+world_mats_filtered <- world_mats |>
+  # Filter to the same parameters for Figure 7.
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
-                EnergyType == "E",
                 LastStage == "Useful",
                 IncludesNEU == FALSE) |>
   dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |>
-  dplyr::arrange(Year, ProductAggregation)
+  dplyr::mutate(
+    ProductAggregation = factor(ProductAggregation, levels = c("Specified", "Despecified", "Grouped")), 
+    IndustryAggregation = factor(IndustryAggregation, levels  = c("Specified", "Despecified", "Grouped"))
+  ) |> 
+  dplyr::arrange(Year, ProductAggregation, IndustryAggregation)
+```
+
+Make a graph similar to Figure 7.
+
+```{r}
+world_mats |> 
+  # Filter to the same parameters for Figure 7.
+  dplyr::filter(Dataset == "CL-PFU IEA+MW",
+                Year >= 1971,
+                LastStage == "Useful",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Grouped", 
+                IndustryAggregation == "Grouped") |>
+  dplyr::arrange(Year, EnergyType) |> 
+  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |>
+  dplyr::mutate(
+    ProductAggregation = factor(ProductAggregation, levels = c("Specified", "Despecified", "Grouped")), 
+    IndustryAggregation = factor(IndustryAggregation, levels  = c("Specified", "Despecified", "Grouped")),
+    Y = Y |> 
+      matsbyname::select_cols_byname(
+        remove_pattern = RCLabels::make_or_pattern(c("Exports", 
+                                                     "Exports to World aviation bunkers", 
+                                                     "Exports to World marine bunkers", 
+                                                     "Losses", 
+                                                     "Statistical differences", 
+                                                     "Stock changes"))) |> 
+      matsbyname::rowsums_byname() |> 
+      matsbyname::hadamardproduct_byname(1e-6)
+  ) |> 
+  tidyr::pivot_longer(cols = "Y", names_to = "matnames", values_to = "matvals") |>
+  matsindf::expand_to_tidy(drop = 0) |>
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = rownames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType))
 ```
 
 
