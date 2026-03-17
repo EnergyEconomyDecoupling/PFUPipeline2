@@ -25,6 +25,10 @@ world_mats |>
 world_mats <- readRDS(file = file.path("report_scripts", "Brockway Paul", "world_mats.rds"))
 
 world_mats |>
-  dplyr::filter(Dataset == "CL-PFU IEA+MW") |>
+  dplyr::filter(Dataset == "CL-PFU IEA+MW",
+                EnergyType == "E",
+                LastStage == "Useful",
+                IncludesNEU == FALSE) |>
   dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |>
+  dplyr::arrange(Year, ProductAggregation) |>
   View()
