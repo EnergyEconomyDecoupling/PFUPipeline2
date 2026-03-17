@@ -56,13 +56,40 @@
 # countries <- c("AUT", "WRLD")
 
 # Countries to run on 5 Feb 2026
-countries <- c("ALB", "ARG", "AUS", "AUT", "BEL", "BGR", "BIH", "BLR", "CHE", "CHL", "GEO", "KAZ",
-               "MAR", "MDA", "MKD", "NZL", "SRB", "WRLD")
-# BEL 1960 has a problem with
-# ! Didn't complete FU Allocation table for the following final energy flows:
-# BEL, 1960, Transport, Domestic navigation, Patent fuel.
-# Try it only.
-countries <- c("BEL")
+# countries <- c("ALB", "ARG", "AUS", "AUT", "BEL", "BGR", "BIH", "BLR", "CHE", "CHL", "GEO", "KAZ",
+#                "MAR", "MDA", "MKD", "NZL", "SRB", "WRLD")
+
+# Countries to run on 10 Feb 2026 with updated residential electricity.
+# countries <- c("CRI", "CYP", "CZE", "DEU", "EST", "FIN", "FRA", "GRC",
+#                "HUN", "IRL", "ITA", "LTU", "LUX", "LVA", "MLT", "NLD",
+#                "POL", "PRT", "ROU", "SVK", "SVN", "SWE", "TUR", "TWN",
+#                "UKR", "URY", "XKX", "WRLD")
+
+# Countries to run on 19 Feb 2026 with updated CPS electricity allocations
+# countries <- c("DEU", "WRLD")
+
+# Updated CPS on 24 Feb 2026
+# countries <- c("AUT", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
+#                "EST", "GRC", "ESP", "FIN", "FRA", "HRV", "HUN",
+#                "IRL", "ITA", "LTU", "LUX", "LVA", "MLT", "NLD",
+#                "POL", "PRT", "ROU", "SWE", "SVN", "SVK", "WRLD")
+
+# A test country (AUT) on 3 Mar 2026
+# countries <- c("AUT", "WRLD")
+
+# Countries to run on 4 Mar 2026
+# countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
+#                "EST", "ESP", "FIN", "FRA", "GRC", "HRV",
+#                "HUN", "IRL", "ITA", "LTU", "LUX", "LVA",
+#                "MLT", "NLD", "POL", "PRT", "ROU", "SVK",
+#                "SVN", "SWE")
+
+# Countries to run on 17 Mar 2026
+countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
+               "EST", "GRC", "ESP")
+
+
+
 
 # Additional exemplar countries are countries which aren't included in the workflow
 # as individual countries, but from which allocation or efficiency data may be
@@ -90,8 +117,8 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-# years <- 1960:2020
-years <- 1960
+years <- 1960:2020
+# years <- 1960
 # years <- 1971
 # years <- 1996
 # years <- 2010
