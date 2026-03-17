@@ -26,6 +26,20 @@ on.exit(DBI::dbDisconnect(conn))
 countries <- c("AUT", "BEL", "DNK", "FIN", "FRA", "DEU", "GRC",
                "IRL", "ITA", "LUX", "NLD", "PRT", "ESP", "SWE", "GBR")
 
+
+
+
+# psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(db_table_name = "PSUTReAllChopAllDsAllGrAll",
+#                                                             Dataset == "CL-PFU IEA+MW",
+#                                                             ProductAggregation == "Specified",
+#                                                             IndustryAggregation == "Specified",
+#                                                             Country %in% countries,
+#                                                             IncludesNEU == TRUE,
+#                                                             matname == "Y",
+#                                                             create_matsindf = FALSE,
+#                                                             collect = TRUE,
+#                                                             conn = conn)
+
 psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(db_table_name = "PSUTReAllChopAllDsAllGrAll",
                                                             Dataset == "CL-PFU IEA+MW",
                                                             ProductAggregation == "Specified",
@@ -36,6 +50,7 @@ psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(db_table_name = "PSU
                                                             create_matsindf = FALSE,
                                                             collect = TRUE,
                                                             conn = conn)
+
 
 DBI::dbDisconnect(conn)
 
