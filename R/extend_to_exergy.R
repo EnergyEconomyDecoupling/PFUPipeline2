@@ -12,6 +12,7 @@
 #' @param country See `IEATools::iea_cols`.
 #' @param phi_colname See `IEATools::phi_constants`.
 #' @param dataset_colname See `PFUPipelineTools::dataset_info`.
+#' @param tol The tolerance for inter-industry balance. Default is `1e-2`.
 #'
 #' @return A version of `psut_energy` with additional rows
 #'
@@ -21,7 +22,8 @@ move_to_exergy <- function(psut_energy,
                            countries,
                            country = IEATools::iea_cols$country,
                            phi_colname = IEATools::phi_constants_names$phi_colname,
-                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname) {
+                           dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                           tol = 1e-1) {
 
   # If the psut_energy data frame is NULL, just return NULL.
   if (is.null(psut_energy)) {
@@ -62,7 +64,7 @@ move_to_exergy <- function(psut_energy,
     # We will have cases where the matrix will have specified names like
     # "MP [from Bulk carrier ships]".
     # In this case, we need to match the noun, not the whole string.
-    Recca::extend_to_exergy(mat_piece = "noun", phi_piece = "all")
+    Recca::extend_to_exergy(mat_piece = "noun", phi_piece = "all", tol = tol)
 }
 
 

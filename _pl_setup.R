@@ -43,7 +43,53 @@
 # countries <- c("AUS", "CAN", "CHNM") # No deadlock error on PSUTWithoutNEU
 # Countries with the following updates on 6 Jan 2026:
 # FRA (NMM), ESP (NFM) and DEU (Paper and pulp)
-countries <- c("WRLD", "FRA", "ESP", "DEU") # No deadlock error on PSUTWithoutNEU
+# countries <- c("WRLD", "FRA", "ESP", "DEU") # No deadlock error on PSUTWithoutNEU
+
+# Countries with updated allocations for industrial sectors
+# as of 29 Jan 2026 # No deadlock error.  Everything worked.
+# countries <- c("ALB", "BEL", "BGR", "CHE", "CYP", "CZE", "DEU", "DNK", "EST", "GRC", "ESP",
+#                "FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
+#                "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SWZ", "SVN", "SVK", "WRLD")
+
+# Countries with updated allocations in NFM, NMM, and Paper and pulp sectors.  4 Feb 2026.
+# Worked! No deadlock error.
+# countries <- c("AUT", "WRLD")
+
+# Countries to run on 5 Feb 2026
+# countries <- c("ALB", "ARG", "AUS", "AUT", "BEL", "BGR", "BIH", "BLR", "CHE", "CHL", "GEO", "KAZ",
+#                "MAR", "MDA", "MKD", "NZL", "SRB", "WRLD")
+
+# Countries to run on 10 Feb 2026 with updated residential electricity.
+# countries <- c("CRI", "CYP", "CZE", "DEU", "EST", "FIN", "FRA", "GRC",
+#                "HUN", "IRL", "ITA", "LTU", "LUX", "LVA", "MLT", "NLD",
+#                "POL", "PRT", "ROU", "SVK", "SVN", "SWE", "TUR", "TWN",
+#                "UKR", "URY", "XKX", "WRLD")
+
+# Countries to run on 19 Feb 2026 with updated CPS electricity allocations
+# countries <- c("DEU", "WRLD")
+
+# Updated CPS on 24 Feb 2026
+# countries <- c("AUT", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
+#                "EST", "GRC", "ESP", "FIN", "FRA", "HRV", "HUN",
+#                "IRL", "ITA", "LTU", "LUX", "LVA", "MLT", "NLD",
+#                "POL", "PRT", "ROU", "SWE", "SVN", "SVK", "WRLD")
+
+# A test country (AUT) on 3 Mar 2026
+# countries <- c("AUT", "WRLD")
+
+# Countries to run on 4 Mar 2026
+# countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
+#                "EST", "ESP", "FIN", "FRA", "GRC", "HRV",
+#                "HUN", "IRL", "ITA", "LTU", "LUX", "LVA",
+#                "MLT", "NLD", "POL", "PRT", "ROU", "SVK",
+#                "SVN", "SWE")
+
+# Countries to run on 17 Mar 2026
+countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
+               "EST", "GRC", "ESP")
+
+
+
 
 # Additional exemplar countries are countries which aren't included in the workflow
 # as individual countries, but from which allocation or efficiency data may be

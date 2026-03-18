@@ -1,0 +1,128 @@
+---
+title: "MechWork.Rmd"
+output: pdf_document
+date: "2026-03-17"
+author: Matthew Kuperus Heun
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(matsindf)
+library(MKHthemes)
+```
+
+```{r colors}
+useful_carrier_colours <- c(AnMech = "purple1", `Animal mechanical work` = "purple1", `Animal mechanical\nwork` = "purple1",
+                            HuMech = "purple4", `Human mechanical work` = "purple4", `Human mechanical\nwork` = "purple4",
+                            MechW = "pink3", `Mechanical work` = "pink3",
+                            Prop = "pink1", Propulsion = "pink1",
+                            HPF = "ivory3", `High-pressure fluids` = "ivory3", `High-pressure\nfluids` = "ivory3",
+                            LTH = "orangered1", `Low-temperature heat` = "orangered1", `Low-temperature\nheat` = "orangered1",
+                            MTH = "orangered3", `Medium-temperature heat` = "orangered3", `Medium-temperature\nheat` = "orangered3",
+                            HTH = "orangered4", `High-temperature heat` = "orangered4", `High-temperature\nheat` = "orangered4",
+                            LTC = "deepskyblue3", `Low-temperature cooling` = "deepskyblue3", `Low-temperature\ncooling` = "deepskyblue3",
+                            IP = "palegreen4", `Information processing` = "palegreen4", `Information\nprocessing` = "palegreen4",
+                            L = "gold2", Light = "gold2")
+```
+
+
+
+## Introduction
+
+This file investigates questions about
+world aggregate mechanical work.
+The questions were raised by Tiago Domingos
+regarding Figure 7 of the paper
+P. E. Brockway, M. K. Heun, Z. Marshall, E. Aramendia, P. Steenwyk, T. Relph, M. Widjanarko,
+J. J. Kim, A. Sainju, and J. Irtube. A country-level primary-final-useful (CL-PFU) energy and exergy
+database: Overview of its construction and 1971–2020 world-level efficiency results. Environmental
+Research: Energy, 1(025005):1–29, jun 2024.
+
+## Data
+
+Gather and save data from the database.
+
+```{r data, eval=FALSE}
+conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
+world_mats <- PFUPipelineTools::pl_filter_collect(
+  db_table_name = "PSUTReAllChopAllDsAllGrAll",
+  Country == "World",
+  conn = conn,
+  collect = TRUE)
+world_mats |>
+  saveRDS(file = "world_mats.rds")
+```
+
+## Analysis
+
+Load data.
+
+```{r load}
+getwd()
+world_mats <- readRDS(file = "world_mats.rds")
+```
+
+
+```{r} 
+world_mats_filtered <- world_mats |>
+  # Filter to the same parameters for Figure 7.
+  dplyr::filter(Dataset == "CL-PFU IEA+MW",
+                LastStage == "Useful",
+                IncludesNEU == FALSE) |>
+  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |>
+  dplyr::mutate(
+    ProductAggregation = factor(ProductAggregation, levels = c("Specified", "Despecified", "Grouped")), 
+    IndustryAggregation = factor(IndustryAggregation, levels  = c("Specified", "Despecified", "Grouped"))
+  ) |> 
+  dplyr::arrange(Year, ProductAggregation, IndustryAggregation)
+```
+
+Make a graph similar to Figure 7.
+
+```{r}
+world_mats |> 
+  # Filter to the same parameters for Figure 7.
+  dplyr::filter(Dataset == "CL-PFU IEA+MW",
+                Year >= 1971,
+                LastStage == "Useful",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Grouped", 
+                IndustryAggregation == "Grouped") |>
+  dplyr::arrange(Year, EnergyType) |> 
+  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |>
+  dplyr::mutate(
+    ProductAggregation = factor(ProductAggregation, levels = c("Specified", "Despecified", "Grouped")), 
+    IndustryAggregation = factor(IndustryAggregation, levels  = c("Specified", "Despecified", "Grouped")),
+    Y = Y |> 
+      matsbyname::select_cols_byname(
+        remove_pattern = RCLabels::make_or_pattern(c("Exports", 
+                                                     "Exports to World aviation bunkers", 
+                                                     "Exports to World marine bunkers", 
+                                                     "Losses", 
+                                                     "Statistical differences", 
+                                                     "Stock changes"))) |> 
+      matsbyname::select_rows_byname(remove_pattern = "NEU") |> 
+      matsbyname::rowsums_byname() |> 
+      matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
+  ) |> 
+  tidyr::pivot_longer(cols = "Y", names_to = "matnames", values_to = "matvals") |>
+  matsindf::expand_to_tidy(drop = 0) |>
+  dplyr::mutate(
+    rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
+                                           "LTC", "HPF", "Prop", "MechW", "HuMech", "AnMech"))
+
+  ) |>
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = rownames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_fill_manual(values = useful_carrier_colours) +
+  ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
+  MKHthemes::xy_theme()
+```
+
+
