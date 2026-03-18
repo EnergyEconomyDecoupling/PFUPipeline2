@@ -10,7 +10,23 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(ggplot2)
 library(matsindf)
+library(MKHthemes)
 ```
+
+```{r colors}
+useful_carrier_colours <- c(AnMech = "purple1", `Animal mechanical work` = "purple1", `Animal mechanical\nwork` = "purple1",
+                            HuMech = "purple4", `Human mechanical work` = "purple4", `Human mechanical\nwork` = "purple4",
+                            MechW = "pink3", `Mechanical work` = "pink3",
+                            Prop = "pink1", Propulsion = "pink1",
+                            HPF = "ivory3", `High-pressure fluids` = "ivory3", `High-pressure\nfluids` = "ivory3",
+                            LTH = "orangered1", `Low-temperature heat` = "orangered1", `Low-temperature\nheat` = "orangered1",
+                            MTH = "orangered3", `Medium-temperature heat` = "orangered3", `Medium-temperature\nheat` = "orangered3",
+                            HTH = "orangered4", `High-temperature heat` = "orangered4", `High-temperature\nheat` = "orangered4",
+                            LTC = "deepskyblue3", `Low-temperature cooling` = "deepskyblue3", `Low-temperature\ncooling` = "deepskyblue3",
+                            IP = "palegreen4", `Information processing` = "palegreen4", `Information\nprocessing` = "palegreen4",
+                            L = "gold2", Light = "gold2")
+```
+
 
 
 ## Introduction
@@ -87,16 +103,26 @@ world_mats |>
                                                      "Losses", 
                                                      "Statistical differences", 
                                                      "Stock changes"))) |> 
+      matsbyname::select_rows_byname(remove_pattern = "NEU") |> 
       matsbyname::rowsums_byname() |> 
-      matsbyname::hadamardproduct_byname(1e-6)
+      matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
   ) |> 
   tidyr::pivot_longer(cols = "Y", names_to = "matnames", values_to = "matvals") |>
   matsindf::expand_to_tidy(drop = 0) |>
+  dplyr::mutate(
+    rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
+                                           "LTC", "HPF", "Prop", "MechW", "HuMech", "AnMech"))
+
+  ) |>
   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
                                          y = matvals, 
                                          fill = rownames)) + 
   ggplot2::geom_area() + 
-  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType))
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_fill_manual(values = useful_carrier_colours) +
+  ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
+  MKHthemes::xy_theme()
 ```
 
 
