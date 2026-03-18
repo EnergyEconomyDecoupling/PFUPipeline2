@@ -87,7 +87,6 @@ download_dependency_hook <- function(.hashed_dependency,
 }
 
 
-#'
 #' After most targets, the resulting data frame should be
 #' uploaded to the database for storage.
 #' This function provides a `tarchetypes` "hook" to wrap each target
