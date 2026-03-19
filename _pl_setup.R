@@ -85,10 +85,13 @@
 #                "SVN", "SWE")
 
 # Countries to run on 17 Mar 2026
-countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
-               "EST", "GRC", "ESP")
+# countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
+#                "EST", "GRC", "ESP")
 
 
+# Countries to run on 19 Mar 2026
+countries <- c("FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
+               "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SVN", "SVK")
 
 
 # Additional exemplar countries are countries which aren't included in the workflow
