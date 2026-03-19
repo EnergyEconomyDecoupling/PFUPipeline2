@@ -1,6 +1,7 @@
 ---
-title: "MechWork.Rmd"
-output: pdf_document
+title: "Mechanical work study"
+output:
+  bookdown::pdf_document2
 date: "2026-03-17"
 author: Matthew Kuperus Heun
 ---
@@ -8,9 +9,12 @@ author: Matthew Kuperus Heun
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+library(dplyr)
 library(ggplot2)
+library(Matrix)
 library(matsindf)
 library(MKHthemes)
+library(tidyr)
 ```
 
 ```{r colors, include=FALSE}
@@ -58,7 +62,7 @@ sectors_to_exclude <- RCLabels::make_or_pattern(
 
 
 
-## Introduction
+# Introduction
 
 This file investigates questions about
 world aggregate mechanical work.
@@ -69,9 +73,10 @@ J. J. Kim, A. Sainju, and J. Irtube. A country-level primary-final-useful (CL-PF
 database: Overview of its construction and 1971–2020 world-level efficiency results. Environmental
 Research: Energy, 1(025005):1–29, jun 2024.
 
-## Data
+# Data
 
 Gather and save data from the database.
+This chunk is not executed unless `eval=TRUE`.
 
 ```{r data, eval=FALSE}
 conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
@@ -84,9 +89,9 @@ world_mats |>
   saveRDS(file = "world_mats.rds")
 ```
 
-## Analysis
+# Analysis
 
-Load data.
+Load data from disk.
 
 ```{r load}
 world_mats <- readRDS(file = "world_mats.rds")
@@ -94,9 +99,11 @@ world_mats <- readRDS(file = "world_mats.rds")
 
 Make a graph similar to Figure 7
 using pre-aggregated (Grouped) data.
+Here, we see that mechanical work (MechW)
+is nearly constant, as observed by Tiago.
 
-```{r}
-world_mats |> 
+```{r fig7, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Remake of Figure 7 using pre-aggregated (i.e., grouped) data.'}
+grouped_data <- world_mats |> 
   # Filter to the same parameters for Figure 7.
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
                 Year >= 1971,
@@ -119,36 +126,161 @@ world_mats |>
     rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
                                            "LTC", "HPF", "Prop", "MechW", "HuMech", "AnMech"))
 
-  ) |>
+  )
+grouped_data |> 
   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
                                          y = matvals, 
                                          fill = rownames)) + 
   ggplot2::geom_area() + 
   ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(limits = c(0, 250)) +
   ggplot2::scale_fill_manual(values = useful_carrier_colours) +
   ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
   MKHthemes::xy_theme()
 ```
 
-Aggregate using Specified data to confirm similarity 
+
+The Mechanical work numbers in 1971 and 2020 are shown in 
+Table \@ref(tab:MechW-table).
+
+```{r MechW-table, results='asis', tab.cap="Mechanical work values in 1971 and 2000."}
+# Mechanical work numbers
+grouped_data_1971_2020 <- grouped_data |> 
+  dplyr::filter(rownames == "MechW", Year %in% c(1971, 2020)) |> 
+  dplyr::select(Year, matvals, EnergyType) |> 
+  tidyr::pivot_wider(names_from = "EnergyType", values_from = "matvals") |> 
+  xtable::xtable(label = "tab:MechW-table", 
+                 caption = "Mechanical work values in 1971 and 2000.")
+grouped_data_1971_2020 |> 
+  print(comment = FALSE, 
+        caption.placement = "top", 
+        include.rownames = FALSE)
+```
+
+```{r perc-increase}
+mech_work_1971 <- grouped_data_1971_2020$E[[1]]
+mech_work_2020 <- grouped_data_1971_2020$E[[2]]
+perc_inc <- (mech_work_2020 - mech_work_1971) / mech_work_1971 * 100
+growth_rate <- ((mech_work_2020/mech_work_1971)^(1/(2020-1971)) - 1) * 100
+```
+
+Over the 50-year period, 
+Mechanical work grows `r sprintf("%.1f", perc_inc)`% for an annual growth rate of
+`r sprintf("%.1f", growth_rate)` %/yr.
+
+The actual Mechanical work data are shown in Figure \@ref(fig:mech-work-only).
+
+```{r mech-work-only, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Mechanical work.'}
+grouped_data |> 
+  dplyr::filter(rownames == "MechW") |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals)) + 
+  ggplot2::geom_line() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(limits = c(0, NA)) +
+  ggplot2::labs(x = NULL, fill = NULL, y = "Mechanical work [EJ]") +
+  MKHthemes::xy_theme()
+```
+
+
+Aggregate using specified (the most raw) data to confirm similarity 
 of Specified data to Figure 7.
 
-```{r self-aggregation}
+```{r self-aggregation-graph, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Remake of Figure 7 starting from specified data.'}
 # Read useful product aggregation map
-eu_product_aggregation <- openxlsx2::read_xlsx("aggregation_mapping.xlsx")
-foo <- world_mats |> 
+eu_product_agg_map <- openxlsx2::read_xlsx("aggregation_mapping.xlsx", sheet = "eu_product_aggregation") |> 
+  matsbyname::agg_table_to_agg_map(few_colname = "Few", many_colname = "Many")
+nouns <- world_mats |> 
   # Filter to the same parameters for Figure 7.
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
                 Year >= 1971,
                 LastStage == "Useful",
                 IncludesNEU == FALSE,
-                ProductAggregation == "Despecified", 
-                IndustryAggregation == "Despecified") |>
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified") |>
   dplyr::arrange(Year, EnergyType) |> 
-  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |> 
+  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units)
+
+aggregated_nouns <- nouns |> 
   dplyr::mutate(
     Y = Y |> 
-      matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)   )
+      matsbyname::aggregate_pieces_byname(piece = "noun", 
+                                          margin = 1,
+                                          notation = RCLabels::bracket_notation) |> 
+      matsbyname::aggregate_pieces_byname(piece = "noun", 
+                                          margin = 2, 
+                                          notation = RCLabels::bracket_notation) |> 
+      matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude) |> 
+      matsbyname::select_rows_byname(remove_pattern = "NEU")
+  )
+      
+grouped <- aggregated_nouns |>       
+  dplyr::mutate(
+    Y = Y |> 
+      matsbyname::aggregate_byname(aggregation_map = list(eu_product_agg_map), 
+                                   margin = 1) |> 
+      matsbyname::rowsums_byname() |> 
+      matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
+  ) |> 
+  tidyr::pivot_longer(cols = "Y", names_to = "matnames", values_to = "matvals") |>
+  matsindf::expand_to_tidy(drop = 0) |> 
+  dplyr::mutate(
+    rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
+                                           "LTC", "HPF", "Prop", "MechW", "HuMech", "AnMech"))
+    
+  )
 
+grouped |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = rownames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(limits = c(0, 250)) +
+  ggplot2::scale_fill_manual(values = useful_carrier_colours) +
+  ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
+  MKHthemes::xy_theme()
 ```
+
+
+Now focus on Mechanical work, specifically the splits for each portion of mechanical work.
+We clearly see that Mechanical work is growing.
+
+```{r mech-work, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Details of mechanical work.'}
+mech_work_pattern <- RCLabels::make_or_pattern(eu_product_agg_map$MechW)
+mechw_graph <- aggregated_nouns |> 
+  dplyr::mutate(
+    Y = Y |> 
+      matsbyname::select_rows_byname(retain_pattern = mech_work_pattern) |> 
+      matsbyname::rowsums_byname() |> 
+      matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
+  )  |> 
+  tidyr::pivot_longer(cols = "Y", names_to = "matnames", values_to = "matvals") |>
+  matsindf::expand_to_tidy(drop = 0) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = rownames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
+  MKHthemes::xy_theme()
+mechw_graph
+```
+
+Now, let's plot Mechanical work at the same scale as Figure 7.
+Here, we see that Mechanical work looks quite flat, 
+although it is growing a bit.
+
+```{r mech-work-full-scale, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Mechanical work at same scale as Figure 7.'}
+mechw_graph +
+  ggplot2::scale_y_continuous(limits = c(0, 250)) +
+  ggplot2::scale_fill_manual(values = rep(useful_carrier_colours[["MechW"]], 4))
+```
+
+
+
+
+# Conclusion
