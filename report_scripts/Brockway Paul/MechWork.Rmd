@@ -13,18 +13,47 @@ library(matsindf)
 library(MKHthemes)
 ```
 
-```{r colors}
-useful_carrier_colours <- c(AnMech = "purple1", `Animal mechanical work` = "purple1", `Animal mechanical\nwork` = "purple1",
-                            HuMech = "purple4", `Human mechanical work` = "purple4", `Human mechanical\nwork` = "purple4",
-                            MechW = "pink3", `Mechanical work` = "pink3",
-                            Prop = "pink1", Propulsion = "pink1",
-                            HPF = "ivory3", `High-pressure fluids` = "ivory3", `High-pressure\nfluids` = "ivory3",
-                            LTH = "orangered1", `Low-temperature heat` = "orangered1", `Low-temperature\nheat` = "orangered1",
-                            MTH = "orangered3", `Medium-temperature heat` = "orangered3", `Medium-temperature\nheat` = "orangered3",
-                            HTH = "orangered4", `High-temperature heat` = "orangered4", `High-temperature\nheat` = "orangered4",
-                            LTC = "deepskyblue3", `Low-temperature cooling` = "deepskyblue3", `Low-temperature\ncooling` = "deepskyblue3",
-                            IP = "palegreen4", `Information processing` = "palegreen4", `Information\nprocessing` = "palegreen4",
-                            L = "gold2", Light = "gold2")
+```{r colors, include=FALSE}
+useful_carrier_colours <- c(AnMech = "purple1", 
+                            `Animal mechanical work` = "purple1", 
+                            `Animal mechanical\nwork` = "purple1",
+                            HuMech = "purple4",
+                            `Human mechanical work` = "purple4",
+                            `Human mechanical\nwork` = "purple4",
+                            MechW = "pink3",
+                            `Mechanical work` = "pink3",
+                            Prop = "pink1",
+                            Propulsion = "pink1",
+                            HPF = "ivory3",
+                            `High-pressure fluids` = "ivory3",
+                            `High-pressure\nfluids` = "ivory3",
+                            LTH = "orangered1", 
+                            `Low-temperature heat` = "orangered1",
+                            `Low-temperature\nheat` = "orangered1",
+                            MTH = "orangered3",
+                            `Medium-temperature heat` = "orangered3",
+                            `Medium-temperature\nheat` = "orangered3",
+                            HTH = "orangered4",
+                            `High-temperature heat` = "orangered4",
+                            `High-temperature\nheat` = "orangered4",
+                            LTC = "deepskyblue3",
+                            `Low-temperature cooling` = "deepskyblue3",
+                            `Low-temperature\ncooling` = "deepskyblue3",
+                            IP = "palegreen4",
+                            `Information processing` = "palegreen4",
+                            `Information\nprocessing` = "palegreen4",
+                            L = "gold2",
+                            Light = "gold2")
+```
+
+```{r stuff-to-exclude, include=FALSE} 
+sectors_to_exclude <- RCLabels::make_or_pattern(
+  c("Exports", 
+    "Exports to World aviation bunkers", 
+    "Exports to World marine bunkers", 
+    "Losses", 
+    "Statistical differences", 
+    "Stock changes"))
 ```
 
 
@@ -60,26 +89,11 @@ world_mats |>
 Load data.
 
 ```{r load}
-getwd()
 world_mats <- readRDS(file = "world_mats.rds")
 ```
 
-
-```{r} 
-world_mats_filtered <- world_mats |>
-  # Filter to the same parameters for Figure 7.
-  dplyr::filter(Dataset == "CL-PFU IEA+MW",
-                LastStage == "Useful",
-                IncludesNEU == FALSE) |>
-  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |>
-  dplyr::mutate(
-    ProductAggregation = factor(ProductAggregation, levels = c("Specified", "Despecified", "Grouped")), 
-    IndustryAggregation = factor(IndustryAggregation, levels  = c("Specified", "Despecified", "Grouped"))
-  ) |> 
-  dplyr::arrange(Year, ProductAggregation, IndustryAggregation)
-```
-
-Make a graph similar to Figure 7.
+Make a graph similar to Figure 7
+using pre-aggregated (Grouped) data.
 
 ```{r}
 world_mats |> 
@@ -93,16 +107,8 @@ world_mats |>
   dplyr::arrange(Year, EnergyType) |> 
   dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |>
   dplyr::mutate(
-    ProductAggregation = factor(ProductAggregation, levels = c("Specified", "Despecified", "Grouped")), 
-    IndustryAggregation = factor(IndustryAggregation, levels  = c("Specified", "Despecified", "Grouped")),
     Y = Y |> 
-      matsbyname::select_cols_byname(
-        remove_pattern = RCLabels::make_or_pattern(c("Exports", 
-                                                     "Exports to World aviation bunkers", 
-                                                     "Exports to World marine bunkers", 
-                                                     "Losses", 
-                                                     "Statistical differences", 
-                                                     "Stock changes"))) |> 
+      matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)  |> 
       matsbyname::select_rows_byname(remove_pattern = "NEU") |> 
       matsbyname::rowsums_byname() |> 
       matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
@@ -125,4 +131,24 @@ world_mats |>
   MKHthemes::xy_theme()
 ```
 
+Aggregate using Specified data to confirm similarity 
+of Specified data to Figure 7.
 
+```{r self-aggregation}
+# Read useful product aggregation map
+eu_product_aggregation <- openxlsx2::read_xlsx("aggregation_mapping.xlsx")
+foo <- world_mats |> 
+  # Filter to the same parameters for Figure 7.
+  dplyr::filter(Dataset == "CL-PFU IEA+MW",
+                Year >= 1971,
+                LastStage == "Useful",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Despecified", 
+                IndustryAggregation == "Despecified") |>
+  dplyr::arrange(Year, EnergyType) |> 
+  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -S_units) |> 
+  dplyr::mutate(
+    Y = Y |> 
+      matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)   )
+
+```
