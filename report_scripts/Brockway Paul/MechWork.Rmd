@@ -81,6 +81,8 @@ save locally for convenience.
 
 ```{r data, eval=FALSE}
 conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
+on.exit(DBI::dbDisconnect(conn))
+
 world_mats <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "PSUTReAllChopAllDsAllGrAll",
   Country == "World",
@@ -88,14 +90,28 @@ world_mats <- PFUPipelineTools::pl_filter_collect(
   collect = TRUE)
 world_mats |>
   saveRDS(file = "world_mats.rds")
+
+wrld_eta_vecs <- PFUPipelineTools::pl_filter_collect(
+  db_table_name = "Etai", 
+  Country == "WRLD", 
+  conn = conn, 
+  collect = TRUE
+)
+wrld_eta_vecs |> 
+  saveRDS(file = "wrld_eta_vecs.rds")
+
+DBI::dbDisconnect(conn)
 ```
 
 ```{r load, echo=FALSE}
 world_mats <- readRDS(file = "world_mats.rds")
+wrld_eta_vecs <- readRDS(file = "wrld_eta_vecs.rds")
 ```
 
 
 # Analysis
+
+## Recreate Figure 7
 
 Note that all analyses are performed at the world level,
 with gross useful energy and exergy.
@@ -113,7 +129,7 @@ Here, we're using aggregated (Grouped) data.
 We see that Mechanical work (MechW)
 appears nearly constant, as observed (and questioned) by Tiago.
 
-```{r fig7, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Remake of Figure 7 using pre-aggregated (i.e., grouped) data.', echo=FALSE}
+```{r fig7, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Remake of Figure 7 using pre-aggregated (i.e., Grouped) data.', echo=FALSE}
 grouped_data <- world_mats |> 
   # Filter to the same parameters for Figure 7.
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
@@ -152,52 +168,8 @@ grouped_data |>
   MKHthemes::xy_theme()
 ```
 
-```{r, echo=FALSE}
-# Mechanical work numbers
-grouped_data_1971_2020 <- grouped_data |> 
-  dplyr::filter(rownames == "MechW", Year %in% c(1971, 2020)) |> 
-  dplyr::select(Year, matvals, EnergyType) |> 
-  tidyr::pivot_wider(names_from = "EnergyType", values_from = "matvals") 
-mech_work_1971 <- grouped_data_1971_2020$E[[1]]
-mech_work_2020 <- grouped_data_1971_2020$E[[2]]
-perc_inc <- (mech_work_2020 - mech_work_1971) / mech_work_1971 * 100
-growth_rate <- ((mech_work_2020/mech_work_1971)^(1/(2020-1971)) - 1) * 100
-```
-
-The Mechanical work values for 1971 and 2020 are shown in 
-Table \@ref(tab:MechW-table).
-Mechanical work is not _actually_ constant over time.
-Over the 50-year period, 
-Mechanical work grows `r sprintf("%.1f", perc_inc)`% 
-for a compound average annual growth rate of
-`r sprintf("%.1f", growth_rate)` %/yr.
-
-```{r MechW-table, results='asis', echo=FALSE}
-grouped_data_1971_2020 |> 
-  xtable::xtable(label = "tab:MechW-table", 
-                 caption = "Mechanical work values (in EJ) for 1971 and 2000.") |> 
-  print(comment = FALSE, 
-        caption.placement = "top", 
-        include.rownames = FALSE, 
-        booktabs = TRUE)
-```
-
-The Mechanical work time series are shown in Figure \@ref(fig:mech-work-only).
-
-```{r mech-work-only, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Mechanical work.', echo=FALSE}
-grouped_data |> 
-  dplyr::filter(rownames == "MechW") |> 
-  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals)) + 
-  ggplot2::geom_line() + 
-  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
-  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
-  ggplot2::scale_y_continuous(limits = c(0, NA)) +
-  ggplot2::labs(x = NULL, fill = NULL, y = "Mechanical work [EJ]") +
-  MKHthemes::xy_theme()
-```
-
 Next, we create a graph using Specified data (the most raw data)
-to confirm equivalance of Specified data and
+to confirm equivalence of Specified data and
 the Grouped data of Figure \@ref(fig:fig7) (and Figure 7 of the paper).
 The Specified data are required to disaggregate Mechanical work.
 Figure \@ref(fig:self-aggregation-graph) is the same as 
@@ -265,10 +237,59 @@ grouped |>
   MKHthemes::xy_theme()
 ```
 
-Next, we focus on Mechanical work, 
-specifically the disaggregation into each category of Mechanical work.
+
+Next, we focus on Mechanical work.
+
+
+## Mechanical work
+
+```{r, echo=FALSE}
+# Mechanical work numbers
+grouped_data_1971_2020 <- grouped_data |> 
+  dplyr::filter(rownames == "MechW", Year %in% c(1971, 2020)) |> 
+  dplyr::select(Year, matvals, EnergyType) |> 
+  tidyr::pivot_wider(names_from = "EnergyType", values_from = "matvals") 
+mech_work_1971 <- grouped_data_1971_2020$E[[1]]
+mech_work_2020 <- grouped_data_1971_2020$E[[2]]
+perc_inc <- (mech_work_2020 - mech_work_1971) / mech_work_1971 * 100
+growth_rate <- ((mech_work_2020/mech_work_1971)^(1/(2020-1971)) - 1) * 100
+```
+
+The Mechanical work values for 1971 and 2020 are shown in 
+Table \@ref(tab:MechW-table).
+Mechanical work is not _actually_ constant over time.
+Over the 50-year period, 
+Mechanical work grows `r sprintf("%.1f", perc_inc)`% 
+for a compound average annual growth rate of
+`r sprintf("%.1f", growth_rate)` %/yr.
+
+```{r MechW-table, results='asis', echo=FALSE}
+grouped_data_1971_2020 |> 
+  xtable::xtable(label = "tab:MechW-table", 
+                 caption = "Mechanical work values (in EJ) for 1971 and 2000.") |> 
+  print(comment = FALSE, 
+        caption.placement = "top", 
+        include.rownames = FALSE, 
+        booktabs = TRUE)
+```
+
+The Mechanical work time series are shown in Figure \@ref(fig:mech-work-only).
+
+```{r mech-work-only, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='World mechanical work.', echo=FALSE}
+grouped_data |> 
+  dplyr::filter(rownames == "MechW") |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals)) + 
+  ggplot2::geom_line() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(limits = c(0, NA)) +
+  ggplot2::labs(x = NULL, fill = NULL, y = "Mechanical work (MechW) [EJ]") +
+  MKHthemes::xy_theme()
+```
+
+Next, we disaggregate Mechanical work into subcategories.
 In the CL-PFU database, we calculate aggregate Mechanical work by summing
-`r paste(paste(eu_product_agg_map$MechW[1:3], collapse = ", "), eu_product_agg_map$MechW[4], sep = " and ")`.
+`r paste(paste(eu_product_agg_map$MechW[1:3], collapse = ", "), eu_product_agg_map$MechW[4], sep = ", and ")`.
 Figure \@ref(fig:mech-work) shows that Mechanical work (MechW) 
 is growing (in total), 
 but Mechanical drive (MD) is declining slightly
@@ -327,6 +348,127 @@ mechw_details_data |>
         include.rownames = FALSE, 
         booktabs = TRUE)
 ```
+
+
+## Mechanical drive (MD)
+
+```{r md-calcs, echo=FALSE}
+md_mats <- world_mats |> 
+  dplyr::filter(Year >= 1971, 
+                Dataset == "CL-PFU IEA+MW",
+                LastStage == "Useful",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified") |> 
+  dplyr::mutate(
+    V_MD = V |> 
+      matsbyname::select_rowcol_piece_byname(retain = "MD", 
+                                             piece = "suff",
+                                             notation = RCLabels::arrow_notation, 
+                                             margin = 1) |> 
+      matsbyname::clean_byname(margin = 2)
+  ) |> 
+  dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -Y, -S_units)
+
+md_df <- md_mats |> 
+  tidyr::pivot_longer(cols = "V_MD", names_to = "matnames", values_to = "matvals") |> 
+  matsindf::expand_to_tidy() |> 
+  dplyr::filter(matvals != 0) |> 
+  dplyr::mutate(
+    rownames_nouns = rownames |> 
+      RCLabels::get_nouns(notation = RCLabels::arrow_notation)
+  )
+
+md_machines <- unique(md_df$rownames_nouns)
+```
+
+The largest subcategory of Mechanical work (MechW) is 
+Mechanical drive (MD), 
+and MD is quite flat over time. 
+To gain further insight, 
+we interrogate the **V** matrix when the last stage is "Useful"
+for machines that make Mechanical drive (MD).
+We find that the machines creating MD are
+`r paste(paste(md_machines[1:2], collapse = ", "), md_machines[3], sep = ", and ")`.
+Figure \@ref(fig:MD-components) shows 
+the evolution of the sub-components of MD over time. 
+
+```{r MD-components, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='World mechanical drive (MD) by source.', echo=FALSE}
+md_df |> 
+  dplyr::mutate(
+    matvals = matvals / 1e6 # Convert TJ to EJ
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals, fill = rownames_nouns)) +
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 10, by = 2)) +
+  ggplot2::labs(x = NULL, y = "World MD [EJ]", fill = NULL) +
+  MKHthemes::xy_theme()
+```
+
+Figure \@ref(fig:MD-components) shows 
+that Static diesel engines are producing less MD over time, 
+a decline that is partially offset by Domestic appliances.
+Static gasoline engines provide a very minor contribution 
+to total Mechanical drive.
+
+## Efficiencies of MD machines
+
+```{r wrld-eta}
+wrld_eta_df <- wrld_eta_vecs |> 
+  dplyr::filter(Year >= 1971, 
+                Dataset == "CL-PFU IEA+MW",
+                LastStage == "Useful",
+                IncludesNEU == FALSE) |> 
+    dplyr::mutate(
+      eta_i_MD = eta_i |> 
+        matsbyname::select_rowcol_piece_byname(retain = "MD", 
+                                               piece = "suff",
+                                               notation = RCLabels::arrow_notation, 
+                                               margin = 1), 
+      eta_i = NULL
+    ) |> 
+  tidyr::pivot_longer(cols = "eta_i_MD", names_to = "matnames", values_to = "matvals") |> 
+  matsindf::expand_to_tidy() |> 
+  dplyr::filter(matvals != 0) |> 
+  dplyr::mutate(
+    rownames_nouns = rownames |> 
+      RCLabels::get_nouns(notation = RCLabels::arrow_notation)
+  )
+
+```
+
+It is also instructive to look at the efficiency of the machines that 
+produce MD.
+Figure \@ref(fig:MD-efficiencies) shows 
+the evolution of 
+`r paste(paste(md_machines[1:2], collapse = ", "), md_machines[3], sep = ", and ")`.
+efficiencies.
+
+```{r MD-efficiencies, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='WRLD efficiencies of MD machines.', echo=FALSE}
+wrld_eta_df |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals, linetype = rownames_nouns)) + 
+  ggplot2::geom_line() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) +
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+  ggplot2::labs(x = NULL, y = "WRLD MD machine efficiencies [-]", linetype = NULL) +
+
+  MKHthemes::xy_theme()
+```
+
+Note that the energy and exergy produced by MD machines is identical.
+MD machine efficiencies are identical across energy and exergy for 
+Domestic appliances, because 
+the energy and exergy of electricity is identical.
+Most Domestic appliances are powered by Electricity.
+
+The efficiency of Static diesel and gasoline engines
+is slightly different between energy and exergy
+due to the 
+energy and exergy of input fuels being different.
+
 
 # Conclusion
 
