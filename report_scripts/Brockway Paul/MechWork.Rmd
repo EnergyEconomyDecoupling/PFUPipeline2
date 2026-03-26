@@ -91,21 +91,11 @@ world_mats <- PFUPipelineTools::pl_filter_collect(
 world_mats |>
   saveRDS(file = "world_mats.rds")
 
-wrld_eta_vecs <- PFUPipelineTools::pl_filter_collect(
-  db_table_name = "Etai", 
-  Country == "WRLD", 
-  conn = conn, 
-  collect = TRUE
-)
-wrld_eta_vecs |> 
-  saveRDS(file = "wrld_eta_vecs.rds")
-
 DBI::dbDisconnect(conn)
 ```
 
 ```{r load, echo=FALSE}
 world_mats <- readRDS(file = "world_mats.rds")
-wrld_eta_vecs <- readRDS(file = "wrld_eta_vecs.rds")
 ```
 
 
@@ -117,7 +107,7 @@ Note that all analyses are performed at the world level,
 with gross useful energy and exergy.
 (Gross includes useful stage energy and exergy consumed by final demand
 _and_ energy industry own use.
-These data are taken from the **Y** and **U_EIOU** matrices.)
+These data are taken from the **Y** and **U**~EIOU~ matrices.)
 This analysis employs v2.0 of the CL-PFU database, while 
 the paper (and Figure 7) used v1.2.
 Some small differences can be expected.
@@ -317,7 +307,10 @@ mechw_graph <- mechw_details_data |>
   ggplot2::geom_area() + 
   ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
-  ggplot2::scale_fill_manual(values = c("rosybrown2", "pink3", "rosybrown4", "black")) +
+  ggplot2::scale_fill_manual(values = c(KE = "rosybrown2", 
+                                        MacW = "pink3", 
+                                        MD = "rosybrown4", 
+                                        MF = "black")) +
   ggplot2::labs(x = NULL, fill = NULL, y = "Mecahnical work components [EJ]") +
   MKHthemes::xy_theme()
 mechw_graph
@@ -361,119 +354,239 @@ md_mats <- world_mats |>
                 ProductAggregation == "Specified", 
                 IndustryAggregation == "Specified") |> 
   dplyr::mutate(
+    U_MD = U |> 
+      matsbyname::select_rowcol_piece_byname(retain = "MD", 
+                                             piece = "suff", 
+                                             notation = RCLabels::arrow_notation, 
+                                             margin = 2) |> 
+      matsbyname::clean_byname(margin = 1) |> 
+      matsbyname::colsums_byname(rowname = "Input") |> 
+      matsbyname::transpose_byname(),
     V_MD = V |> 
       matsbyname::select_rowcol_piece_byname(retain = "MD", 
                                              piece = "suff",
                                              notation = RCLabels::arrow_notation, 
                                              margin = 1) |> 
-      matsbyname::clean_byname(margin = 2)
+      matsbyname::clean_byname(margin = 2) |> 
+      matsbyname::rowsums_byname(colname = "Output")
   ) |> 
   dplyr::select(-R, -U, -U_EIOU, -U_feed, -r_EIOU, -V, -Y, -S_units)
 
-md_df <- md_mats |> 
-  tidyr::pivot_longer(cols = "V_MD", names_to = "matnames", values_to = "matvals") |> 
-  matsindf::expand_to_tidy() |> 
-  dplyr::filter(matvals != 0) |> 
-  dplyr::mutate(
-    rownames_nouns = rownames |> 
-      RCLabels::get_nouns(notation = RCLabels::arrow_notation)
-  )
 
-md_machines <- unique(md_df$rownames_nouns)
+md_df <- md_mats |> 
+  tidyr::pivot_longer(cols = c("U_MD", "V_MD"),
+                      names_to = "matnames", 
+                      values_to = "matvals") |> 
+  matsindf::expand_to_tidy(drop = 0) |> 
+  dplyr::mutate(
+    machine = rownames |> 
+      RCLabels::get_nouns(notation = RCLabels::arrow_notation), 
+    direction = colnames,
+    matnames = NULL, 
+    rownames = NULL, 
+    colnames = NULL, 
+    rowtypes = NULL, 
+    coltypes = NULL
+  ) |> 
+  tidyr::pivot_wider(names_from = "direction", values_from = "matvals")
+
+md_machines <- unique(md_df$machine)
+md_machines_str <- paste(paste(md_machines[1:2],
+                               collapse = ", "),
+                         md_machines[3], 
+                         sep = ", and ")
 ```
 
 The largest subcategory of Mechanical work (MechW) is 
 Mechanical drive (MD), 
 and MD is quite flat over time. 
 To gain further insight, 
-we interrogate the **V** matrix when the last stage is "Useful"
-for machines that make Mechanical drive (MD).
-We find that the machines creating MD are
-`r paste(paste(md_machines[1:2], collapse = ", "), md_machines[3], sep = ", and ")`.
+we extract, 
+from the **V** (make) matrix when the last stage is Useful,
+machines that produce Mechanical drive (MD).
+The machines that produce MD are
+`r md_machines_str`.
 Figure \@ref(fig:MD-components) shows 
-the evolution of the sub-components of MD over time. 
+the evolution of world-total outputs 
+from those three machines. 
 
 ```{r MD-components, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='World mechanical drive (MD) by source.', echo=FALSE}
 md_df |> 
   dplyr::mutate(
-    matvals = matvals / 1e6 # Convert TJ to EJ
+    Output = Output / 1e6 # Convert TJ to EJ
   ) |> 
-  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals, fill = rownames_nouns)) +
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = Output, fill = machine)) +
   ggplot2::geom_area() + 
   ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
   ggplot2::scale_y_continuous(breaks = seq(0, 10, by = 2)) +
+  ggplot2::scale_fill_manual(
+    values = c(`Domestic appliances` = "steelblue1", 
+               `Static diesel engines` = "steelblue3", 
+               `Static gasoline engines` = "steelblue4")) +
   ggplot2::labs(x = NULL, y = "World MD [EJ]", fill = NULL) +
   MKHthemes::xy_theme()
 ```
 
 Figure \@ref(fig:MD-components) shows 
 that Static diesel engines are producing less MD over time, 
-a decline that is partially offset by Domestic appliances.
+a decline that is partially offset by growing
+MD production by Domestic appliances.
 Static gasoline engines provide a very minor contribution 
 to total Mechanical drive.
 
+
 ## Efficiencies of MD machines
 
-```{r wrld-eta}
-wrld_eta_df <- wrld_eta_vecs |> 
-  dplyr::filter(Year >= 1971, 
-                Dataset == "CL-PFU IEA+MW",
-                LastStage == "Useful",
-                IncludesNEU == FALSE) |> 
-    dplyr::mutate(
-      eta_i_MD = eta_i |> 
-        matsbyname::select_rowcol_piece_byname(retain = "MD", 
-                                               piece = "suff",
-                                               notation = RCLabels::arrow_notation, 
-                                               margin = 1), 
-      eta_i = NULL
-    ) |> 
-  tidyr::pivot_longer(cols = "eta_i_MD", names_to = "matnames", values_to = "matvals") |> 
-  matsindf::expand_to_tidy() |> 
-  dplyr::filter(matvals != 0) |> 
-  dplyr::mutate(
-    rownames_nouns = rownames |> 
-      RCLabels::get_nouns(notation = RCLabels::arrow_notation)
-  )
-
-```
-
 It is also instructive to look at the efficiency of the machines that 
-produce MD.
+produce MD
+(`r md_machines_str`).
+Efficiency can be calculated by dividing MD machine outputs
+(found in the **V** matrix) by MD machine inputs
+(found in the **U** matrix).
 Figure \@ref(fig:MD-efficiencies) shows 
-the evolution of 
-`r paste(paste(md_machines[1:2], collapse = ", "), md_machines[3], sep = ", and ")`.
+the evolution of those 
 efficiencies.
 
-```{r MD-efficiencies, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='WRLD efficiencies of MD machines.', echo=FALSE}
-wrld_eta_df |> 
-  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals, linetype = rownames_nouns)) + 
-  ggplot2::geom_line() + 
+```{r MD-efficiencies, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='World-level efficiencies of machines that produce MD.', echo=FALSE}
+md_df |> 
+  dplyr::mutate(eta = Output / Input) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = eta, linetype = machine, colour = machine)) +
+  ggplot2::geom_line() +
   ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) +
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
   ggplot2::scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-  ggplot2::labs(x = NULL, y = "WRLD MD machine efficiencies [-]", linetype = NULL) +
-
+  ggplot2::scale_colour_manual(
+    values = c(`Domestic appliances` = "steelblue1", 
+               `Static diesel engines` = "steelblue3", 
+               `Static gasoline engines` = "steelblue4")) +
+  ggplot2::scale_linetype_manual(
+    values = c(`Domestic appliances` = 1, 
+               `Static diesel engines` = 2, 
+               `Static gasoline engines` = 3)) +
+  ggplot2::labs(x = NULL, 
+                y = "WRLD MD machine efficiencies [-]", 
+                linetype = NULL, 
+                colour = NULL) +
   MKHthemes::xy_theme()
 ```
 
-Note that the energy and exergy produced by MD machines is identical.
-MD machine efficiencies are identical across energy and exergy for 
-Domestic appliances, because 
-the energy and exergy of electricity is identical.
-Most Domestic appliances are powered by Electricity.
+A few observations can be made.
 
-The efficiency of Static diesel and gasoline engines
-is slightly different between energy and exergy
-due to the 
-energy and exergy of input fuels being different.
+* There is an interesting inflection in World engine efficiencies
+  around 2000 that should be investigated.
+* The efficiency of Static diesel engines rises 
+  from 1971--2020, 
+  suggesting that their reduction
+  in MD production is the result of a reduction in diesel
+  inputs from 1971--2020.
+  In turn, this result implies declining usage of Static diesel engines
+  over time.
+* The energy and exergy 
+  output from (i.e., produced by)
+  MD machines is identical.
+  MD machine efficiencies are identical across energy and exergy for 
+  Domestic appliances, because 
+  the energy and exergy of input electricity is identical.
+  Most Domestic appliances are powered by Electricity.
+* The efficiency of Static diesel and gasoline engines
+  is slightly different between energy and exergy
+  due to the slight difference in
+  energy and exergy of input fossil fuels.
+  Because the exergy is larger than exergy for fossil fuels, 
+  exergy efficiency is slightly lower for 
+  Static diesel and gasoline engines.
+
+
+## Consumption of MD by sectors
+
+We can interrogate the **Y** (final demand) 
+matrix for usage of MD by various sectors.
+Figure \@ref(fig:md-Y-graph) shows 
+the evolution of MD consumption.
+
+```{r MD-Y, echo=FALSE}
+md_Y <- world_mats |> 
+  dplyr::filter(Year >= 1971, 
+                Dataset == "CL-PFU IEA+MW",
+                LastStage == "Useful",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified") |> 
+  dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -S_units) |>
+  dplyr::mutate(
+    Y_MD = Y |> 
+      matsbyname::select_rowcol_piece_byname(retain = "MD", 
+                                             piece = "pref", 
+                                             notation = RCLabels::from_notation, 
+                                             margin = 1) |> 
+      matsbyname::clean_byname(margin = 2) |> 
+      matsbyname::colsums_byname(rowname = "MD input") |> 
+      matsbyname::transpose_byname(), 
+    Y = NULL
+  )
+
+
+md_Y_df <- md_Y |> 
+  tidyr::pivot_longer(cols = Y_MD, 
+                      names_to = "matnames", 
+                      values_to = "matvals") |> 
+  matsindf::expand_to_tidy(drop = 0) |>
+  dplyr::rename(
+    Sector = rownames
+  ) |> 
+  dplyr::mutate(
+    colnames = NULL, 
+    rowtypes = NULL, 
+    coltypes = NULL, 
+    matnames = NULL, 
+    matvals = matvals / 1e6 # Convert TJ to EJ
+  )
+```
+
+
+```{r md-Y-graph, fig.retina=2, fig.align='center', fig.cap='World-level MD consumption by sector.', echo=FALSE}
+md_Y_df |> 
+  dplyr::filter(EnergyType == "X") |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = Sector)) +
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::labs(x = NULL, 
+                y = "MD consumption by sector [EJ]", 
+                fill = NULL) +
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 10, by = 2)) +
+  ggplot2::scale_fill_viridis_d(direction = -1, option = "inferno") +
+  MKHthemes::xy_theme()
+```
+
+The Iron and steel sector is largely decreasing in MD consumption,
+while Residential exhibits large increases in MD consumption.
+**** I could aggregate these industries into our larger categories, 
+like Industry, AFF, etc. 
+But I don't want to take that step unless we think
+it is needed.
+Doing so will take a bit of coding.
+---MKH
+****
 
 
 # Conclusion
 
-It is true that Mechanical work grows more slowly than other categories of 
+It is true that Mechanical work (MechW) 
+grows more slowly than other categories of 
 useful energy and exergy.
-However, Mechanical work _is_ growing at `r sprintf("%.1f", growth_rate)` %/yr,
+However, Mechanical work _is growing_
+at `r sprintf("%.1f", growth_rate)` %/yr,
 about 1/3 of the compound average annual world GDP growth rate
 over the same period.
+
+The largest category of MechW is Mechanical drive (MD)
+produced by `r md_machines_str`.
+The largest producer of MD is Static diesel engines, but
+Static diesel engines produce less energy in 2020 than in 1971,
+despite rising efficiency, 
+suggesting decreasing energy inputs due to 
+less usage over time.
