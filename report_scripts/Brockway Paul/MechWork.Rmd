@@ -566,6 +566,7 @@ The Iron and steel sector is largely decreasing in MD consumption,
 while Residential exhibits large increases in MD consumption.
 **** I could aggregate these industries into our larger categories, 
 like Industry, AFF, etc. 
+It looks like many of the industry categories are declining.
 But I don't want to take that step unless we think
 it is needed.
 Doing so will take a bit of coding.
@@ -590,3 +591,5 @@ Static diesel engines produce less energy in 2020 than in 1971,
 despite rising efficiency, 
 suggesting decreasing energy inputs due to 
 less usage over time.
+It appears that industrial uses of MD are declining over time,
+offsetting increases in consumption of MD by the Residential sector.
