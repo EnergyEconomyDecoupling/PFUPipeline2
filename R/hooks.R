@@ -173,27 +173,29 @@ upsert_hook <- function(.df,
     ) |>
     dplyr::relocate(dplyr::all_of(dataset_colname)) |>
     # Upload to the database and return the "ticket"
-    PFUPipelineTools::pl_upsert(in_place = TRUE,
-                                db_table_name = db_table_name,
-                                index_map = index_map,
-                                # Don't keep single unique columns,
-                                # because groups may have different columns
-                                # with single unique values.
-                                keep_single_unique_cols = FALSE,
-                                # Set retain_zero_structure TRUE
-                                # to preserve U_EIOU, r_EIOU, and
-                                # other matrices when they're otherwise
-                                # absent.
-                                retain_zero_structure = TRUE,
-                                # Should we compress the table across verions?
-                                compress = compress_data,
-                                # Round any double columns to 14 digits to
-                                # assist with comparisons before compressing.
-                                round_double_columns = TRUE,
-                                digits = 14,
-                                conn = conn,
-                                schema = schema,
-                                fk_parent_tables = fk_parent_tables)
+    # PFUPipelineTools::pl_upsert(in_place = TRUE,
+    PFUPipelineTools::pl_upsert_and_compress(
+      in_place = TRUE,
+      db_table_name = db_table_name,
+      index_map = index_map,
+      # Don't keep single unique columns,
+      # because groups may have different columns
+      # with single unique values.
+      keep_single_unique_cols = FALSE,
+      # Set retain_zero_structure TRUE
+      # to preserve U_EIOU, r_EIOU, and
+      # other matrices when they're otherwise
+      # absent or all zeroes.
+      retain_zero_structure = TRUE,
+      # Should we compress the table across versions?
+      compress = compress_data,
+      # Round any double columns to 14 digits to
+      # assist with comparisons before compressing.
+      round_double_columns = TRUE,
+      digits = 14,
+      conn = conn,
+      schema = schema,
+      fk_parent_tables = fk_parent_tables)
 }
 
 
