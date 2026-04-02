@@ -62,9 +62,8 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
           IEATools::write_fu_allocation_template(fpath)
       }
     }
-    # Read the FU allocation data from fpath, if it exists.
-    fexists <- file.exists(fpath)
     if (fexists) {
+      # Read the FU allocation data from fpath, when it exists.
       return(IEATools::load_fu_allocation_data(fpath, fu_allocations_tab_name = fu_allocations_tab_name))
     } else {
       return(NULL)
@@ -74,6 +73,7 @@ load_fu_allocation_tables <- function(fu_analysis_folder,
   if (nrow(out) == 0) {
     return(NULL)
   }
+
   out |>
     IEATools::tidy_fu_allocation_table()
 }
