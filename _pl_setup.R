@@ -96,9 +96,11 @@
 # Countries to run on 31 Mar 2026
 # countries <- "USA"
 
-
 # Countries to run on 1 April 2026
-countries <- "GBR"
+# countries <- "GBR"
+
+# Countries to run on 2 April 2026
+countries <- "AUS"
 
 
 
