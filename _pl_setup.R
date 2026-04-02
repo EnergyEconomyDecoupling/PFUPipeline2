@@ -104,7 +104,9 @@ countries <- "AUS"
 
 
 
-
+# Regular: tar_make()
+# Debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
+debug <- FALSE
 
 
 # Additional exemplar countries are countries which aren't included in the workflow
@@ -168,7 +170,7 @@ apply_fixes <- TRUE
 release <- FALSE
 
 # Should we compress data across versions upon upsert to a table?
-compress_data <- FALSE
+compress_data <- TRUE
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
@@ -215,15 +217,16 @@ if (parallel::detectCores() == 10) {
   worker_threads <- 2
 }
 
-# For parallel processing.
-crew_controller <- crew::crew_controller_local(
-  workers = worker_threads,
-  seconds_idle = 60,
-  r_arguments = "--max-connections=512"
-)
-
-# Debugging
-# crew_controller <- NULL
+if (debug) {
+  crew_controller <- NULL
+} else {
+  # For parallel processing.
+  crew_controller <- crew::crew_controller_local(
+    workers = worker_threads,
+    seconds_idle = 60,
+    r_arguments = "--max-connections=512"
+  )
+}
 
 # Directory for input and output data ------------------------------------------
 project_path <- file.path("~",
