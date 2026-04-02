@@ -90,8 +90,19 @@
 
 
 # Countries to run on 19 Mar 2026
-countries <- c("FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
-               "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SVN", "SVK")
+# countries <- c("FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
+#                "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SVN", "SVK")
+
+# Countries to run on 31 Mar 2026
+# countries <- "USA"
+
+
+# Countries to run on 1 April 2026
+countries <- "GBR"
+
+
+
+
 
 
 # Additional exemplar countries are countries which aren't included in the workflow
