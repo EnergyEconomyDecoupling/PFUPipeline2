@@ -73,6 +73,7 @@ create_index_map <- function(index_table_name = "Index",
   index_id_colname <- paste0(index_table_name, pk_suffix)
   index_table <- index_table_name |>
     PFUPipelineTools::pl_filter_collect(collect = TRUE,
+                                        version_string = NULL,
                                         conn = conn,
                                         schema = schema,
                                         fk_parent_tables = fk_parent_tables) |>

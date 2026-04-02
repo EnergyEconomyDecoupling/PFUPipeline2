@@ -62,6 +62,7 @@ list(
   targets::tar_target(
     MatnameRCType,
     PFUPipelineTools::pl_filter_collect("matnameRCType",
+                                        version_string = NULL,
                                         conn = conn,
                                         collect = TRUE,
                                         schema = DataModel,
