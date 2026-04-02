@@ -436,6 +436,27 @@ Static gasoline engines provide a very minor contribution
 to total Mechanical drive.
 
 
+## Inputs to MD machines
+
+```{r MD-inputs, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='World inputs for mechanical drive (MD) by machine.', echo=FALSE}
+md_df |> 
+  dplyr::mutate(
+    Input = Input / 1e6 # Convert TJ to EJ
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = Input, fill = machine)) +
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 30, by = 5)) +
+  ggplot2::scale_fill_manual(
+    values = c(`Domestic appliances` = "steelblue1", 
+               `Static diesel engines` = "steelblue3", 
+               `Static gasoline engines` = "steelblue4")) +
+  ggplot2::labs(x = NULL, y = "World inputs for MD [EJ]", fill = NULL) +
+  MKHthemes::xy_theme()
+```
+
+
 ## Efficiencies of MD machines
 
 It is also instructive to look at the efficiency of the machines that 
@@ -470,6 +491,7 @@ md_df |>
                 colour = NULL) +
   MKHthemes::xy_theme()
 ```
+
 
 A few observations can be made.
 
@@ -594,6 +616,8 @@ md_Y_df |>
         booktabs = TRUE)
 
 ```
+
+
 
 
 # Conclusion
