@@ -3,7 +3,7 @@ title: "Mechanical work analysis for the CL-PFU database"
 output:
   bookdown::pdf_document2:
     toc: false
-date: "2026-03-25"
+date: "2026-04-02"
 author: Matthew Kuperus Heun
 ---
 
@@ -72,6 +72,7 @@ regarding Figure 7 of the paper
 Brockway et al. A country-level primary-final-useful (CL-PFU) energy and exergy
 database: Overview of its construction and 1971–2020 world-level efficiency results. 
 Environmental Research: Energy, 1(025005):1–29, jun 2024.
+(The "database paper.")
 
 
 # Data
@@ -101,7 +102,7 @@ world_mats <- readRDS(file = "world_mats.rds")
 
 # Analysis
 
-## Recreate Figure 7
+## Recreate Figure 7 from the database paper
 
 Note that all analyses are performed at the world level,
 with gross useful energy and exergy.
@@ -113,13 +114,13 @@ the paper (and Figure 7) used v1.2.
 Some small differences can be expected.
 
 The first step in the analysis is to create Figure \@ref(fig:fig7), 
-a graph similar to Figure 7 from the paper. 
+a graph similar to Figure 7 from the database paper. 
 By this step, we double-check the data we obtained from the database.
 Here, we're using aggregated (Grouped) data.
 We see that Mechanical work (MechW)
 appears nearly constant, as observed (and questioned) by Tiago.
 
-```{r fig7, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Remake of Figure 7 using pre-aggregated (i.e., Grouped) data.', echo=FALSE}
+```{r fig7, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Remake of Figure 7 of the database paper using pre-aggregated (i.e., Grouped) data.', echo=FALSE}
 grouped_data <- world_mats |> 
   # Filter to the same parameters for Figure 7.
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
@@ -160,7 +161,7 @@ grouped_data |>
 
 Next, we create a graph using Specified data (the most raw data)
 to confirm equivalence of Specified data and
-the Grouped data of Figure \@ref(fig:fig7) (and Figure 7 of the paper).
+the Grouped data of Figure \@ref(fig:fig7) (and Figure 7 of the database paper).
 The Specified data are required to disaggregate Mechanical work.
 Figure \@ref(fig:self-aggregation-graph) is the same as 
 Figure \@ref(fig:fig7), indicating 
@@ -169,7 +170,7 @@ and
 (b) that we can use the Specified data to disaggregate
     the Mechanical work time series.
 
-```{r self-aggregation-graph, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Remake of Figure 7 starting from Specified data.', echo=FALSE}
+```{r self-aggregation-graph, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Remake of Figure 7 from the database paper starting from Specified data.', echo=FALSE}
 # Read useful product aggregation map
 eu_product_agg_map <- openxlsx2::read_xlsx("aggregation_mapping.xlsx", sheet = "eu_product_aggregation") |> 
   matsbyname::agg_table_to_agg_map(few_colname = "Few", many_colname = "Many")
@@ -316,11 +317,12 @@ mechw_graph <- mechw_details_data |>
 mechw_graph
 ```
 
-Now, we plot disaggregated Mechanical work at the same scale as Figure 7.
+Now, we plot disaggregated Mechanical work at the same scale as Figure 7
+from the database paper.
 Here, we see that Mechanical work appears quite flat, 
 as Tiago noticed, despite its growth.
 
-```{r mech-work-full-scale, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Mechanical work at same scale as Figure 7.', echo=FALSE}
+```{r mech-work-full-scale, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Mechanical work at same scale as Figure 7 from the database paper.', echo=FALSE}
 mechw_graph +
   ggplot2::scale_y_continuous(limits = c(0, 280), 
                               breaks = seq(0, 250, by = 50))
@@ -438,6 +440,15 @@ to total Mechanical drive.
 
 ## Inputs to MD machines
 
+`r md_machines_str` consume energy to make MD. 
+We extract, 
+from the **U** (use) matrix when the last stage is Useful,
+energy and exergy inputs 
+to machines that make Mechanical drive (MD).
+Figure \@ref(fig:MD-inputs) shows 
+the evolution of world-total inputs
+to those machines. 
+
 ```{r MD-inputs, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='World inputs for mechanical drive (MD) by machine.', echo=FALSE}
 md_df |> 
   dplyr::mutate(
@@ -455,6 +466,16 @@ md_df |>
   ggplot2::labs(x = NULL, y = "World inputs for MD [EJ]", fill = NULL) +
   MKHthemes::xy_theme()
 ```
+
+Figure \@ref(fig:MD-inputs) shows that input energy
+for Static diesel engines is declining over time. 
+With declining MD output from Static diesel engines, 
+these results suggest declining usage of 
+Static diesel engines over time.
+
+Both input energy to and output energy from
+Domestic appliances is growing over time,
+suggesting growing use of Domestic appliances over time.
 
 
 ## Efficiencies of MD machines
@@ -498,12 +519,8 @@ A few observations can be made.
 * There is an interesting inflection in World engine efficiencies
   around 2000 that should be investigated.
 * The efficiency of Static diesel engines rises 
-  from 1971--2020, 
-  suggesting that their reduction
-  in MD production is the result of a reduction in diesel
-  inputs from 1971--2020.
-  In turn, this result implies declining usage of Static diesel engines
-  over time.
+  from 1971--2020, thus
+  MD output declines more slowly than energy inputs. 
 * The energy and exergy 
   output from (i.e., produced by)
   MD machines is identical.
@@ -586,15 +603,6 @@ md_Y_df |>
 
 The Iron and steel sector is largely decreasing in MD consumption,
 while Residential exhibits large increases in MD consumption.
-**** I could aggregate these industries into our larger categories, 
-like Industry, AFF, etc. 
-It looks like many of the industry categories are declining.
-But I don't want to take that step unless we think
-it is needed.
-Doing so will take a bit of coding.
----MKH
-****
-
 
 Table \@ref(tab:MDY-table) shows differences
 in MD consumption over the 60-year period from 1971 to 2020.
@@ -618,8 +626,6 @@ md_Y_df |>
 ```
 
 
-
-
 # Conclusion
 
 It is true that Mechanical work (MechW) 
@@ -635,7 +641,7 @@ produced by `r md_machines_str`.
 The largest producer of MD is Static diesel engines, but
 Static diesel engines produce less energy in 2020 than in 1971,
 despite rising efficiency, 
-suggesting decreasing energy inputs due to 
+causing decreasing energy inputs due to 
 less usage over time.
-It appears that industrial uses of MD are declining over time,
+Industrial usage of MD are declining over time,
 offsetting increases in consumption of MD by the Residential sector.
