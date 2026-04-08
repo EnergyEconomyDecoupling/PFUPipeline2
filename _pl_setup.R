@@ -100,7 +100,14 @@
 # countries <- "GBR"
 
 # Countries to run on 2 April 2026
-countries <- "AUS"
+# countries <- "AUS"
+
+# Countries to run on 7 Apr 2026
+countries <- c("ALB", "ARG", "AUT", "BEL", "BGR", "BIH", "BLR", "CAN", "CHE", "CHL",
+               "CYP", "CZE", "EST", "FIN", "GEO", "GRC", "HRV", "HUN", "IRL", "ITA",
+               "LTU", "LUX", "LVA", "MAR", "MDA", "MKD", "NLD", "NOR", "NZL", "POL",
+               "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
+
 
 
 
