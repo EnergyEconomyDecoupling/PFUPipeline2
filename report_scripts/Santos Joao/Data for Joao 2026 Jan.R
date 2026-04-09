@@ -40,16 +40,17 @@ countries <- c("AUT", "BEL", "DNK", "FIN", "FRA", "DEU", "GRC",
 #                                                             collect = TRUE,
 #                                                             conn = conn)
 
-psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(db_table_name = "PSUTReAllChopAllDsAllGrAll",
-                                                            Dataset == "CL-PFU IEA+MW",
-                                                            ProductAggregation == "Specified",
-                                                            IndustryAggregation == "Specified",
-                                                            Country %in% countries,
-                                                            IncludesNEU == TRUE,
-                                                            matname == "Y",
-                                                            create_matsindf = FALSE,
-                                                            collect = TRUE,
-                                                            conn = conn)
+psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
+  db_table_name = "PSUTReAllChopAllDsAllGrAll",
+  Dataset == "CL-PFU IEA+MW",
+  ProductAggregation == "Specified",
+  IndustryAggregation == "Specified",
+  Country %in% countries,
+  IncludesNEU == TRUE,
+  matname == "Y",
+  create_matsindf = FALSE,
+  collect = TRUE,
+  conn = conn)
 
 
 DBI::dbDisconnect(conn)
