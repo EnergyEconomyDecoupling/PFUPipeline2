@@ -108,7 +108,7 @@ countries <- c("ALB", "ARG", "AUT", "BEL", "BGR", "BIH", "BLR", "CAN", "CHE", "C
                "LTU", "LUX", "LVA", "MAR", "MDA", "MKD", "NLD", "NOR", "NZL", "POL",
                "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
 
-
+countries <- "GHA"
 
 
 # Regular: tar_make()
@@ -142,10 +142,10 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1960
 # years <- 1971
-# years <- 1996
+years <- 1996
 # years <- 2010
 # years <- 2013
 # years <- 1960:1980

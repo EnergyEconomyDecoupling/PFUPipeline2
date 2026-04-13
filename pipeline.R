@@ -1229,6 +1229,10 @@ list(
       # db_table_name_from_hook_before.
       db_table_name_from_hook_outer <- db_table_name_hook(targets::tar_name())
       version_from_hook_outer <- clpfu_version
+      # Get the name of the value column from the special
+      # function that bundles the logic for deciding the value column name.
+
+      value_colname <- value_colname_hook(db_table_name_from_hook_outer)
       upsert_hook(.x,
                   db_table_name = db_table_name_from_hook_outer,
                   dataset = dataset_from_hook,
@@ -1238,7 +1242,8 @@ list(
                   conn = conn,
                   schema = DataModel,
                   fk_parent_tables = FKTables,
-                  dataset_colname = PFUPipelineTools::dataset_info$dataset_colname)
+                  dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                  value_colname = value_colname)
     },
     names = c("AllIEAData", "BalancedIEAData", "SpecifiedIEAData", "PSUTFinalIEA",
               "AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",

@@ -7,16 +7,8 @@
 #' and uploads to the database.
 #'
 #' @param phi_constants_path The path to the phi_constants file.
-#' @param dataset The string name of the dataset for this data.
-#' @param db_table_name The name of the specified IEA data table in `conn`.
-#' @param conn The database connection.
-#' @param schema The data model (`dm` object) for the database in `conn`.
-#'               See details.
-#' @param fk_parent_tables A named list of all parent tables
-#'                         for the foreign keys in `db_table_name`.
-#'                         See details.
-#' @param dataset_colname The name of the dataset column in the output.
-#'                        Default is `PFUPipelineTools::dataset_info$dataset_colname`.
+#' @param value_colname The name of the value column.
+#'                      Default is "phi".
 #'
 #' @return A hashed version of the phi constants table.
 #'
