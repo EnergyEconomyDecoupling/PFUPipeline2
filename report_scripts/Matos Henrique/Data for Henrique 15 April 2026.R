@@ -69,4 +69,20 @@ cet |>
 
 
 
+
+etai <- PFUPipelineTools::pl_filter_collect(
+  db_table_name = "Etai",
+  version_string = "v2.0",
+  Dataset == "CL-PFU IEA",
+  Year %in% years,
+  Country == "World",
+  create_matsindf = FALSE,
+  collect = TRUE,
+  conn = conn) |>
+  dplyr::arrange(Country, i, Year)
+etai |>
+  write.csv(file = file.path(henrique_dir, "etai.csv"), row.names = FALSE)
+
+
+
 DBI::dbDisconnect(conn)
