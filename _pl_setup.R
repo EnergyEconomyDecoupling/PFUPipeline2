@@ -13,7 +13,7 @@
 
 # Countries --------------------------------------------------------------------
 
-# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
@@ -103,12 +103,12 @@
 # countries <- "AUS"
 
 # Countries to run on 7 Apr 2026
-countries <- c("ALB", "ARG", "AUT", "BEL", "BGR", "BIH", "BLR", "CAN", "CHE", "CHL",
-               "CYP", "CZE", "EST", "FIN", "GEO", "GRC", "HRV", "HUN", "IRL", "ITA",
-               "LTU", "LUX", "LVA", "MAR", "MDA", "MKD", "NLD", "NOR", "NZL", "POL",
-               "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
+# countries <- c("ALB", "ARG", "AUT", "BEL", "BGR", "BIH", "BLR", "CAN", "CHE", "CHL",
+#                "CYP", "CZE", "EST", "FIN", "GEO", "GRC", "HRV", "HUN", "IRL", "ITA",
+#                "LTU", "LUX", "LVA", "MAR", "MDA", "MKD", "NLD", "NOR", "NZL", "POL",
+#                "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
 
-countries <- "GHA"
+# countries <- "GHA"
 
 
 # Regular: tar_make()
@@ -142,10 +142,10 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-# years <- 1960:2020
+years <- 1960:2020
 # years <- 1960
 # years <- 1971
-years <- 1996
+# years <- 1996
 # years <- 2010
 # years <- 2013
 # years <- 1960:1980
