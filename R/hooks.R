@@ -239,17 +239,30 @@ db_table_name_hook <- function(target_name) {
 #' @returns The name of the value column in `table_name`.
 #'
 #' @export
-value_colname_hook <- function(table_name, default_value_colname = PFUPipelineTools::mat_colnames$value) {
+value_colname_hook <- function(table_name,
+                               default_value_colname = PFUPipelineTools::mat_colnames$value) {
   if (table_name == "PhiConstants") {
     value_colname = "phi"
   } else if (table_name %in% c("AllMachineData",
                                "IncompleteAllocationTables", "CompletedAllocationTables",
                                "IncompleteEfficiencyTables", "CompletedEfficiencyTables",
                                "CompletedPhiuTables")) {
+    # Not capitalization difference
     value_colname <- "Value"
   } else if (table_name %in% c("AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
                                "AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
-    value_colname <- "Edot"
+    value_colname <- IEATools::iea_cols$e_dot
+  } else if (table_name == "AggEtaPFU") {
+    value_colname <- c(Recca::aggregate_cols$aggregate_primary,
+                       Recca::aggregate_cols$aggregate_final,
+                       Recca::aggregate_cols$aggregate_useful,
+                       Recca::efficiency_cols$eta_pf,
+                       Recca::efficiency_cols$eta_fu,
+                       Recca::efficiency_cols$eta_pu)
+  } else if (table_name == "SectorAggEtaFU") {
+    value_colname <- c(Recca::all_stages$final,
+                       Recca::all_stages$useful,
+                       Recca::efficiency_cols$eta_fu)
   } else {
     value_colname = default_value_colname
   }
