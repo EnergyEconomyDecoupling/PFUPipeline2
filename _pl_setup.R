@@ -108,11 +108,16 @@ countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.chara
 #                "LTU", "LUX", "LVA", "MAR", "MDA", "MKD", "NLD", "NOR", "NZL", "POL",
 #                "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
 
-# countries <- "GHA"
+# Countries to run on 12 May 2026
+countries <- c("AUS", "CAN", "DEU", "DNK", "ESP", "FRA", "GBR", "HKG", "KOR")
+
 
 
 # Regular: tar_make()
 # Debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
+# and
+# (1) insert browser() calls for functions in PFUPipeline2
+# (2) set breakpoints in functions from other packages.
 debug <- FALSE
 
 
