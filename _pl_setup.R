@@ -13,7 +13,7 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
@@ -109,7 +109,13 @@ countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.chara
 #                "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
 
 # Countries to run on 12 May 2026
-countries <- c("AUS", "CAN", "DEU", "DNK", "ESP", "FRA", "GBR", "HKG", "KOR")
+# countries <- c("AUS", "CAN", "DEU", "DNK", "ESP", "FRA", "GBR", "HKG", "KOR")
+
+
+# Countries for versioning tests on 14 May 2026
+countries <- "AUS"
+
+
 
 
 
@@ -147,10 +153,10 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-years <- 1960:2020
+# years <- 1960:2020
 # years <- 1960
 # years <- 1971
-# years <- 1996
+years <- 1996
 # years <- 2010
 # years <- 2013
 # years <- 1960:1980
@@ -202,7 +208,7 @@ clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
 # clpfu_version <- "v2.1a4"
-clpfu_version <- "v3.0a1"
+clpfu_version <- "v3.0a2"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
