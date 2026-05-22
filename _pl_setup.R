@@ -5,12 +5,6 @@
 # creating the CL-PFU database.
 # Duplicate this file and rename to "local_setup.R"
 
-# For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE),
-# set crew_controller <- NULL
-# and
-# (1) insert browser() calls for functions in PFUPipeline2
-# (2) set breakpoints in functions from other packages.
-
 # Countries --------------------------------------------------------------------
 
 countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
