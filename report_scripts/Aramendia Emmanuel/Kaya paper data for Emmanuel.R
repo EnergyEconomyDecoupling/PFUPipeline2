@@ -9,37 +9,40 @@ conn <- PFUPipelineTools::get_db_conn(dbname = "ScratchMDB",
 on.exit(DBI::dbDisconnect(conn))
 
 
+v_string <- "v3.0a1"
 
-Y_fu_U_EIOU_fu_details <- PFUPipelineTools::pl_filter_collect(db_table_name = "YfuUEIOUfudetails",
-                                                              conn = conn,
-                                                              collect = TRUE,
-                                                              matrix_class = "matrix")
+Y_fu_U_EIOU_fu_details <- "YfuUEIOUfudetails" |>
+  PFUPipelineTools::pl_filter_collect(version_string = v_string,
+                                      conn = conn,
+                                      collect = TRUE,
+                                      matrix_class = "matrix")
 saveRDS(Y_fu_U_EIOU_fu_details, "~/Desktop/For Emmanuel/YfuUEIOUfudetails.rds")
 
 
 
-eta_i <- PFUPipelineTools::pl_filter_collect("Etai",
-                                             conn = conn,
-                                             collect = TRUE,
-                                             matrix_class = "matrix")
-
+eta_i <- "Etai" |>
+  PFUPipelineTools::pl_filter_collect(version_string = v_string,
+                                      conn = conn,
+                                      collect = TRUE,
+                                      matrix_class = "matrix")
 saveRDS(eta_i, "~/Desktop/For Emmanuel/Etai.rds")
 
 
-
-phi_vecs <- PFUPipelineTools::pl_filter_collect("Phivecs",
-                                                conn = conn,
-                                                collect = TRUE,
-                                                matrix_class = "matrix")
+phi_vecs <- "Phivecs" |>
+  PFUPipelineTools::pl_filter_collect(version_string = v_string,
+                                      conn = conn,
+                                      collect = TRUE,
+                                      matrix_class = "matrix")
 saveRDS(phi_vecs, "~/Desktop/For Emmanuel/Phivecs.rds")
 
 
 
 
-psut_Re_all <- PFUPipelineTools::pl_filter_collect("PSUTReAll",
-                                                   conn = conn,
-                                                   collect = TRUE,
-                                                   matrix_class = "matrix")
+psut_Re_all <- "PSUTReAll" |>
+  PFUPipelineTools::pl_filter_collect(version_string = v_string,
+                                      conn = conn,
+                                      collect = TRUE,
+                                      matrix_class = "matrix")
 saveRDS(psut_Re_all, "~/Desktop/For Emmanuel/PSUTReAll.rds")
 
 
