@@ -59,6 +59,16 @@ c_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   collect = TRUE,
   conn = conn)
 
+phi_vecs <- PFUPipelineTools::pl_filter_collect(
+  version_string = "v2.0",
+  db_table_name = "Phivecs",
+  Dataset == "CL-PFU",
+  Country %in% countries,
+  Year %in% years,
+  create_matsindf = TRUE,
+  collect = TRUE,
+  conn = conn)
+
 
 DBI::dbDisconnect(conn)
 
