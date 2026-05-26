@@ -64,18 +64,39 @@ DBI::dbDisconnect(conn)
 
 
 
-matvecs <- psut_mats_downloaded |>
+allocated_final_energy <- psut_mats_downloaded |>
+  # Focus on LastStage Final and energy
   dplyr::filter(LastStage == "Final", EnergyType == "E") |>
+  tidyr::pivot_longer(cols = c(U_EIOU, Y),
+                      names_to = "matnames",
+                      values_to = "matvals") |>
+  dplyr::mutate(
+    # Make a vector out of the U_EIOU and Y matrices
+    matvecs = matsbyname::vectorize_byname(matvals, notation = list(RCLabels::arrow_notation)) |>
+      # Put that vector on a diagonal.
+      matsbyname::hatize_byname(),
+    matvals = NULL # No longer needed.
+  ) |>
+  tidyr::pivot_wider(names_from = "matnames", values_from = "matvecs") |>
+  # Add the allocation matrices to the data frame
   dplyr::full_join(c_mats_downloaded,
                    by = c("ValidFromVersion", "ValidToVersion",
                           "Country", "Method", "EnergyType", "LastStage", "Year")) |>
   dplyr::select(-dplyr::starts_with("Dataset")) |>
-  tidyr::pivot_longer(cols = c(U_EIOU, Y, C_EIOU, C_Y),
+  dplyr::mutate(
+    AllocatedY = matsbyname::matrixproduct_byname(Y, C_Y),
+    AllocatedEIOU = matsbyname::matrixproduct_byname(U_EIOU, C_EIOU)
+  )
+
+
+allocated_final_energy |>
+  tidyr::pivot_longer(cols = c(U_EIOU, Y, C_EIOU, C_Y,
+                               AllocatedY, AllocatedEIOU),
                       names_to = "matnames",
                       values_to = "matvals") |>
-  dplyr::mutate(
-    matvecs = matsbyname::vectorize_byname(matvals, notation = list(RCLabels::arrow_notation))
-  )
+  matsindf::expand_to_tidy(drop = 0) |>
+  openxlsx2::write_xlsx("~/Desktop/For Joao/Allocated final energy for Joao.xlsx")
+
 
 
 
