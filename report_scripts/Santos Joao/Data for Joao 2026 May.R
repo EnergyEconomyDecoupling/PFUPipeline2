@@ -98,6 +98,11 @@ allocated_final_energy <- psut_mats_downloaded |>
     AllocatedEIOU = matsbyname::matrixproduct_byname(U_EIOU, C_EIOU)
   )
 
+allocated_final_exergy <- allocated_final_energy |>
+  dplyr::full_join(phi_vecs, by = c("ValidFromVersion", "ValidToVersion", "Country", "Year")) |>
+  Recca::extend_to_exergy(mat_piece = "noun", phi_piece = "all", tol = tol)
+
+
 
 allocated_final_energy |>
   tidyr::pivot_longer(cols = c(U_EIOU, Y, C_EIOU, C_Y,
