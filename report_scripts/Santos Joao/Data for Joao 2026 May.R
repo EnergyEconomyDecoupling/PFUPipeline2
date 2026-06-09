@@ -30,9 +30,9 @@ on.exit(DBI::dbDisconnect(conn))
 # countries <- c("AUT", "BEL", "DNK", "FIN", "FRA", "DEU", "GRC",
 #                "IRL", "ITA", "LUX", "NLD", "PRT", "ESP", "SWE", "GBR")
 
-countries <- c("AUT", "BEL")
+countries <- unlist(PFUPipelineTools::canonical_countries)
 
-years <- 1971:1972
+years <- 1960:2020
 
 psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   version_string = "v2.0",
@@ -41,7 +41,7 @@ psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   ProductAggregation == "Specified",
   IndustryAggregation == "Specified",
   Country %in% countries,
-  Year %in% years,
+  # Year %in% years,
   IncludesNEU == TRUE,
   matname %in% c("U_EIOU", "Y"),
   create_matsindf = TRUE,
@@ -53,7 +53,7 @@ c_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "Cmats",
   Dataset == "CL-PFU IEA",
   Country %in% countries,
-  Year %in% years,
+  # Year %in% years,
   matname %in% c("C_EIOU", "C_Y"),
   create_matsindf = TRUE,
   collect = TRUE,
@@ -64,7 +64,7 @@ phi_vecs <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "Phivecs",
   Dataset == "CL-PFU",
   Country %in% countries,
-  Year %in% years,
+  # Year %in% years,
   create_matsindf = TRUE,
   collect = TRUE,
   conn = conn)
@@ -99,36 +99,87 @@ allocated_final_energy <- psut_mats_downloaded |>
   )
 
 allocated_final_exergy <- allocated_final_energy |>
+  dplyr::mutate(
+    # Enable the matrix multiplication to work when we extend to exergy.
+    # We only care about the prefix.
+    AllocatedY = AllocatedY |>
+      matsbyname::setrowtype("Product"),
+    AllocatedEIOU = AllocatedEIOU |>
+      matsbyname::setrowtype("Product")
+  ) |>
   dplyr::full_join(phi_vecs, by = c("ValidFromVersion", "ValidToVersion", "Country", "Year")) |>
-  Recca::extend_to_exergy(mat_piece = "noun", phi_piece = "all", tol = tol)
+  Recca::extend_one_matrix_to_exergy(m = "AllocatedY",
+                                     phi_vec = "phi",
+                                     product_margin = 1,
+                                     m_piece = "pref",
+                                     phi_piece = "all",
+                                     notation = RCLabels::arrow_notation) |>
+  dplyr::rename(
+    AllocatedYX = m_exergy
+  ) |>
+  Recca::extend_one_matrix_to_exergy(m = "AllocatedEIOU",
+                                     phi_vec = "phi",
+                                     product_margin = 1,
+                                     m_piece = "pref",
+                                     phi_piece = "all",
+                                     notation = RCLabels::arrow_notation) |>
+  dplyr::rename(
+    AllocatedEIOUX = m_exergy
+  ) |>
+  dplyr::mutate(
+    # Reset the coltypes.
+    AllocatedY = AllocatedY |>
+      matsbyname::setcoltype("Product -> Industry"),
+    AllocatedEIOU = AllocatedEIOU |>
+      matsbyname::setcoltype("Product -> Industry")
+  ) |>
+  dplyr::mutate(
+    # Get rid of the energy columns.
+    U_EIOU = NULL,
+    Y = NULL,
+    C_EIOU = NULL,
+    C_Y = NULL,
+    phi = NULL,
+    AllocatedY = NULL,
+    AllocatedEIOU = NULL,
+    # Eliminate the dataset column. Not needed.
+    Dataset = NULL,
+    # Set the energy type to exergy.
+    EnergyType = "X"
+  ) |>
+  dplyr::rename(
+    AllocatedY = AllocatedYX,
+    AllocatedEIOU = AllocatedEIOUX
+  )
 
-
-
+# Reshape and print
 allocated_final_energy |>
   tidyr::pivot_longer(cols = c(U_EIOU, Y, C_EIOU, C_Y,
                                AllocatedY, AllocatedEIOU),
                       names_to = "matnames",
                       values_to = "matvals") |>
+  dplyr::bind_rows(
+    allocated_final_exergy |>
+      tidyr::pivot_longer(cols = c(AllocatedY, AllocatedEIOU),
+                          names_to = "matnames",
+                          values_to = "matvals")
+  ) |>
   matsindf::expand_to_tidy(drop = 0) |>
-  openxlsx2::write_xlsx("~/Desktop/For Joao/Allocated final energy for Joao.xlsx")
+  write.csv(file = "~/Desktop/For Joao/Allocated final energy and exergy for Joao.csv",
+            row.names = FALSE)
+  # openxlsx2::write_xlsx("~/Desktop/For Joao/Allocated final energy and exergy for Joao.xlsx")
 
-
-
-
-
-
-
-psut_mats_rcv <- psut_mats_downloaded |>
-  dplyr::arrange(Country, Year, LastStage, EnergyType) |>
-  tidyr::pivot_longer(cols = c(U_EIOU, Y),
-                      names_to = "matnames",
-                      values_to = "matvals") |>
-  matsindf::expand_to_tidy(drop = 0)
-
-
+# I don't think João needs this anymore.
+# It is included in the files above.
 # Y and U_EIOU matrices in row col val format
-psut_mats_rcv |>
-  openxlsx::write.xlsx("~/Desktop/rowcolvalues for Joaos.xlsx")
+# psut_mats_downloaded |>
+#   dplyr::arrange(Country, Year, LastStage, EnergyType) |>
+#   tidyr::pivot_longer(cols = c(U_EIOU, Y),
+#                       names_to = "matnames",
+#                       values_to = "matvals") |>
+#   matsindf::expand_to_tidy(drop = 0) |>
+#   openxlsx::write.xlsx("~/Desktop/For Joao/rowcolvalues for Joaos.xlsx")
+
 
 
 
