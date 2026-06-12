@@ -7,7 +7,7 @@
 
 # Countries --------------------------------------------------------------------
 
-# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
@@ -109,7 +109,7 @@
 # countries <- "BRA"
 
 # Countries to run on 12 June 2026 first try with versioning code.
-countries <- "PRT"
+# countries <- "PRT"
 
 
 
