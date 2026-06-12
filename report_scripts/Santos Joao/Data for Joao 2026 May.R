@@ -69,6 +69,15 @@ phi_vecs <- PFUPipelineTools::pl_filter_collect(
   collect = TRUE,
   conn = conn)
 
+aggetapfu <- PFUPipelineTools::pl_filter_collect(
+  version_string = "v2.0",
+  db_table_name = "AggEtaPFU",
+  Dataset == "CL-PFU IEA",
+  Country %in% countries,
+  # Year %in% years,
+  create_matsindf = TRUE,
+  collect = TRUE,
+  conn = conn)
 
 DBI::dbDisconnect(conn)
 
@@ -167,18 +176,11 @@ allocated_final_energy |>
   matsindf::expand_to_tidy(drop = 0) |>
   write.csv(file = "~/Desktop/For Joao/Allocated final energy and exergy for Joao.csv",
             row.names = FALSE)
-  # openxlsx2::write_xlsx("~/Desktop/For Joao/Allocated final energy and exergy for Joao.xlsx")
 
-# I don't think João needs this anymore.
-# It is included in the files above.
-# Y and U_EIOU matrices in row col val format
-# psut_mats_downloaded |>
-#   dplyr::arrange(Country, Year, LastStage, EnergyType) |>
-#   tidyr::pivot_longer(cols = c(U_EIOU, Y),
-#                       names_to = "matnames",
-#                       values_to = "matvals") |>
-#   matsindf::expand_to_tidy(drop = 0) |>
-#   openxlsx::write.xlsx("~/Desktop/For Joao/rowcolvalues for Joaos.xlsx")
+
+aggetapfu |>
+  write.csv(file = "~/Desktop/For Joao/AggEtaPFU for Joao.csv",
+            row.names = FALSE)
 
 
 
