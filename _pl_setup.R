@@ -7,7 +7,7 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
@@ -105,10 +105,11 @@ countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.chara
 # Countries to run on 12 May 2026
 # countries <- c("AUS", "CAN", "DEU", "DNK", "ESP", "FRA", "GBR", "HKG", "KOR")
 
+# Countries to run on 9 June 2026 first try with versioning code.
+# countries <- "BRA"
 
-# Countries for versioning tests on 14 May 2026
-# countries <- "AUS"
-
+# Countries to run on 12 June 2026 first try with versioning code.
+countries <- "PRT"
 
 
 
@@ -160,6 +161,7 @@ years <- 1960:2020
 # years <- 1971:1990
 # years <- 1995:1996
 # years <- 1990:1995
+# years <- 1996
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
