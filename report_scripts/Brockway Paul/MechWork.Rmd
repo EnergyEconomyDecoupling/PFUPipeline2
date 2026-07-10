@@ -5,6 +5,7 @@ output:
     toc: false
 date: "2026-03-25"
 author: Matthew Kuperus Heun
+bibliography: "refs.bib"
 ---
 
 ```{r setup, include=FALSE}

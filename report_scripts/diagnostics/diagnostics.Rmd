@@ -1,0 +1,188 @@
+---
+title: "CL-PFU database pipeline diagnostic report"
+output:
+  bookdown::pdf_document2:
+    toc: false
+author: Matthew Kuperus Heun
+date: "`r Sys.Date()`"
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(Matrix)
+library(matsindf)
+library(MKHthemes)
+library(tidyr)
+```
+
+
+# Introduction
+
+This report provides diagnostics for the CL-PFU database
+pipeline.
+The purpose of this report is to compare key results 
+from one version of the database to another.
+
+
+# Preliminaries
+
+We first set the version of the database
+for which diagnostics are desired.
+
+```{r version} 
+clpfu_version <- "v3.0a2"
+```
+
+Set data file paths.
+
+```{r data-file-paths}
+world_data_file <- file.path("world_mats.rds")
+```
+
+We can download data using this chunk of code.
+To save time, 
+this chunk is not normally evaluated when building the report
+(`eval=FALSE`).
+Run this chunk as needed.
+
+```{r download-data, eval=FALSE}
+# We first make a connection to the database.
+conn <- PFUPipelineTools::get_scratchmdb_conn()
+on.exit(DBI::dbDisconnect(conn))
+
+# Next, download desired data and save locally for later use. 
+# We do this once to save time.
+world_mats <- PFUPipelineTools::pl_filter_collect(
+  version_string = clpfu_version, 
+  db_table_name = "PSUTReAllChopAllDsAllGrAll",
+  Country == "World",
+  conn = conn,
+  collect = TRUE)
+
+# Save to a file
+world_mats |>
+  saveRDS(file = world_data_file)
+
+# Disconnect from the database management system.
+DBI::dbDisconnect(conn)
+```
+
+Load data from the pre-saved file.
+
+```{r load, echo=TRUE}
+world_mats <- readRDS(file = world_data_file)
+```
+
+At this point, we are ready to make diagnostic graphs and tables.
+
+
+# Primary, final, and useful aggregations
+
+
+
+## Global primary and final exergy by sector
+
+
+
+```{r fig6, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Remake of Figure 6.', echo=FALSE}
+
+
+# dplyr::bind_rows(final_aggregates_by_industry |>
+#                    dplyr::mutate(stage = "Final"),
+#                  useful_aggregates_by_industry |>
+#                    dplyr::mutate(stage = "Useful")) |>
+#   dplyr::filter(Country == "World") |>
+#   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals, fill = colnames)) +
+#   ggplot2::geom_area() +
+#   ggplot2::facet_grid(rows = dplyr::vars(stage), cols = dplyr::vars(Energy.type)) +
+#   ggplot2::labs(fill = NULL) +
+#   ggplot2::scale_x_continuous(name = NULL, breaks = c(1980, 2000, 2020)) +
+#   ggplot2::scale_y_continuous(name = "Energy and exergy [EJ/year]") +
+#   ggplot2::scale_fill_manual(values = sector_colours) +
+#   MKHthemes::xy_theme() +
+#   ggplot2::theme(legend.text = element_text(size = legend_text_size))
+
+```
+
+## Global useful energy and exergy by energy carrier
+
+The following figure is a recreation of Figure 7
+of @Brockway:2024ab.
+
+```{r fig7, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Recreation of Figure 7 of \\cite{Brockway:2024ab}.', echo=FALSE}
+# Define sectors to exclude from the data
+# to match sectors excluded from Figure 7.
+sectors_to_exclude <- RCLabels::make_or_pattern(
+  c("Exports", 
+    "Exports to World aviation bunkers", 
+    "Exports to World marine bunkers", 
+    "Losses", 
+    "Statistical differences", 
+    "Stock changes"))
+
+# Build the data frame.
+grouped_data <- world_mats |> 
+  # Filter to the same parameters for Figure 7.
+  dplyr::filter(Dataset == "CL-PFU IEA+MW",
+                Year >= 1971,
+                LastStage == "Useful",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Grouped", 
+                IndustryAggregation == "Grouped") |>
+  dplyr::arrange(Year, EnergyType) |> 
+  dplyr::mutate(
+    # For gross useful energy, we need to include both Y and U_EIOU matrices
+    YUEIOU = matsbyname::sum_byname(Y, U_EIOU) |> 
+      matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)  |> 
+      matsbyname::select_rows_byname(remove_pattern = "NEU") |> 
+      matsbyname::rowsums_byname() |> 
+      matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
+  ) |>
+  dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -Y, -S_units) |>
+  tidyr::pivot_longer(cols = "YUEIOU", names_to = "matnames", values_to = "matvals") |>
+  
+  
+  # This code is here only because I forgot to add
+  # some heat categories to the eu_product aggregation map.
+  # I have now added those aggregations, 
+  # so the code below will not be needed in the future.
+  # ---MKH, 10 July 2026
+  dplyr::mutate(
+    matvals = matsbyname::aggregate_byname(
+      matvals,
+      aggregation_map = list(list(
+        HTH = c("HTH", "HTH.1200.C", "HTH.1800.C"), 
+        MTH = c("MTH", "MTH.120.C", "MTH.130.C", "MTH.150.C", "MTH.160.C"), 
+        LTH = c("LTH", "LTH.90.C")
+      )), 
+      margin = 1)
+  ) |>
+  
+  matsindf::expand_to_tidy(drop = 0) |>
+  dplyr::mutate(
+    rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
+                                           "LTC", "HPF", "Prop", "MechW",
+                                           "HuMech", "AnMech"))
+  )
+
+# Make the graph
+grouped_data |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = rownames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 250, by = 50)) +
+  ggplot2::scale_fill_manual(values = useful_carrier_colours) +
+  ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
+  MKHthemes::xy_theme()
+```
+
+
+
+# References

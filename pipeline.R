@@ -963,7 +963,13 @@ list(
                                      targ = AggEtaPFU,
                                      pin_name = "agg_eta_pfu_csv",
                                      type = "csv",
-                                     release = Release))
+                                     release = Release)),
+
+
+  targets::tar_target(
+    DiagnosticReport,
+
+  )
 
 
 
