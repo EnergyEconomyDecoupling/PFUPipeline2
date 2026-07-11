@@ -103,7 +103,8 @@ At this point, we are ready to make diagnostic graphs and tables.
 
 ## Global final and useful energy and exergy by sector
 
-
+Figure \@ref(fig:fig6) is a recreation of Figure 6
+of @Brockway:2024ab.
 
 ```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 
@@ -182,7 +183,7 @@ grouped_final_useful_data |>
 
 ## Global useful energy and exergy by energy carrier
 
-The following figure is a recreation of Figure 7
+Figure \@ref(fig:fig7) is a recreation of Figure 7
 of @Brockway:2024ab.
 
 ```{r fig7, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross useful energy and exergy consumption and shares by energy product group. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
@@ -289,6 +290,11 @@ ggpubr::ggarrange(useful_ej,
 ```
 
 
+## World efficiencies
+
+Figure \@ref(fig:fig10) is a recreation of Figure 10
+of @Brockway:2024ab.
+
 ```{r fig10, fig.align='center', fig.retina=2, fig.height = 5, fig.cap = paste0('World gross and net aggregate efficiencies including both IEA and muscle work (MW) energy data. Non-energy uses are excluded. $\\eta_{pf}$ is primary-to-final efficiency; $\\eta_{fu}$ is final-to-useful efficiency; $\\eta_{pu}$ is primary-to-useful efficiency. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 world_eta |> 
   dplyr::filter(LastStage == "Useful", IncludesNEU == FALSE, ProductAggregation == "Specified", IndustryAggregation == "Specified", Year >= 1971) |> 
@@ -342,6 +348,15 @@ world_eta |>
                                             Net = "dashed")) +
   MKHthemes::xy_theme() +
   ggplot2::theme(legend.text = element_text(size = legend_text_size))
+```
+
+
+Table \@ref(tab:tab4) is a recreation of Table 4
+of @Brockway:2024ab.
+
+
+```{r tab4}
+world_eta
 ```
 
 
