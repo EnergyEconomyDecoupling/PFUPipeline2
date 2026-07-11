@@ -86,7 +86,7 @@ At this point, we are ready to make diagnostic graphs and tables.
 
 
 
-## Global primary and final exergy by sector
+## Global Final and useful energy and exergy by sector
 
 
 
@@ -127,7 +127,7 @@ sectors_to_exclude <- RCLabels::make_or_pattern(
     "Stock changes"))
 
 # Build the data frame.
-grouped_data <- world_mats |> 
+grouped_useful_data <- world_mats |> 
   # Filter to the same parameters for Figure 7.
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
                 Year >= 1971,
@@ -205,7 +205,7 @@ grouped_data <- world_mats |>
 legend_text_size <- 8
 
 # Make the graph
-ej <- grouped_data |> 
+useful_ej <- grouped_useful_data |> 
   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
                                          y = matvals, 
                                          fill = rownames)) + 
@@ -221,7 +221,7 @@ ej <- grouped_data |>
                  axis.ticks.x = element_blank())
 
 
-fractions <- grouped_data |>
+useful_fractions <- grouped_useful_data |>
   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
                                          y = matvals, 
                                          fill = rownames)) +
@@ -237,8 +237,8 @@ fractions <- grouped_data |>
   ggplot2::theme(legend.text = element_text(size = legend_text_size),
                  strip.text.x = ggplot2::element_blank())
 
-ggpubr::ggarrange(ej,
-                  fractions,
+ggpubr::ggarrange(useful_ej,
+                  useful_fractions,
                   nrow = 2,
                   common.legend = TRUE,
                   legend = "right",
