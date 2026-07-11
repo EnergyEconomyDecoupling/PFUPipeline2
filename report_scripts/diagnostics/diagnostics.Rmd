@@ -3,6 +3,7 @@ title: "CL-PFU database pipeline diagnostic report"
 output:
   bookdown::pdf_document2:
     toc: false
+    citation_package: natbib
 author: Matthew Kuperus Heun
 date: "`r Sys.Date()`"
 bibliography: references.bib
@@ -13,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(dplyr)
 library(ggplot2)
+library(ggpubr)
 library(Matrix)
 library(matsindf)
 library(MKHthemes)
@@ -113,7 +115,7 @@ At this point, we are ready to make diagnostic graphs and tables.
 The following figure is a recreation of Figure 7
 of @Brockway:2024ab.
 
-```{r fig7, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Recreation of Figure 7 of \\cite{Brockway:2024ab}.', echo=FALSE}
+```{r fig7, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross useful energy and exergy consumption and shares by energy product group. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 # Define sectors to exclude from the data
 # to match sectors excluded from Figure 7.
 sectors_to_exclude <- RCLabels::make_or_pattern(
@@ -130,7 +132,7 @@ grouped_data <- world_mats |>
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
                 Year >= 1971,
                 LastStage == "Useful",
-                IncludesNEU == FALSE,
+                IncludesNEU == FALSE, # Exclude non-energy uses
                 ProductAggregation == "Grouped", 
                 IndustryAggregation == "Grouped") |>
   dplyr::arrange(Year, EnergyType) |> 
@@ -163,14 +165,47 @@ grouped_data <- world_mats |>
   ) |>
   
   matsindf::expand_to_tidy(drop = 0) |>
+  # Adjust the names of useful energy carriers to be more readable
   dplyr::mutate(
-    rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
-                                           "LTC", "HPF", "Prop", "MechW",
-                                           "HuMech", "AnMech"))
+    rownames = dplyr::case_when(
+      rownames == "AnMech" ~ "Animal mechanical\nwork",
+      rownames == "HPF" ~ "High-pressure\nfluids",
+      rownames == "HTH" ~ "High-temperature\nheat",
+      rownames == "HuMech" ~ "Human mechanical\nwork",
+      rownames == "IP" ~ "Information\nprocessing",
+      rownames == "L" ~ "Light",
+      rownames == "LTC" ~ "Low-temperature\ncooling",
+      rownames == "LTH" ~ "Low-temperature\nheat",
+      rownames == "MechW" ~ "Mechanical work",
+      rownames == "MTH" ~ "Medium-temperature\nheat",
+      rownames == "NEU" ~ "Non-energy\nuse",
+      rownames == "Prop" ~ "Propulsion",
+      TRUE ~ .data[["rownames"]]),
+    rownames = factor(rownames, levels = c("NEU", "Non-energy\nuse",
+                                           "IP", "Information processing", "Information\nprocessing",
+                                           "L", "Light",
+                                           "HTH", "High-temperature heat", "High-temperature\nheat",
+                                           "MTH", "Medium-temperature heat", "Medium-temperature\nheat",
+                                           "LTH", "Low-temperature heat", "Low-temperature\nheat",
+                                           "LTC", "Low-temperature cooling", "Low-temperature\ncooling",
+                                           "HPF", "High-pressure fluids", "High-pressure\nfluids",
+                                           "Prop", "Propulsion",
+                                           "MechW", "Mechanical work",
+                                           "HuMech", "Human mechanical work", "Human mechanical\nwork",
+                                           "AnMech", "Animal mechanical work", "Animal mechanical\nwork"))
   )
 
+  
+  # dplyr::mutate(
+  #   rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
+  #                                          "LTC", "HPF", "Prop", "MechW",
+  #                                          "HuMech", "AnMech"))
+  # )
+
+legend_text_size <- 8
+
 # Make the graph
-grouped_data |> 
+ej <- grouped_data |> 
   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
                                          y = matvals, 
                                          fill = rownames)) + 
@@ -180,7 +215,34 @@ grouped_data |>
   ggplot2::scale_y_continuous(breaks = seq(0, 250, by = 50)) +
   ggplot2::scale_fill_manual(values = MKHthemes::useful_carrier_colours) +
   ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
-  MKHthemes::xy_theme()
+  MKHthemes::xy_theme() + 
+  ggplot2::theme(legend.text = element_text(size = legend_text_size),
+                 axis.text.x = element_blank(),
+                 axis.ticks.x = element_blank())
+
+
+fractions <- grouped_data |>
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = rownames)) +
+  ggplot2::geom_area(position = ggplot2::position_fill()) +
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) +
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(name = "Shares [%]",
+                              breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1),
+                              labels = scales::label_percent(suffix = "")) +
+  ggplot2::scale_fill_manual(values = MKHthemes::useful_carrier_colours) +
+  ggplot2::labs(x = NULL, fill = NULL) +
+  MKHthemes::xy_theme() +
+  ggplot2::theme(legend.text = element_text(size = legend_text_size),
+                 strip.text.x = ggplot2::element_blank())
+
+ggpubr::ggarrange(ej,
+                  fractions,
+                  nrow = 2,
+                  common.legend = TRUE,
+                  legend = "right",
+                  align = "v")
 ```
 
 
