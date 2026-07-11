@@ -129,7 +129,12 @@ grouped_final_useful_data <- world_mats |>
     YUEIOU = matsbyname::sum_byname(Y, U_EIOU) |> 
       matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)  |> 
       matsbyname::select_rows_byname(remove_pattern = "NEU") |> 
-      matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
+      matsbyname::hadamardproduct_byname(1e-6), # Convert from TJ to EJ
+    EnergyType = dplyr::case_when(
+      EnergyType == "E" ~ "Energy", 
+      EnergyType == "X" ~ "Exergy", 
+      TRUE ~ NA_character_
+    )
   ) |> 
   dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -Y, -S_units)
 
@@ -292,6 +297,11 @@ world_eta |>
                       names_to = "VarName", 
                       values_to = "Value") |> 
   dplyr::mutate(
+    EnergyType = dplyr::case_when(
+      EnergyType == "E" ~ "Energy", 
+      EnergyType == "X" ~ "Exergy", 
+      TRUE ~ NA_character_
+    ),
     Dataset = dplyr::case_when(
       Dataset == "CL-PFU IEA+MW" ~ "IEA + MW", 
       Dataset == "CL-PFU IEA" ~ "IEA", 
