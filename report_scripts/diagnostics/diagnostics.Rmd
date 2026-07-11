@@ -19,6 +19,8 @@ library(Matrix)
 library(matsindf)
 library(MKHthemes)
 library(tidyr)
+
+legend_text_size <- 8
 ```
 
 
@@ -43,6 +45,7 @@ Set data file paths.
 
 ```{r data-file-paths}
 world_data_file <- file.path("world_mats.rds")
+world_eta_file <- file.path("world_eta.rds")
 ```
 
 We can download data using this chunk of code.
@@ -69,6 +72,17 @@ world_mats <- PFUPipelineTools::pl_filter_collect(
 world_mats |>
   saveRDS(file = world_data_file)
 
+world_eta <- PFUPipelineTools::pl_filter_collect(
+  version_string = clpfu_version, 
+  db_table_name = "AggEtaPFU", 
+  Country == "World", 
+  conn = conn, 
+  collect = TRUE
+)
+
+world_eta |> 
+  saveRDS(file = world_eta_file)
+
 # Disconnect from the database management system.
 DBI::dbDisconnect(conn)
 ```
@@ -77,6 +91,7 @@ Load data from the pre-saved file.
 
 ```{r load, echo=TRUE}
 world_mats <- readRDS(file = world_data_file)
+world_eta <- readRDS(file = world_eta_file)
 ```
 
 At this point, we are ready to make diagnostic graphs and tables.
@@ -86,38 +101,14 @@ At this point, we are ready to make diagnostic graphs and tables.
 
 
 
-## Global Final and useful energy and exergy by sector
+## Global final and useful energy and exergy by sector
 
 
 
-```{r fig6, fig.width=6, fig.height=3, fig.align='center', fig.retina=2, fig.cap='Remake of Figure 6.', echo=FALSE}
+```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 
-
-# dplyr::bind_rows(final_aggregates_by_industry |>
-#                    dplyr::mutate(stage = "Final"),
-#                  useful_aggregates_by_industry |>
-#                    dplyr::mutate(stage = "Useful")) |>
-#   dplyr::filter(Country == "World") |>
-#   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals, fill = colnames)) +
-#   ggplot2::geom_area() +
-#   ggplot2::facet_grid(rows = dplyr::vars(stage), cols = dplyr::vars(Energy.type)) +
-#   ggplot2::labs(fill = NULL) +
-#   ggplot2::scale_x_continuous(name = NULL, breaks = c(1980, 2000, 2020)) +
-#   ggplot2::scale_y_continuous(name = "Energy and exergy [EJ/year]") +
-#   ggplot2::scale_fill_manual(values = sector_colours) +
-#   MKHthemes::xy_theme() +
-#   ggplot2::theme(legend.text = element_text(size = legend_text_size))
-
-```
-
-## Global useful energy and exergy by energy carrier
-
-The following figure is a recreation of Figure 7
-of @Brockway:2024ab.
-
-```{r fig7, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross useful energy and exergy consumption and shares by energy product group. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 # Define sectors to exclude from the data
-# to match sectors excluded from Figure 7.
+# to match sectors excluded from Figures 6 and 7.
 sectors_to_exclude <- RCLabels::make_or_pattern(
   c("Exports", 
     "Exports to World aviation bunkers", 
@@ -126,27 +117,82 @@ sectors_to_exclude <- RCLabels::make_or_pattern(
     "Statistical differences", 
     "Stock changes"))
 
-# Build the data frame.
-grouped_useful_data <- world_mats |> 
+grouped_final_useful_data <- world_mats |> 
   # Filter to the same parameters for Figure 7.
   dplyr::filter(Dataset == "CL-PFU IEA+MW",
                 Year >= 1971,
-                LastStage == "Useful",
-                IncludesNEU == FALSE, # Exclude non-energy uses
                 ProductAggregation == "Grouped", 
                 IndustryAggregation == "Grouped") |>
-  dplyr::arrange(Year, EnergyType) |> 
+  dplyr::arrange(Year, EnergyType, LastStage) |> 
   dplyr::mutate(
     # For gross useful energy, we need to include both Y and U_EIOU matrices
     YUEIOU = matsbyname::sum_byname(Y, U_EIOU) |> 
       matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)  |> 
       matsbyname::select_rows_byname(remove_pattern = "NEU") |> 
-      matsbyname::rowsums_byname() |> 
       matsbyname::hadamardproduct_byname(1e-6) # Convert from TJ to EJ
-  ) |>
-  dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -Y, -S_units) |>
-  tidyr::pivot_longer(cols = "YUEIOU", names_to = "matnames", values_to = "matvals") |>
-  
+  ) |> 
+  dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -Y, -S_units)
+
+grouped_final_useful_data |> 
+  dplyr::mutate(
+    YUEIOU = matsbyname::colsums_byname(YUEIOU)
+  ) |> 
+  tidyr::pivot_longer(cols = "YUEIOU", 
+                      names_to = "matnames", 
+                      values_to = "matvals") |>
+  matsindf::expand_to_tidy(drop = 0) |>
+  dplyr::filter(IncludesNEU == TRUE) |> 
+  dplyr::mutate(
+    colnames = dplyr::case_when(
+      colnames == "Agriculture, forestry, and fishing" ~ "Agriculture, forestry,\nand fishing",
+      colnames == "Commercial and public services" ~ "Commercial and\npublic services",
+      colnames == "Final consumption not elsewhere specified" ~ "Final consumption not\nelsewhere specified",
+      colnames == "Energy industry own use" ~ "Energy industry\nown use",
+      TRUE ~ .data[["colnames"]]
+    ), 
+    colnames = factor(colnames,
+                      levels = c("Energy industry\nown use",
+                                 "Non-energy use",
+                                 "Final consumption not\nelsewhere specified",
+                                 "Transport",
+                                 "Commercial and\npublic services",
+                                 "Industry",
+                                 "Residential",
+                                 "Agriculture, forestry,\nand fishing"))
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = colnames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(rows = ggplot2::vars(LastStage), 
+                      cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::labs(x = NULL, 
+                fill = NULL) +
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(name = "Energy and exergy [EJ/year]") +
+  ggplot2::scale_fill_manual(values = MKHthemes::sector_colours) +
+  MKHthemes::xy_theme() +
+  ggplot2::theme(legend.text = element_text(size = legend_text_size))
+```
+
+## Global useful energy and exergy by energy carrier
+
+The following figure is a recreation of Figure 7
+of @Brockway:2024ab.
+
+```{r fig7, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross useful energy and exergy consumption and shares by energy product group. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+
+# Build the data frame.
+grouped_useful_data <- grouped_final_useful_data |> 
+  dplyr::filter(
+    IncludesNEU == FALSE,
+    LastStage == "Useful") |> 
+  dplyr::mutate(
+    YUEIOU = matsbyname::rowsums_byname(YUEIOU)
+  ) |> 
+  tidyr::pivot_longer(cols = "YUEIOU", 
+                      names_to = "matnames", 
+                      values_to = "matvals") |>
   
   # This code is here only because I forgot to add
   # some heat categories to the eu_product aggregation map.
@@ -181,28 +227,20 @@ grouped_useful_data <- world_mats |>
       rownames == "NEU" ~ "Non-energy\nuse",
       rownames == "Prop" ~ "Propulsion",
       TRUE ~ .data[["rownames"]]),
-    rownames = factor(rownames, levels = c("NEU", "Non-energy\nuse",
-                                           "IP", "Information processing", "Information\nprocessing",
-                                           "L", "Light",
-                                           "HTH", "High-temperature heat", "High-temperature\nheat",
-                                           "MTH", "Medium-temperature heat", "Medium-temperature\nheat",
-                                           "LTH", "Low-temperature heat", "Low-temperature\nheat",
-                                           "LTC", "Low-temperature cooling", "Low-temperature\ncooling",
-                                           "HPF", "High-pressure fluids", "High-pressure\nfluids",
-                                           "Prop", "Propulsion",
-                                           "MechW", "Mechanical work",
-                                           "HuMech", "Human mechanical work", "Human mechanical\nwork",
-                                           "AnMech", "Animal mechanical work", "Animal mechanical\nwork"))
+    rownames = factor(rownames, 
+                      levels = c("NEU", "Non-energy\nuse",
+                                 "IP", "Information processing", "Information\nprocessing",
+                                 "L", "Light",
+                                 "HTH", "High-temperature heat", "High-temperature\nheat",
+                                 "MTH", "Medium-temperature heat", "Medium-temperature\nheat",
+                                 "LTH", "Low-temperature heat", "Low-temperature\nheat",
+                                 "LTC", "Low-temperature cooling", "Low-temperature\ncooling",
+                                 "HPF", "High-pressure fluids", "High-pressure\nfluids",
+                                 "Prop", "Propulsion",
+                                 "MechW", "Mechanical work",
+                                 "HuMech", "Human mechanical work", "Human mechanical\nwork",
+                                 "AnMech", "Animal mechanical work", "Animal mechanical\nwork"))
   )
-
-  
-  # dplyr::mutate(
-  #   rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
-  #                                          "LTC", "HPF", "Prop", "MechW",
-  #                                          "HuMech", "AnMech"))
-  # )
-
-legend_text_size <- 8
 
 # Make the graph
 useful_ej <- grouped_useful_data |> 
@@ -245,6 +283,56 @@ ggpubr::ggarrange(useful_ej,
                   align = "v")
 ```
 
+
+```{r fig10, fig.align='center', fig.retina=2, fig.height = 5, fig.cap = paste0('World gross and net aggregate efficiencies including both IEA and muscle work (MW) energy data. Non-energy uses are excluded. $\\eta_{pf}$ is primary-to-final efficiency; $\\eta_{fu}$ is final-to-useful efficiency; $\\eta_{pu}$ is primary-to-useful efficiency. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+world_eta |> 
+  dplyr::filter(LastStage == "Useful", IncludesNEU == FALSE, ProductAggregation == "Specified", IndustryAggregation == "Specified", Year >= 1971) |> 
+  dplyr::select(-EXp, -EXf, -EXu) |> 
+  tidyr::pivot_longer(cols = c(etapf, etafu, etapu), 
+                      names_to = "VarName", 
+                      values_to = "Value") |> 
+  dplyr::mutate(
+    Dataset = dplyr::case_when(
+      Dataset == "CL-PFU IEA+MW" ~ "IEA + MW", 
+      Dataset == "CL-PFU IEA" ~ "IEA", 
+      Dataset == "CL-PFU MW" ~ "MW",
+      TRUE ~ NA_character_
+    ), 
+    Dataset = factor(Dataset, levels = c("IEA", "MW", "IEA + MW")), 
+    VarName = dplyr::case_when(
+      VarName == "etapf" ~ "eta[pf]",
+      VarName == "etafu" ~ "eta[fu]",
+      VarName == "etapu" ~ "eta[pu]",
+      TRUE ~ NA_character_
+    ), 
+    VarName = factor(VarName, levels = c("eta[pf]", "eta[fu]", "eta[pu]"))
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = Value, 
+                                         linetype = GrossNet, 
+                                         colour = VarName)) +
+  ggplot2::geom_line() + 
+  ggplot2::facet_grid(rows = ggplot2::vars(Dataset),
+                      cols = ggplot2::vars(EnergyType),
+                      scales = "free") + 
+  ggplot2::scale_x_continuous(name = NULL,
+                              breaks = c(1980, 2000, 2020)) + 
+  ggplot2::scale_y_continuous(name = expression("Efficiency ("*eta*") [%]"),
+                              limits = c(0, 1),
+                              breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1),
+                              labels = scales::label_percent(suffix = "")) +
+  viridis::scale_color_viridis(name = NULL, 
+                               direction = -1, 
+                               discrete = TRUE, 
+                               end = 0.85,
+                               labels = scales::label_parse(),
+                               option = "inferno") +
+  ggplot2::scale_linetype_manual(name = NULL,
+                                 values = c(Gross = "solid", 
+                                            Net = "dashed")) +
+  MKHthemes::xy_theme() +
+  ggplot2::theme(legend.text = element_text(size = legend_text_size))
+```
 
 
 # References
