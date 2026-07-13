@@ -107,7 +107,6 @@ Figure \@ref(fig:fig6) is a recreation of Figure 6
 of @Brockway:2024ab.
 
 ```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
-
 # Define sectors to exclude from the data
 # to match sectors excluded from Figures 6 and 7.
 sectors_to_exclude <- RCLabels::make_or_pattern(
@@ -187,7 +186,6 @@ Figure \@ref(fig:fig7) is a recreation of Figure 7
 of @Brockway:2024ab.
 
 ```{r fig7, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross useful energy and exergy consumption and shares by energy product group. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
-
 # Build the data frame.
 grouped_useful_data <- grouped_final_useful_data |> 
   dplyr::filter(
@@ -355,8 +353,44 @@ Table \@ref(tab:tab4) is a recreation of Table 4
 of @Brockway:2024ab.
 
 
-```{r tab4}
-world_eta
+```{r tab4, tab.cap = paste0('Gross world efficiencies including both IEA and muscle work data. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 4 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+world_eta |> 
+  dplyr::filter(Dataset == "CL-PFU IEA+MW", 
+                Year %in% c(1971, 2020), 
+                LastStage == "Useful",
+                IncludesNEU == FALSE, 
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified", 
+                GrossNet == "Gross") |>
+  dplyr::select(-EXp, -EXf, -EXu) |>
+  tidyr::pivot_longer(cols = c("etapf", "etafu", "etapu"),
+                      names_to = "variable",
+                      values_to = "value") |>
+  dplyr::mutate(
+    EnergyType = dplyr::case_when(
+      EnergyType == "E" ~ "Energy", 
+      EnergyType == "X" ~ "Exergy", 
+      TRUE ~ NA_character_
+    ),
+    coltitle = paste0(EnergyType, "-", Year), 
+    EnergyType = NULL, 
+    Year = NULL, 
+    variable = dplyr::case_when(
+      variable == "etapf" ~ "eta[pf]", 
+      variable == "etafu" ~ "eta[fu]", 
+      variable == "etapu" ~ "eta[pu]", 
+      TRUE ~ NA_character_
+    )
+  ) |> 
+  tidyr::pivot_wider(names_from = "coltitle", values_from = "value") |>
+  dplyr::select("variable", 
+                "Energy-1971", "Energy-2020", 
+                "Exergy-1971", "Exergy-2020") |>  
+  dplyr::mutate(
+    variable = factor(variable, 
+                      levels = c("eta[pf]", "eta[fu]", "eta[pu]"))
+  ) |> 
+  knitr::kable(format = "latex", booktabs = TRUE)
 ```
 
 
