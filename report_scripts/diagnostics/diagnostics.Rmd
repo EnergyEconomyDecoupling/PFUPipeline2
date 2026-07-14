@@ -355,7 +355,8 @@ ggpubr::ggarrange(useful_ej,
 ```
 
 
-Figure
+Figure \@ref(fig:fig8) is a recreation of Figure 8
+of @Brockway:2024ab.
 
 ```{r fig8, fig.height=5, fig.align='center', fig.retina=2, echo=FALSE, fig.cap=paste0('Gross and net world aggregate energy and exergy consumption including both IEA and muscle work (MW) energy data. Note energy and exergy are identical for muscle work, and the scale is different for the muscle work (MW) graphs. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 8 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
 world_eta |> 
