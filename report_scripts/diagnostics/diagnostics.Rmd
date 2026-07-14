@@ -504,10 +504,10 @@ world_eta |>
                                  `Energy-2020` / `Energy-1971`), 
     `Exergy 2020/1971` = sprintf(fmt = "%.2f x", 
                                  `Exergy-2020` / `Exergy-1971`),
-    `r Energy 1971->2020` = sprintf(fmt = "%.2f %%/yr", 
+    `r Energy 2020/1971` = sprintf(fmt = "%.2f %%/yr", 
                                     ((`Energy-2020`/`Energy-1971`) ^ 
                                        (1/(2020-1971)) - 1) * 100),
-    `r Exergy 1971->2020` = sprintf(fmt = "%.2f %%/yr",
+    `r Exergy 2020/1971` = sprintf(fmt = "%.2f %%/yr",
                                     ((`Exergy-2020`/`Exergy-1971`) ^
                                        (1/(2020-1971)) - 1) * 100), 
     `Energy-1971` = NULL, 
