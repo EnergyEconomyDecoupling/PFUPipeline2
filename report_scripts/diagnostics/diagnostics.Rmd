@@ -355,12 +355,62 @@ ggpubr::ggarrange(useful_ej,
 ```
 
 
+Figure
+
+```{r fig8, fig.height=5, fig.align='center', fig.retina=2, echo=FALSE, fig.cap=paste0('Gross and net world aggregate energy and exergy consumption including both IEA and muscle work (MW) energy data. Note energy and exergy are identical for muscle work, and the scale is different for the muscle work (MW) graphs. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 8 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
+world_eta |> 
+  dplyr::select(-etapf, -etafu, -etapu) |>
+  dplyr::filter(Year >= 1971, 
+                IncludesNEU == FALSE) |> 
+  tidyr::pivot_longer(cols = c("EXp", "EXf", "EXu"), 
+                      names_to = "varname", 
+                      values_to = "value") |> 
+  dplyr::mutate(
+    value = value / 1e6, # Convert from TJ to EJ
+    EnergyType = dplyr::case_when(
+      EnergyType == "E" ~ "Energy", 
+      EnergyType == "X" ~ "Exergy", 
+      TRUE ~ NA_character_
+    ), 
+    Dataset = dplyr::case_when(
+      Dataset == "CL-PFU IEA" ~ "IEA", 
+      Dataset == "CL-PFU MW" ~ "MW", 
+      Dataset == "CL-PFU IEA+MW" ~ "IEA + MW", 
+      TRUE ~ NA_character_
+    ), 
+    Dataset = factor(Dataset, levels = c("IEA", "MW", "IEA + MW")), 
+    varname = dplyr::case_when(
+      varname == "EXp" ~ "Primary", 
+      varname == "EXf" ~ "Final", 
+      varname == "EXu" ~ "Useful", 
+      TRUE ~ NA_character_
+    ),
+    varname = factor(varname, levels = c("Primary", "Final", "Useful"))
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = value,
+                                         colour = varname, 
+                                         linetype = GrossNet)) + 
+  ggplot2::geom_line() + 
+  ggplot2::facet_grid(rows = ggplot2::vars(Dataset), 
+                      cols = ggplot2::vars(EnergyType), 
+                      scales = "free") + 
+  ggplot2::scale_x_continuous(name = NULL, breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(name = "Energy and exergy [EJ/year]") +
+  ggplot2::scale_linetype(name = NULL) +
+  viridis::scale_color_viridis(name = NULL, 
+                               direction = -1, 
+                               discrete = TRUE, 
+                               end = 0.7) +
+  MKHthemes::xy_theme()
+```
+
 ## World efficiencies
 
 Figure \@ref(fig:fig10) is a recreation of Figure 10
 of @Brockway:2024ab.
 
-```{r fig10, fig.align='center', fig.retina=2, fig.height = 5, fig.cap = paste0('World gross and net aggregate efficiencies including both IEA and muscle work (MW) energy data. Non-energy uses are excluded. $\\eta_{pf}$ is primary-to-final efficiency; $\\eta_{fu}$ is final-to-useful efficiency; $\\eta_{pu}$ is primary-to-useful efficiency. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+```{r fig10, fig.align='center', fig.retina=2, fig.height = 5, echo=FALSE, fig.cap = paste0('World gross and net aggregate efficiencies including both IEA and muscle work (MW) energy data. Non-energy uses are excluded. $\\eta_{pf}$ is primary-to-final efficiency; $\\eta_{fu}$ is final-to-useful efficiency; $\\eta_{pu}$ is primary-to-useful efficiency. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
 world_eta |> 
   dplyr::filter(LastStage == "Useful", IncludesNEU == FALSE, ProductAggregation == "Specified", IndustryAggregation == "Specified", Year >= 1971) |> 
   dplyr::select(-EXp, -EXf, -EXu) |> 
