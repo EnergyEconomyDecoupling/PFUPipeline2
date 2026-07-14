@@ -18,6 +18,7 @@ library(ggpubr)
 library(Matrix)
 library(matsindf)
 library(MKHthemes)
+library(stringr)
 library(tidyr)
 
 legend_text_size <- 8
@@ -99,6 +100,14 @@ At this point, we are ready to make diagnostic graphs and tables.
 
 # Primary, final, and useful aggregations
 
+## Global primary and final energy and exergy by sector
+
+Figure \@ref(fig:fig5) is a recreation of Figure 5
+of @Brockway:2024ab.
+
+```{r fig5, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross primary and final energy and exergy consumption by energy product group. Non-energy uses are included. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo='FALSE'}
+
+```
 
 
 ## Global final and useful energy and exergy by sector
@@ -106,7 +115,7 @@ At this point, we are ready to make diagnostic graphs and tables.
 Figure \@ref(fig:fig6) is a recreation of Figure 6
 of @Brockway:2024ab.
 
-```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 6 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 # Define sectors to exclude from the data
 # to match sectors excluded from Figures 6 and 7.
 sectors_to_exclude <- RCLabels::make_or_pattern(
@@ -353,7 +362,7 @@ Table \@ref(tab:tab4) is a recreation of Table 4
 of @Brockway:2024ab.
 
 
-```{r tab4, tab.cap = paste0('Gross world efficiencies including both IEA and muscle work data. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 4 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+```{r tab4, echo=FALSE, tab.cap = paste0('Gross world efficiencies including both IEA and muscle work data. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 4 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
 world_eta |> 
   dplyr::filter(Dataset == "CL-PFU IEA+MW", 
                 Year %in% c(1971, 2020), 
@@ -389,6 +398,58 @@ world_eta |>
   dplyr::mutate(
     variable = factor(variable, 
                       levels = c("eta[pf]", "eta[fu]", "eta[pu]"))
+  ) |> 
+  dplyr::mutate(
+    # Convert to %
+    dplyr::across(where(is.numeric),
+                  ~ paste0(
+                    sprintf("%.2f", .x * 100),
+                    " %"
+                  ))
+  ) |> 
+  knitr::kable(format = "latex", booktabs = TRUE)
+```
+
+```{r tab5, tab.cap = paste0('Gross world primary, final, and useful energy and exergy growth metrics. Both IEA and muscle work data are included. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+world_eta |> 
+  dplyr::filter(Dataset == "CL-PFU IEA+MW", 
+                Year %in% c(1971, 2020), 
+                LastStage == "Useful",
+                IncludesNEU == FALSE, 
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified", 
+                GrossNet == "Gross") |>
+  dplyr::select(-etapf, -etafu, -etapu) |> 
+  tidyr::pivot_longer(cols = c("EXp", "EXf", "EXu"),
+                      names_to = "variable",
+                      values_to = "value") |>
+  dplyr::mutate(
+    EnergyType = dplyr::case_when(
+      EnergyType == "E" ~ "Energy", 
+      EnergyType == "X" ~ "Exergy", 
+      TRUE ~ NA_character_
+    ),
+    coltitle = paste0(EnergyType, "-", Year), 
+    EnergyType = NULL, 
+    Year = NULL, 
+  ) |>
+  tidyr::pivot_wider(names_from = "coltitle", values_from = "value") |>
+  dplyr::select("variable", 
+                "Energy-1971", "Energy-2020", 
+                "Exergy-1971", "Exergy-2020") |> 
+  dplyr::mutate(
+    variable = dplyr::case_when(
+      variable == "EXp" ~ "Primary", 
+      variable == "EXf" ~ "Final", 
+      variable == "EXu" ~ "Useful", 
+      TRUE ~ NA_character_
+    ), 
+    `Energy 2020/1971` = paste0(sprintf(fmt = "%.2f", 
+                                        `Energy-2020` / `Energy-1971`), 
+                                "x"), 
+    `Exergy 2020/1971` = paste0(sprintf(fmt = "%.2f", 
+                                        `Exergy-2020` / `Exergy-1971`),
+                                "x")
   ) |> 
   knitr::kable(format = "latex", booktabs = TRUE)
 ```
