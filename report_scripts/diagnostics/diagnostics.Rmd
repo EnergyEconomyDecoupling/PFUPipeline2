@@ -106,7 +106,93 @@ Figure \@ref(fig:fig5) is a recreation of Figure 5
 of @Brockway:2024ab.
 
 ```{r fig5, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross primary and final energy and exergy consumption by energy product group. Non-energy uses are included. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo='FALSE'}
+# Define sectors to exclude from the data
+# to match sectors excluded from Figures 5, 6, and 7.
+sectors_to_exclude <- RCLabels::make_or_pattern(
+  c("Exports", 
+    "Exports to World aviation bunkers", 
+    "Exports to World marine bunkers", 
+    "Losses", 
+    "Statistical differences", 
+    "Stock changes", 
+    "Imports"))
 
+RYUEIOU <- world_mats |> 
+  # Filter to the same parameters as the paper's graphs
+  # for following figures.
+  dplyr::filter(Dataset == "CL-PFU IEA+MW",
+                Year >= 1971,
+                ProductAggregation == "Grouped", 
+                IndustryAggregation == "Grouped") |>
+  dplyr::arrange(Year, EnergyType, LastStage) |> 
+  dplyr::mutate(
+    R = R |> 
+      # For world level aggregates, we should not include imports in R
+      matsbyname::select_rows_byname(remove_pattern = sectors_to_exclude) |>
+      # Convert R from TJ to EJ
+      matsbyname::hadamardproduct_byname(1e-6),
+    # For gross energy, we need to include both Y and U_EIOU matrices
+    YUEIOU = Y |> 
+      matsbyname::sum_byname(U_EIOU) |> 
+      matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)  |> 
+      matsbyname::select_rows_byname(remove_pattern = "NEU") |>
+      # Convert YUEIOU from TJ to EJ
+      matsbyname::hadamardproduct_byname(1e-6), 
+    EnergyType = dplyr::case_when(
+      EnergyType == "E" ~ "Energy", 
+      EnergyType == "X" ~ "Exergy", 
+      TRUE ~ NA_character_
+    )
+  )
+
+RYUEIOU |> 
+  dplyr::filter(LastStage == "Final",
+                IncludesNEU == TRUE) |> 
+  dplyr::select(-U, -U_EIOU, -U_feed, -r_EIOU, -V, -Y, -S_units) |> 
+  dplyr::mutate(
+    # Put R and Y in the same orientation to make future
+    # manipulations easier.
+    R = matsbyname::transpose_byname(R)
+  ) |> 
+  tidyr::pivot_longer(cols = c("R", "YUEIOU"), 
+                      names_to = "matnames",
+                      values_to = "matvals") |>
+  dplyr::mutate(
+    matvals = matsbyname::rowsums_byname(matvals),
+    Stage = dplyr::case_when(
+      matnames == "R" ~ "Primary", 
+      matnames == "YUEIOU" ~ "Final", 
+      TRUE ~ NA_character_
+    ), 
+    Stage = factor(Stage, levels = c("Primary", "Final"))
+  ) |>
+  matsindf::expand_to_tidy() |> 
+  dplyr::mutate(
+    rownames = dplyr::case_when(
+      rownames == "Oil & oil products" ~ "Oil & oil\nproducts", 
+      rownames == "Coal & coal products" ~ "Coal & coal\nproducts", 
+      TRUE ~ rownames
+    ),
+    rownames = factor(rownames, 
+                      levels = c("Waste", "Heat", "Electricity", 
+                                 "Biofuels", "Natural gas",
+                                 "Oil & oil\nproducts", 
+                                 "Coal & coal\nproducts", 
+                                 "Biomass", "Food", "Feed"))
+    
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = matvals, 
+                                         fill = rownames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::facet_grid(rows = ggplot2::vars(Stage), 
+                      cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(name = NULL,
+                              breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(name = "Energy and exergy [EJ/year]") +
+  ggplot2::scale_fill_manual(name = NULL, 
+                             values = MKHthemes::primary_and_final_carrier_colours) +
+  MKHthemes::xy_theme()
 ```
 
 
@@ -116,35 +202,7 @@ Figure \@ref(fig:fig6) is a recreation of Figure 6
 of @Brockway:2024ab.
 
 ```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 6 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
-# Define sectors to exclude from the data
-# to match sectors excluded from Figures 6 and 7.
-sectors_to_exclude <- RCLabels::make_or_pattern(
-  c("Exports", 
-    "Exports to World aviation bunkers", 
-    "Exports to World marine bunkers", 
-    "Losses", 
-    "Statistical differences", 
-    "Stock changes"))
-
-grouped_final_useful_data <- world_mats |> 
-  # Filter to the same parameters for Figure 7.
-  dplyr::filter(Dataset == "CL-PFU IEA+MW",
-                Year >= 1971,
-                ProductAggregation == "Grouped", 
-                IndustryAggregation == "Grouped") |>
-  dplyr::arrange(Year, EnergyType, LastStage) |> 
-  dplyr::mutate(
-    # For gross useful energy, we need to include both Y and U_EIOU matrices
-    YUEIOU = matsbyname::sum_byname(Y, U_EIOU) |> 
-      matsbyname::select_cols_byname(remove_pattern = sectors_to_exclude)  |> 
-      matsbyname::select_rows_byname(remove_pattern = "NEU") |> 
-      matsbyname::hadamardproduct_byname(1e-6), # Convert from TJ to EJ
-    EnergyType = dplyr::case_when(
-      EnergyType == "E" ~ "Energy", 
-      EnergyType == "X" ~ "Exergy", 
-      TRUE ~ NA_character_
-    )
-  ) |> 
+grouped_final_useful_data <- RYUEIOU |> 
   dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -Y, -S_units)
 
 grouped_final_useful_data |> 
@@ -402,11 +460,9 @@ world_eta |>
   dplyr::mutate(
     # Convert to %
     dplyr::across(where(is.numeric),
-                  ~ paste0(
-                    sprintf("%.2f", .x * 100),
-                    " %"
-                  ))
-  ) |> 
+                  ~ sprintf("%.2f %%", .x * 100)
+                  )
+  ) |>
   knitr::kable(format = "latex", booktabs = TRUE)
 ```
 
@@ -444,12 +500,20 @@ world_eta |>
       variable == "EXu" ~ "Useful", 
       TRUE ~ NA_character_
     ), 
-    `Energy 2020/1971` = paste0(sprintf(fmt = "%.2f", 
-                                        `Energy-2020` / `Energy-1971`), 
-                                "x"), 
-    `Exergy 2020/1971` = paste0(sprintf(fmt = "%.2f", 
-                                        `Exergy-2020` / `Exergy-1971`),
-                                "x")
+    `Energy 2020/1971` = sprintf(fmt = "%.2f x", 
+                                 `Energy-2020` / `Energy-1971`), 
+    `Exergy 2020/1971` = sprintf(fmt = "%.2f x", 
+                                 `Exergy-2020` / `Exergy-1971`),
+    `r Energy 1971->2020` = sprintf(fmt = "%.2f %%/yr", 
+                                    ((`Energy-2020`/`Energy-1971`) ^ 
+                                       (1/(2020-1971)) - 1) * 100),
+    `r Exergy 1971->2020` = sprintf(fmt = "%.2f %%/yr",
+                                    ((`Exergy-2020`/`Exergy-1971`) ^
+                                       (1/(2020-1971)) - 1) * 100), 
+    `Energy-1971` = NULL, 
+    `Energy-2020` = NULL, 
+    `Exergy-1971` = NULL, 
+    `Exergy-2020` = NULL
   ) |> 
   knitr::kable(format = "latex", booktabs = TRUE)
 ```
