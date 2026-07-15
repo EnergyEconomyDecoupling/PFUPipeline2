@@ -2,7 +2,7 @@
 # Kaya identity paper.
 
 # Upload to the OneDrive folder at
-# https://leeds365-my.sharepoint.com/personal/earear_leeds_ac_uk/_layouts/15/onedrive.aspx?e=5%3A895fe2332f3b4a16a6a84e4afcf07d58&sharingv2=true&fromShare=true&at=9&CID=09737963%2D17b4%2D46fb%2Da5c3%2De68f9a22b521&FolderCTID=0x012000292DEB6833DAEC48BD5C809FE95AA088&id=%2Fpersonal%2Fearear%5Fleeds%5Fac%5Fuk%2FDocuments%2FPFU%5FDatabase%5Fv2%5FKayaPaper
+# https://leeds365-my.sharepoint.com/personal/earear_leeds_ac_uk/_layouts/15/onedrive.aspx?e=5%3A290cf82d24194866a4c562d0235bbe18&sharingv2=true&fromShare=true&at=9&CID=e67e3dfb%2D8a88%2D49ba%2Dab8a%2Db49e8a5bf6f7&id=%2Fpersonal%2Fearear%5Fleeds%5Fac%5Fuk%2FDocuments%2FDatasets%2FCL%2DPFU%2FPFU%5FDatabase%5Fv2%5FKayaPaper&FolderCTID=0x012000292DEB6833DAEC48BD5C809FE95AA088&view=0
 
 conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
