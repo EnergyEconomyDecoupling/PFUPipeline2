@@ -27,13 +27,13 @@ eta_i <- "Etai" |>
 saveRDS(eta_i, "~/Desktop/For Emmanuel/Etai.rds")
 
 
+
 phi_vecs <- "Phivecs" |>
   PFUPipelineTools::pl_filter_collect(version_string = v_string,
                                       conn = conn,
                                       collect = TRUE,
                                       matrix_class = "matrix")
 saveRDS(phi_vecs, "~/Desktop/For Emmanuel/Phivecs.rds")
-
 
 
 
