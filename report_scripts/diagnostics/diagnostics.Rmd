@@ -514,7 +514,7 @@ world_eta |>
 Table \@ref(tab:tab5) is a recreation of Table 5
 of @Brockway:2024ab.
 
-```{r tab5, tab.cap = paste0('Gross world primary, final, and useful energy and exergy growth metrics. Both IEA and muscle work data are included. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+```{r tab5, tab.cap=paste0('Gross world primary, final, and useful energy and exergy growth metrics. Both IEA and muscle work data are included. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 world_eta |> 
   dplyr::filter(Dataset == "IEA + MW", 
                 Year %in% c(1971, 2020), 
