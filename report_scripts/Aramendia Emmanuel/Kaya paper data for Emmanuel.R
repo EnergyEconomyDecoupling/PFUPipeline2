@@ -42,6 +42,18 @@ psut_Re_all <- "PSUTReAll" |>
                                       conn = conn,
                                       collect = TRUE,
                                       matrix_class = "matrix")
+# When saving this object to disk on the next line,
+# I receive this error:
+#
+# Error: vector memory limit of 32.0 Gb reached, see mem.maxVSize()
+#
+# To get around the error, I needed to increase the maximum vector
+# heap size on macOS using
+#
+# mem.maxVSize(32768*2)
+#
+# After that adjustment, saving to disk with the following line
+# was successful.
 saveRDS(psut_Re_all, "~/Desktop/For Emmanuel/PSUTReAll.rds")
 
 
