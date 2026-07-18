@@ -24,7 +24,8 @@
 # in an email dated 10 April 2026
 
 
-conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
+# conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
+conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
 
 # countries <- c("AUT", "BEL", "DNK", "FIN", "FRA", "DEU", "GRC",
@@ -34,8 +35,10 @@ countries <- unlist(PFUPipelineTools::canonical_countries)
 
 years <- 1960:2020
 
+v_string = "v3.0a2"
+
 psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
-  version_string = "v2.0",
+  version_string = v_string,
   db_table_name = "PSUTReAllChopAllDsAllGrAll",
   Dataset == "CL-PFU IEA+MW",
   ProductAggregation == "Specified",
@@ -49,7 +52,7 @@ psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   conn = conn)
 
 c_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
-  version_string = "v2.0",
+  version_string = v_string,
   db_table_name = "Cmats",
   Dataset == "CL-PFU IEA",
   Country %in% countries,
@@ -60,7 +63,7 @@ c_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   conn = conn)
 
 phi_vecs <- PFUPipelineTools::pl_filter_collect(
-  version_string = "v2.0",
+  version_string = v_string,
   db_table_name = "Phivecs",
   Dataset == "CL-PFU",
   Country %in% countries,
@@ -70,7 +73,7 @@ phi_vecs <- PFUPipelineTools::pl_filter_collect(
   conn = conn)
 
 aggetapfu <- PFUPipelineTools::pl_filter_collect(
-  version_string = "v2.0",
+  version_string = v_string,
   db_table_name = "AggEtaPFU",
   Dataset == "CL-PFU IEA",
   Country %in% countries,
