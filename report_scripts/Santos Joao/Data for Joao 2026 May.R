@@ -164,7 +164,7 @@ allocated_final_exergy <- allocated_final_energy |>
     AllocatedEIOU = AllocatedEIOUX
   )
 
-# Reshape and print
+# Reshape and save
 allocated_final_energy |>
   tidyr::pivot_longer(cols = c(U_EIOU, Y, C_EIOU, C_Y,
                                AllocatedY, AllocatedEIOU),
