@@ -45,7 +45,7 @@ Set data file paths.
 
 ```{r data-file-paths}
 world_data_file <- file.path("world_mats.rds")
-world_eta_file <- file.path("world_eta.rds")
+world_continent_eta_file <- file.path("world_continent_eta.rds")
 sector_agg_eta_file <- file.path("sector_agg_eta.rds")
 ```
 
@@ -73,16 +73,16 @@ world_mats <- PFUPipelineTools::pl_filter_collect(
 world_mats |>
   saveRDS(file = world_data_file)
 
-world_eta <- PFUPipelineTools::pl_filter_collect(
+world_continent_eta <- PFUPipelineTools::pl_filter_collect(
   version_string = clpfu_version, 
   db_table_name = "AggEtaPFU", 
-  Country == "World", 
+  Country %in% c("Africa", "Asia_", "Europe", "MidEast", "NoAmr", "Oceania", "SoCeAmr", "World"),
   conn = conn, 
   collect = TRUE
 )
 
-world_eta |> 
-  saveRDS(file = world_eta_file)
+world_continent_eta |> 
+  saveRDS(file = world_continent_eta_file)
 
 sector_agg_eta <- PFUPipelineTools::pl_filter_collect(
   version_string = clpfu_version, 
@@ -99,7 +99,7 @@ sector_agg_eta |>
 DBI::dbDisconnect(conn)
 ```
 
-Load data from the pre-saved file.
+Load data from the pre-saved files.
 
 ```{r load, echo=TRUE}
 world_mats <- readRDS(file = world_data_file) |> 
@@ -118,7 +118,7 @@ world_mats <- readRDS(file = world_data_file) |>
     Dataset = factor(Dataset, levels = c("IEA", "MW", "IEA + MW")), 
   )
 
-world_eta <- readRDS(file = world_eta_file) |> 
+world_continent_eta <- readRDS(file = world_continent_eta_file) |> 
   dplyr::mutate(
       EnergyType = dplyr::case_when(
       EnergyType == "E" ~ "Energy", 
@@ -410,9 +410,10 @@ Figure \@ref(fig:fig8) is a recreation of Figure 8
 of @Brockway:2024ab.
 
 ```{r fig8, fig.height=5, fig.align='center', fig.retina=2, echo=FALSE, fig.cap=paste0('Gross and net world aggregate energy and exergy consumption including both IEA and muscle work (MW) energy data. Note energy and exergy are identical for muscle work, and the scale is different for the muscle work (MW) graphs. Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 8 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
-world_eta |> 
+world_continent_eta |> 
   dplyr::select(-etapf, -etafu, -etapu) |>
-  dplyr::filter(Year >= 1971, 
+  dplyr::filter(Country == "World", 
+                Year >= 1971, 
                 IncludesNEU == FALSE) |> 
   tidyr::pivot_longer(cols = c("EXp", "EXf", "EXu"), 
                       names_to = "varname", 
@@ -451,8 +452,9 @@ Figure \@ref(fig:fig10) is a recreation of Figure 10
 of @Brockway:2024ab.
 
 ```{r fig10, fig.align='center', fig.retina=2, fig.height=5, echo=FALSE, fig.cap=paste0('World gross and net aggregate efficiencies including both IEA and muscle work (MW) energy data. Non-energy uses are excluded. $\\eta_{pf}$ is primary-to-final efficiency; $\\eta_{fu}$ is final-to-useful efficiency; $\\eta_{pu}$ is primary-to-useful efficiency. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
-world_eta_for_fig_10 <- world_eta |> 
-  dplyr::filter(LastStage == "Useful", 
+world_eta_for_fig_10 <- world_continent_eta |> 
+  dplyr::filter(Country == "World", 
+                LastStage == "Useful", 
                 IncludesNEU == FALSE,
                 ProductAggregation == "Specified",
                 IndustryAggregation == "Specified", Year >= 1971) |> 
@@ -502,7 +504,7 @@ world_eta_for_fig_10 |>
 Figure \@ref(fig:fig11) is a recreation of Figure 11
 of @Brockway:2024ab.
 
-```{r fig11, fig.align='center', fig.retina=2, fig.height=5, echo=FALSE, fig.cap=paste0('World gross FU efficiency ($\\eta_{fu}$) by sector. Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
+```{r fig11, fig.align='center', fig.retina=2, fig.height=5, echo=FALSE, fig.cap=paste0('World gross FU efficiency ($\\eta_{fu}$) by sector. Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 11 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
 dplyr::bind_rows(
   # Get the world average efficiencies
   world_eta_for_fig_10 |> 
@@ -564,14 +566,70 @@ dplyr::bind_rows(
 ```
 
 
+Figure \@ref(fig:fig12) is a recreation of Figure 12
+of @Brockway:2024ab.
+
+```{r fig12, fig.align='center', fig.retina=2, fig.height=5, echo=FALSE, fig.cap=paste0('Gross aggregate efficiencies by continent including both IEA and muscle work energy data (IEA + MW). Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 12 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')} 
+world_continent_eta |> 
+  dplyr::filter(Year >= 1971, 
+                Dataset == "IEA + MW",
+                GrossNet == "Gross",
+                LastStage == "Useful",
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified",
+                IncludesNEU == FALSE) |> 
+  dplyr::select(-EXp, -EXf, -EXu) |> 
+  tidyr::pivot_longer(cols = c("etapf", "etafu", "etapu"), 
+                      names_to = "varname", 
+                      values_to = "value") |>
+  dplyr::mutate(
+    Country = dplyr::case_when(
+      Country == "MidEast" ~ "Middle East", 
+      Country == "NoAmr" ~ "North America",
+      Country == "SoCeAmr" ~ "South and\nCentral America",
+      TRUE ~ .data[["Country"]]
+    ), 
+    varname = dplyr::case_when(
+      varname == "etapf" ~ "eta[pf]", 
+      varname == "etafu" ~ "eta[fu]", 
+      varname == "etapu" ~ "eta[pu]", 
+      TRUE ~ NA_character_
+    ), 
+    varname = factor(varname, 
+                     levels = c("eta[pf]", "eta[fu]", "eta[pu]"))
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = value, 
+                                         colour = Country)) + 
+  ggplot2::geom_line() + 
+  ggplot2::facet_grid(rows = ggplot2::vars(varname),
+                      cols = ggplot2::vars(EnergyType), 
+                      labeller = ggplot2::label_parsed) + 
+  ggplot2::scale_x_continuous(name = NULL, breaks = c(1980, 2000, 2020)) +
+  ggplot2::scale_y_continuous(name = expression("Energy and exergy efficiency ("*eta*") [%]"),
+                              limits = c(0, 1),
+                              breaks = c(0.0, 0.2, 0.4, 0.6, 0.8, 1),
+                              labels = scales::label_percent(suffix = "")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                               values = MKHthemes::continent_colours) + 
+  
+  MKHthemes::xy_theme()
+```
+
+
+
+
+
+
 
 Table \@ref(tab:tab4) is a recreation of Table 4
 of @Brockway:2024ab.
 
 
 ```{r tab4, echo=FALSE, tab.cap = paste0('Gross world efficiencies including both IEA and muscle work data. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 4 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
-world_eta |> 
+world_continent_eta |> 
   dplyr::filter(Dataset == "IEA + MW", 
+                Country == "World", 
                 Year %in% c(1971, 2020), 
                 LastStage == "Useful",
                 IncludesNEU == FALSE, 
@@ -614,8 +672,9 @@ Table \@ref(tab:tab5) is a recreation of Table 5
 of @Brockway:2024ab.
 
 ```{r tab5, tab.cap=paste0('Gross world primary, final, and useful energy and exergy growth metrics. Both IEA and muscle work data are included. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Table 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
-world_eta |> 
+world_continent_eta |> 
   dplyr::filter(Dataset == "IEA + MW", 
+                Country == "World", 
                 Year %in% c(1971, 2020), 
                 LastStage == "Useful",
                 IncludesNEU == FALSE, 
