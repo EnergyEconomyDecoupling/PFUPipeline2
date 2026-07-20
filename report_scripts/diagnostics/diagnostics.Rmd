@@ -46,6 +46,7 @@ Set data file paths.
 ```{r data-file-paths}
 world_data_file <- file.path("world_mats.rds")
 world_eta_file <- file.path("world_eta.rds")
+sector_agg_eta_file <- file.path("sector_agg_eta.rds")
 ```
 
 We can download data using this chunk of code.
@@ -82,6 +83,17 @@ world_eta <- PFUPipelineTools::pl_filter_collect(
 
 world_eta |> 
   saveRDS(file = world_eta_file)
+
+sector_agg_eta <- PFUPipelineTools::pl_filter_collect(
+  version_string = clpfu_version, 
+  db_table_name = "SectorAggEtaFU", 
+  Country == "World", 
+  conn = conn, 
+  collect = TRUE
+)
+
+sector_agg_eta |> 
+  saveRDS(file = sector_agg_eta_file)
 
 # Disconnect from the database management system.
 DBI::dbDisconnect(conn)
@@ -121,6 +133,22 @@ world_eta <- readRDS(file = world_eta_file) |>
       ), 
       Dataset = factor(Dataset, levels = c("IEA", "MW", "IEA + MW")), 
   )
+
+sector_agg_eta <- readRDS(file = sector_agg_eta_file) |> 
+  dplyr::mutate(
+    EnergyType = dplyr::case_when(
+      EnergyType == "E" ~ "Energy", 
+      EnergyType == "X" ~ "Exergy", 
+      TRUE ~ NA_character_
+    ), 
+    Dataset = dplyr::case_when(
+      Dataset == "CL-PFU IEA+MW" ~ "IEA + MW", 
+      Dataset == "CL-PFU IEA" ~ "IEA", 
+      Dataset == "CL-PFU MW" ~ "MW",
+      TRUE ~ NA_character_
+    ), 
+    Dataset = factor(Dataset, levels = c("IEA", "MW", "IEA + MW")), 
+  )
 ```
 
 At this point, we are ready to make diagnostic graphs and tables.
@@ -133,7 +161,7 @@ At this point, we are ready to make diagnostic graphs and tables.
 Figure \@ref(fig:fig5) is a recreation of Figure 5
 of @Brockway:2024ab.
 
-```{r fig5, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross primary and final energy and exergy consumption by energy product group. Non-energy uses are included. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo='FALSE'}
+```{r fig5, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross primary and final energy and exergy consumption by energy product group. Non-energy uses are included. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 5 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo='FALSE'}
 # Define sectors to exclude from the data
 # to match sectors excluded from Figures 5, 6, and 7.
 sectors_to_exclude <- RCLabels::make_or_pattern(
@@ -224,7 +252,7 @@ RYUEIOU |>
 Figure \@ref(fig:fig6) is a recreation of Figure 6
 of @Brockway:2024ab.
 
-```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 6 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+```{r fig6, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross final and useful energy and exergy consumption by sector. Non-energy uses are included at the final energy stage. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 6 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 grouped_final_useful_data <- RYUEIOU |> 
   dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -Y, -S_units)
 
@@ -275,7 +303,7 @@ grouped_final_useful_data |>
 Figure \@ref(fig:fig7) is a recreation of Figure 7
 of @Brockway:2024ab.
 
-```{r fig7, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross useful energy and exergy consumption and shares by energy product group. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
+```{r fig7, fig.height=5, fig.align='center', fig.retina=2, fig.cap=paste0('World gross useful energy and exergy consumption and shares by energy product group. Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 7 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).'), echo=FALSE}
 # Build the data frame.
 grouped_useful_data <- grouped_final_useful_data |> 
   dplyr::filter(
@@ -381,7 +409,7 @@ ggpubr::ggarrange(useful_ej,
 Figure \@ref(fig:fig8) is a recreation of Figure 8
 of @Brockway:2024ab.
 
-```{r fig8, fig.height=5, fig.align='center', fig.retina=2, echo=FALSE, fig.cap=paste0('Gross and net world aggregate energy and exergy consumption including both IEA and muscle work (MW) energy data. Note energy and exergy are identical for muscle work, and the scale is different for the muscle work (MW) graphs. Non-energy uses are excluded. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 8 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
+```{r fig8, fig.height=5, fig.align='center', fig.retina=2, echo=FALSE, fig.cap=paste0('Gross and net world aggregate energy and exergy consumption including both IEA and muscle work (MW) energy data. Note energy and exergy are identical for muscle work, and the scale is different for the muscle work (MW) graphs. Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 8 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
 world_eta |> 
   dplyr::select(-etapf, -etafu, -etapu) |>
   dplyr::filter(Year >= 1971, 
@@ -422,9 +450,12 @@ world_eta |>
 Figure \@ref(fig:fig10) is a recreation of Figure 10
 of @Brockway:2024ab.
 
-```{r fig10, fig.align='center', fig.retina=2, fig.height = 5, echo=FALSE, fig.cap = paste0('World gross and net aggregate efficiencies including both IEA and muscle work (MW) energy data. Non-energy uses are excluded. $\\eta_{pf}$ is primary-to-final efficiency; $\\eta_{fu}$ is final-to-useful efficiency; $\\eta_{pu}$ is primary-to-useful efficiency. This is a recreation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
-world_eta |> 
-  dplyr::filter(LastStage == "Useful", IncludesNEU == FALSE, ProductAggregation == "Specified", IndustryAggregation == "Specified", Year >= 1971) |> 
+```{r fig10, fig.align='center', fig.retina=2, fig.height=5, echo=FALSE, fig.cap=paste0('World gross and net aggregate efficiencies including both IEA and muscle work (MW) energy data. Non-energy uses are excluded. $\\eta_{pf}$ is primary-to-final efficiency; $\\eta_{fu}$ is final-to-useful efficiency; $\\eta_{pu}$ is primary-to-useful efficiency. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
+world_eta_for_fig_10 <- world_eta |> 
+  dplyr::filter(LastStage == "Useful", 
+                IncludesNEU == FALSE,
+                ProductAggregation == "Specified",
+                IndustryAggregation == "Specified", Year >= 1971) |> 
   dplyr::select(-EXp, -EXf, -EXu) |> 
   tidyr::pivot_longer(cols = c(etapf, etafu, etapu), 
                       names_to = "VarName", 
@@ -437,7 +468,9 @@ world_eta |>
       TRUE ~ NA_character_
     ), 
     VarName = factor(VarName, levels = c("eta[pf]", "eta[fu]", "eta[pu]"))
-  ) |> 
+  )
+
+world_eta_for_fig_10 |> 
   ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
                                          y = Value, 
                                          linetype = GrossNet, 
@@ -464,6 +497,72 @@ world_eta |>
   MKHthemes::xy_theme() +
   ggplot2::theme(legend.text = element_text(size = legend_text_size))
 ```
+
+
+Figure \@ref(fig:fig11) is a recreation of Figure 11
+of @Brockway:2024ab.
+
+```{r fig11, fig.align='center', fig.retina=2, fig.height=5, echo=FALSE, fig.cap=paste0('World gross FU efficiency ($\\eta_{fu}$) by sector. Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 10 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.3).')}
+dplyr::bind_rows(
+  # Get the world average efficiencies
+  world_eta_for_fig_10 |> 
+    dplyr::filter(VarName == "eta[fu]", 
+                  GrossNet == "Gross", 
+                  IncludesNEU == FALSE) |> 
+    dplyr::select(-VarName) |> 
+    dplyr::rename(etafu = "Value") |> 
+    dplyr::mutate(
+      Sector = "World",
+      LastStage = NULL
+    ), 
+  sector_agg_eta |> 
+    dplyr::filter(Year >= 1971, 
+                  ProductAggregation == "Grouped", 
+                  IndustryAggregation == "Grouped", 
+                  GrossNet == "Gross", 
+                  IncludesNEU == FALSE) |> 
+    dplyr::select(-Final, -Useful)
+) |>
+  dplyr::mutate(
+    Dataset = factor(Dataset, 
+                     levels = c("IEA", "MW", "IEA + MW")), 
+    Sector = dplyr::case_when(
+      Sector == "Agriculture, forestry, and fishing" ~ "Agriculture, forestry,\nand fishing",
+      Sector == "Commercial and public services" ~ "Commercial and\npublic services",
+      Sector == "Final consumption not elsewhere specified" ~ "Final consumption not\nelsewhere specified",
+      Sector == "Energy industry own use" ~ "Energy industry\nown use",
+      TRUE ~ .data[["Sector"]]
+    ),
+    Sector = factor(Sector,
+                    levels = c("Energy industry\nown use",
+                               "Non-energy use",
+                               "Final consumption not\nelsewhere specified",
+                               "Transport",
+                               "Commercial and\npublic services",
+                               "Industry",
+                               "Residential",
+                               "Agriculture, forestry,\nand fishing",
+                               "World"))
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = etafu, 
+                                         colour = Sector)) + 
+  ggplot2::geom_line() + 
+  ggplot2::facet_grid(rows = ggplot2::vars(Dataset), 
+                      cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::scale_x_continuous(name = NULL, 
+                              breaks = c(1980, 2000, 2020)) + 
+  ggplot2::scale_y_continuous(name = expression("Final-to-useful efficiency ("*eta[fu]*") [%]"),
+                              limits = c(0, NA),
+                              breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1),
+                              labels = scales::label_percent(suffix = "")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                               values = MKHthemes::sector_colours) +
+  
+  
+  MKHthemes::xy_theme()
+```
+
 
 
 Table \@ref(tab:tab4) is a recreation of Table 4
