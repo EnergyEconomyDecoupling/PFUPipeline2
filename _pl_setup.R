@@ -180,7 +180,7 @@ specify_non_energy_flows <- TRUE
 # Should we apply fixes to the IEA data?
 apply_fixes <- TRUE
 
-# Should we do a release?
+# Should we do a release of exiobase details?
 release <- FALSE
 
 # Should we compress data across versions upon upsert to a table?
