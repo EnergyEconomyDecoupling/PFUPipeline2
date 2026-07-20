@@ -33,8 +33,6 @@ on.exit(DBI::dbDisconnect(conn))
 
 countries <- unlist(PFUPipelineTools::canonical_countries)
 
-years <- 1960:2020
-
 v_string = "v3.0a2"
 
 psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
@@ -44,7 +42,6 @@ psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   ProductAggregation == "Specified",
   IndustryAggregation == "Specified",
   Country %in% countries,
-  # Year %in% years,
   IncludesNEU == TRUE,
   matname %in% c("U_EIOU", "Y"),
   create_matsindf = TRUE,
@@ -56,7 +53,6 @@ c_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "Cmats",
   Dataset == "CL-PFU IEA",
   Country %in% countries,
-  # Year %in% years,
   matname %in% c("C_EIOU", "C_Y"),
   create_matsindf = TRUE,
   collect = TRUE,
@@ -67,7 +63,6 @@ phi_vecs <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "Phivecs",
   Dataset == "CL-PFU",
   Country %in% countries,
-  # Year %in% years,
   create_matsindf = TRUE,
   collect = TRUE,
   conn = conn)
@@ -77,7 +72,6 @@ aggetapfu <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "AggEtaPFU",
   Dataset == "CL-PFU IEA",
   Country %in% countries,
-  # Year %in% years,
   create_matsindf = TRUE,
   collect = TRUE,
   conn = conn)
