@@ -850,7 +850,7 @@ world_continent_eta |>
   ggplot2::facet_grid(rows = ggplot2::vars(variable),
                         cols = ggplot2::vars(EnergyType)) +
   ggplot2::scale_x_continuous(name = NULL) +
-  ggplot2::scale_y_continuous(name = "MW Energy and Exergy for Greece [EJ]") + 
+  ggplot2::scale_y_continuous(name = "MW energy and exergy for Greece [EJ]") + 
   ggplot2::labs(linetype = NULL) +
   MKHthemes::xy_theme()
 ```
