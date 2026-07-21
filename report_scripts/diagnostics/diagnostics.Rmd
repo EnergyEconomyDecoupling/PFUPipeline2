@@ -80,7 +80,8 @@ world_mats |>
 world_continent_eta <- PFUPipelineTools::pl_filter_collect(
   version_string = clpfu_version, 
   db_table_name = "AggEtaPFU", 
-  Country %in% c("Africa", "Asia_", "Europe", "MidEast", "NoAmr", "Oceania", "SoCeAmr", "World"),
+  # Include GRC for double-checking the previous FAO error
+  Country %in% c("GRC", "Africa", "Asia_", "Europe", "MidEast", "NoAmr", "Oceania", "SoCeAmr", "World"),
   conn = conn, 
   collect = TRUE
 )
@@ -601,7 +602,8 @@ of @Brockway:2024ab.
 
 ```{r fig12, fig.align='center', fig.retina=2, fig.height=5, echo=FALSE, fig.cap=paste0('Gross aggregate efficiencies by continent including both IEA and muscle work energy data (IEA + MW). Non-energy uses are excluded. This is a re-creation (using CL-PFU database ', clpfu_version, ') of Figure 12 of \\cite{Brockway:2024ab} (which used CL-PFU database v1.2).')} 
 world_continent_eta |> 
-  dplyr::filter(Year >= 1971, 
+  dplyr::filter(Country != "GRC", 
+                Year >= 1971, 
                 Dataset == "IEA + MW",
                 GrossNet == "Gross",
                 LastStage == "Useful",
@@ -806,6 +808,52 @@ coverage |>
 ```
 
 
+Figure \@ref(fig:GRC-MW) provides an assessment of muscle work for Greece.
+Previously, data from the UN's Food and Agriculture Organization (FAO)
+had a large jump. 
+The large jump was fixed a few years ago. 
+The fact that there a large jump is absent in Figure \@ref(fig:GRC-MW)
+indicates that we are correctly using the 
+fixed FAO data for `r clpfu_version` of the CL-PFU database.
+
+```{r GRC-MW, fig.align='center', fig.retina=2, fig.height=3, echo=FALSE, fig.cap="Greek muscle work."}
+world_continent_eta |> 
+  dplyr::filter(Dataset == "MW", 
+                Country == "GRC", 
+                LastStage == "Useful", 
+                IncludesNEU == TRUE, 
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified") |> 
+  dplyr::mutate(
+    etapf = NULL, 
+    etafu = NULL, 
+    etapu = NULL
+  ) |>
+  tidyr::pivot_longer(cols = c(EXp, EXf, EXu), 
+                      names_to = "variable", 
+                      values_to = "value") |> 
+  dplyr::mutate(
+    variable = dplyr::case_when(
+      variable == "EXp" ~ "Primary", 
+      variable == "EXf" ~ "Final", 
+      variable == "EXu" ~ "Useful", 
+      TRUE ~ NA_character_
+    ),
+    variable = factor(variable, levels = c("Primary", "Final", "Useful")),
+    # Convert TJ to EJ
+    value = value / 1e6
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = value, 
+                                         linetype = GrossNet)) + 
+  ggplot2::geom_line() +
+  ggplot2::facet_grid(rows = ggplot2::vars(variable),
+                        cols = ggplot2::vars(EnergyType)) +
+  ggplot2::scale_x_continuous(name = NULL) +
+  ggplot2::scale_y_continuous(name = "MW Energy and Exergy for Greece [EJ]") + 
+  ggplot2::labs(linetype = NULL) +
+  MKHthemes::xy_theme()
+```
 
 
 
