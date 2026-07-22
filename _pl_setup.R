@@ -203,7 +203,7 @@ clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v3.0a2"
+clpfu_version <- "v3.0b1"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
