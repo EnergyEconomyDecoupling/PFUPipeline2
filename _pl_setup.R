@@ -224,7 +224,8 @@ if (parallel::detectCores() == 10) {
   worker_threads <- 8
 } else if (parallel::detectCores() == 24) {
   # M2 Ultra
-  worker_threads <- 16
+  # worker_threads <- 16
+  worker_threads <- 4
 } else {
   # To be safe
   worker_threads <- 2
