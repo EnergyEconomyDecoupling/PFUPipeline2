@@ -33,7 +33,7 @@ on.exit(DBI::dbDisconnect(conn))
 
 countries <- unlist(PFUPipelineTools::canonical_countries)
 
-v_string = "v3.0a2"
+v_string = "v3.0b1"
 
 psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   version_string = v_string,

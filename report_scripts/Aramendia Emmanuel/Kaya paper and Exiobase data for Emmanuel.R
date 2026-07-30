@@ -26,7 +26,7 @@ conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
 
 
-v_string <- "v3.0a2"
+v_string <- "v3.0b1"
 
 Y_fu_U_EIOU_fu_details <- "YfuUEIOUfudetails" |>
   PFUPipelineTools::pl_filter_collect(version_string = v_string,
@@ -55,11 +55,22 @@ saveRDS(phi_vecs, "~/Desktop/For Emmanuel/Phivecs.rds")
 
 
 
+# Dan Chester needs this table.
+sector_agg_eta_fu <- "SectorAggEtaFU" |>
+  PFUPipelineTools::pl_filter_collect(version_string = v_string,
+                                      conn = conn,
+                                      collect = TRUE,
+                                      matrix_class = "matrix")
+saveRDS(sector_agg_eta_fu, "~/Desktop/For Emmanuel/SectorAggEtaFU.rds")
+
+
+
 psut_Re_all <- "PSUTReAll" |>
   PFUPipelineTools::pl_filter_collect(version_string = v_string,
                                       conn = conn,
                                       collect = TRUE,
                                       matrix_class = "matrix")
+
 # When saving this object to disk on the next line,
 # I receive this error:
 #
@@ -73,5 +84,8 @@ mem.maxVSize(32768*2)
 # After that adjustment, saving to disk with the following line
 # was successful.
 saveRDS(psut_Re_all, "~/Desktop/For Emmanuel/PSUTReAll.rds")
+
+# Set back to original size
+mem.maxVSize(32768)
 
 DBI::dbDisconnect(conn)
