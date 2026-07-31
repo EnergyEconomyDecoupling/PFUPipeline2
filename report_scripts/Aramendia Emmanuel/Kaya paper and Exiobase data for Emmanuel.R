@@ -55,6 +55,15 @@ saveRDS(phi_vecs, "~/Desktop/For Emmanuel/Phivecs.rds")
 
 
 
+agg_eta_pfu <- "AggEtaPFU" |>
+  PFUPipelineTools::pl_filter_collect(version_string = v_string,
+                                      conn = conn,
+                                      collect = TRUE,
+                                      matrix_class = "matrix")
+saveRDS(agg_eta_pfu, "~/Desktop/For Emmanuel/AggEtaPFU.rds")
+
+
+
 # Dan Chester needs this table.
 sector_agg_eta_fu <- "SectorAggEtaFU" |>
   PFUPipelineTools::pl_filter_collect(version_string = v_string,

@@ -22,7 +22,7 @@ library(tidyr)
 
 ```{r version-string}
 # Set the version we want to use for this report.
-vrsn_str <- "v3.0a2"
+vrsn_str <- "v3.0b1"
 ```
 
 ```{r stuff-to-exclude, include=FALSE} 
