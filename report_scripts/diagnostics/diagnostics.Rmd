@@ -938,4 +938,30 @@ world_continent_eta |>
 ```
 
 
+
+Figure \@ref(fig:NG-Pipeline-Compressors) demonstrates that we now include
+a new machine (Natural gas pipeline compressors) suggested by IST.
+
+```{r NG-Pipeline-Compressors}
+world_mats |> 
+  dplyr::filter(Dataset == "IEA", 
+                LastStage == "Useful",
+                EnergyType == "Energy",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Specified",
+                IndustryAggregation == "Specified") |> 
+  dplyr::select(-R, -U, -U_EIOU, -r_EIOU, -V, -Y, -S_units) |> 
+  dplyr::mutate(
+    U_feed = matsbyname::select_cols_byname(U_feed,
+                                            retain_pattern = "^Natural gas pipeline gas compressors") |> 
+      matsbyname::clean_byname()
+  ) |> 
+  tidyr::pivot_longer(cols = "U_feed", names_to = "matnames", values_to = "matvals") |> 
+  matsindf::expand_to_tidy() |>
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, y = matvals, fill = rownames)) + 
+  ggplot2::geom_area()
+
+```
+
+
 # References
