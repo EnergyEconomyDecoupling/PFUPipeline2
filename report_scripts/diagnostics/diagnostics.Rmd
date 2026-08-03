@@ -344,23 +344,6 @@ grouped_useful_data <- grouped_final_useful_data |>
   tidyr::pivot_longer(cols = "YUEIOU", 
                       names_to = "matnames", 
                       values_to = "matvals") |>
-  
-  # This code is here only because I forgot to add
-  # some heat categories to the eu_product aggregation map.
-  # I have now added those aggregations, 
-  # so the code below will not be needed in the future.
-  # ---MKH, 10 July 2026
-  dplyr::mutate(
-    matvals = matsbyname::aggregate_byname(
-      matvals,
-      aggregation_map = list(list(
-        HTH = c("HTH", "HTH.1200.C", "HTH.1800.C"), 
-        MTH = c("MTH", "MTH.120.C", "MTH.130.C", "MTH.150.C", "MTH.160.C"), 
-        LTH = c("LTH", "LTH.90.C")
-      )), 
-      margin = 1)
-  ) |>
-  
   matsindf::expand_to_tidy(drop = 0) |>
   # Adjust the names of useful energy carriers to be more readable
   dplyr::mutate(
