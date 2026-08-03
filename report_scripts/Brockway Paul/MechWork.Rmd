@@ -5,6 +5,7 @@ output:
     toc: false
 date: "2026-03-25"
 author: Matthew Kuperus Heun
+bibliography: "refs.bib"
 ---
 
 ```{r setup, include=FALSE}
@@ -18,37 +19,10 @@ library(MKHthemes)
 library(tidyr)
 ```
 
-```{r colors, include=FALSE}
-useful_carrier_colours <- c(AnMech = "purple1", 
-                            `Animal mechanical work` = "purple1", 
-                            `Animal mechanical\nwork` = "purple1",
-                            HuMech = "purple4",
-                            `Human mechanical work` = "purple4",
-                            `Human mechanical\nwork` = "purple4",
-                            MechW = "pink3",
-                            `Mechanical work` = "pink3",
-                            Prop = "pink1",
-                            Propulsion = "pink1",
-                            HPF = "ivory3",
-                            `High-pressure fluids` = "ivory3",
-                            `High-pressure\nfluids` = "ivory3",
-                            LTH = "orangered1", 
-                            `Low-temperature heat` = "orangered1",
-                            `Low-temperature\nheat` = "orangered1",
-                            MTH = "orangered3",
-                            `Medium-temperature heat` = "orangered3",
-                            `Medium-temperature\nheat` = "orangered3",
-                            HTH = "orangered4",
-                            `High-temperature heat` = "orangered4",
-                            `High-temperature\nheat` = "orangered4",
-                            LTC = "deepskyblue3",
-                            `Low-temperature cooling` = "deepskyblue3",
-                            `Low-temperature\ncooling` = "deepskyblue3",
-                            IP = "palegreen4",
-                            `Information processing` = "palegreen4",
-                            `Information\nprocessing` = "palegreen4",
-                            L = "gold2",
-                            Light = "gold2")
+
+```{r version-string}
+# Set the version we want to use for this report.
+vrsn_str <- "v3.0b1"
 ```
 
 ```{r stuff-to-exclude, include=FALSE} 
@@ -68,10 +42,8 @@ sectors_to_exclude <- RCLabels::make_or_pattern(
 This report investigates 
 world aggregate Mechanical work.
 The questions were raised by Tiago Domingos
-regarding Figure 7 of the paper
-Brockway et al. A country-level primary-final-useful (CL-PFU) energy and exergy
-database: Overview of its construction and 1971–2020 world-level efficiency results. 
-Environmental Research: Energy, 1(025005):1–29, jun 2024.
+regarding Figure 7 of
+@Brockway:2024ab.
 
 
 # Data
@@ -80,10 +52,11 @@ The first step is to gather relevant data from the database and
 save locally for convenience.
 
 ```{r data, eval=FALSE}
-conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
+conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
 
 world_mats <- PFUPipelineTools::pl_filter_collect(
+  version_string = vrsn_str,
   db_table_name = "PSUTReAllChopAllDsAllGrAll",
   Country == "World",
   conn = conn,
@@ -108,7 +81,7 @@ with gross useful energy and exergy.
 (Gross includes useful stage energy and exergy consumed by final demand
 _and_ energy industry own use.
 These data are taken from the **Y** and **U**~EIOU~ matrices.)
-This analysis employs v2.0 of the CL-PFU database, while 
+This analysis employs `r vrsn_str` of the CL-PFU database, while 
 the paper (and Figure 7) used v1.2.
 Some small differences can be expected.
 
@@ -128,7 +101,7 @@ grouped_data <- world_mats |>
                 IncludesNEU == FALSE,
                 ProductAggregation == "Grouped", 
                 IndustryAggregation == "Grouped") |>
-  dplyr::arrange(Year, EnergyType) |> 
+  dplyr::arrange(Year, EnergyType) |>
   dplyr::mutate(
     # For gross useful energy, we need to include both Y and U_EIOU matrices
     YUEIOU = matsbyname::sum_byname(Y, U_EIOU) |> 
@@ -139,6 +112,24 @@ grouped_data <- world_mats |>
   ) |>
   dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -Y, -S_units) |>
   tidyr::pivot_longer(cols = "YUEIOU", names_to = "matnames", values_to = "matvals") |>
+  
+  # This code is here only because I forgot to add
+  # some heat categories to the eu_product aggregation map.
+  # I have now added those aggregations, 
+  # so the code below will not be needed in the future.
+  # ---MKH, 10 July 2026
+  dplyr::mutate(
+    matvals = matsbyname::aggregate_byname(
+      matvals,
+      aggregation_map = list(list(
+        HTH = c("HTH", "HTH.1200.C", "HTH.1800.C"), 
+        MTH = c("MTH", "MTH.120.C", "MTH.130.C", "MTH.150.C", "MTH.160.C"), 
+        LTH = c("LTH", "LTH.90.C")
+      )), 
+      margin = 1)
+  ) |>
+
+  
   matsindf::expand_to_tidy(drop = 0) |>
   dplyr::mutate(
     rownames = factor(rownames, levels = c("IP", "L", "HTH", "MTH", "LTH",
@@ -153,7 +144,7 @@ grouped_data |>
   ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
   ggplot2::scale_y_continuous(breaks = seq(0, 250, by = 50)) +
-  ggplot2::scale_fill_manual(values = useful_carrier_colours) +
+  ggplot2::scale_fill_manual(values = MKHthemes::useful_carrier_colours) +
   ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
   MKHthemes::xy_theme()
 ```
@@ -171,7 +162,8 @@ and
 
 ```{r self-aggregation-graph, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='Remake of Figure 7 starting from Specified data.', echo=FALSE}
 # Read useful product aggregation map
-eu_product_agg_map <- openxlsx2::read_xlsx("aggregation_mapping.xlsx", sheet = "eu_product_aggregation") |> 
+eu_product_agg_map <- openxlsx2::read_xlsx(file = "aggregation_mapping.xlsx", 
+                                           sheet = "eu_product_aggregation") |> 
   matsbyname::agg_table_to_agg_map(few_colname = "Few", many_colname = "Many")
 nouns <- world_mats |> 
   # Filter to the same parameters for Figure 7.
@@ -222,7 +214,7 @@ grouped |>
   ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
   ggplot2::scale_y_continuous(breaks = seq(0, 250, by = 50)) +
-  ggplot2::scale_fill_manual(values = useful_carrier_colours) +
+  ggplot2::scale_fill_manual(values = MKHthemes::useful_carrier_colours) +
   ggplot2::labs(x = NULL, fill = NULL, y = "Useful energy and exergy [EJ]") +
   MKHthemes::xy_theme()
 ```
@@ -388,7 +380,14 @@ md_df <- md_mats |>
     rowtypes = NULL, 
     coltypes = NULL
   ) |> 
-  tidyr::pivot_wider(names_from = "direction", values_from = "matvals")
+  tidyr::pivot_wider(names_from = "direction", values_from = "matvals") |> 
+  dplyr::mutate(
+    # Set the order for machines in graphs
+    machine = factor(machine, levels = c("Natural gas turbines", 
+                                         "Domestic appliances", 
+                                         "Static diesel engines", 
+                                         "Static gasoline engines"))
+  )
 
 md_machines <- unique(md_df$machine)
 md_machines_str <- paste(paste(md_machines[1:2],
@@ -421,7 +420,8 @@ md_df |>
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
   ggplot2::scale_y_continuous(breaks = seq(0, 10, by = 2)) +
   ggplot2::scale_fill_manual(
-    values = c(`Domestic appliances` = "steelblue1", 
+    values = c(`Natural gas turbines` = "lightsteelblue",
+               `Domestic appliances` = "steelblue1", 
                `Static diesel engines` = "steelblue3", 
                `Static gasoline engines` = "steelblue4")) +
   ggplot2::labs(x = NULL, y = "World MD [EJ]", fill = NULL) +
@@ -457,13 +457,15 @@ md_df |>
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
   ggplot2::scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
   ggplot2::scale_colour_manual(
-    values = c(`Domestic appliances` = "steelblue1", 
+    values = c(`Natural gas turbines` = "lightsteelblue",
+               `Domestic appliances` = "steelblue1", 
                `Static diesel engines` = "steelblue3", 
                `Static gasoline engines` = "steelblue4")) +
   ggplot2::scale_linetype_manual(
     values = c(`Domestic appliances` = 1, 
                `Static diesel engines` = 2, 
-               `Static gasoline engines` = 3)) +
+               `Static gasoline engines` = 3, 
+               `Natural gas turbines` = 4)) +
   ggplot2::labs(x = NULL, 
                 y = "WRLD MD machine efficiencies [-]", 
                 linetype = NULL, 
@@ -564,15 +566,6 @@ md_Y_df |>
 
 The Iron and steel sector is largely decreasing in MD consumption,
 while Residential exhibits large increases in MD consumption.
-**** I could aggregate these industries into our larger categories, 
-like Industry, AFF, etc. 
-It looks like many of the industry categories are declining.
-But I don't want to take that step unless we think
-it is needed.
-Doing so will take a bit of coding.
----MKH
-****
-
 
 Table \@ref(tab:MDY-table) shows differences
 in MD consumption over the 60-year period from 1971 to 2020.
@@ -603,7 +596,8 @@ grows more slowly than other categories of
 useful energy and exergy.
 However, Mechanical work _is growing_
 at `r sprintf("%.1f", growth_rate)` %/yr,
-about 1/3 of the compound average annual world GDP growth rate
+`r sprintf("%.2f", growth_rate/3.3)` 
+of the compound average annual world GDP growth rate (3.3 %/yr)
 over the same period.
 
 The largest category of MechW is Mechanical drive (MD)
@@ -615,3 +609,6 @@ suggesting decreasing energy inputs due to
 less usage over time.
 It appears that industrial uses of MD are declining over time,
 offsetting increases in consumption of MD by the Residential sector.
+
+
+# References

@@ -5,15 +5,9 @@
 # creating the CL-PFU database.
 # Duplicate this file and rename to "local_setup.R"
 
-# For debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE),
-# set crew_controller <- NULL
-# and
-# (1) insert browser() calls for functions in PFUPipeline2
-# (2) set breakpoints in functions from other packages.
-
 # Countries --------------------------------------------------------------------
 
-# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
 # countries <- "AGO"
 # countries <- "BEN" # First country with no EIOU
 # countries <- "CMR"
@@ -100,12 +94,31 @@
 # countries <- "GBR"
 
 # Countries to run on 2 April 2026
-countries <- "AUS"
+# countries <- "AUS"
+
+# Countries to run on 7 Apr 2026
+# countries <- c("ALB", "ARG", "AUT", "BEL", "BGR", "BIH", "BLR", "CAN", "CHE", "CHL",
+#                "CYP", "CZE", "EST", "FIN", "GEO", "GRC", "HRV", "HUN", "IRL", "ITA",
+#                "LTU", "LUX", "LVA", "MAR", "MDA", "MKD", "NLD", "NOR", "NZL", "POL",
+#                "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
+
+# Countries to run on 12 May 2026
+# countries <- c("AUS", "CAN", "DEU", "DNK", "ESP", "FRA", "GBR", "HKG", "KOR")
+
+# Countries to run on 9 June 2026 first try with versioning code.
+# countries <- "BRA"
+
+# Countries to run on 12 June 2026 first try with versioning code.
+# countries <- "PRT"
+
 
 
 
 # Regular: tar_make()
 # Debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
+# and
+# (1) insert browser() calls for functions in PFUPipeline2
+# (2) set breakpoints in functions from other packages.
 debug <- FALSE
 
 
@@ -148,6 +161,7 @@ years <- 1960:2020
 # years <- 1971:1990
 # years <- 1995:1996
 # years <- 1990:1995
+# years <- 1996
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -166,7 +180,7 @@ specify_non_energy_flows <- TRUE
 # Should we apply fixes to the IEA data?
 apply_fixes <- TRUE
 
-# Should we do a release?
+# Should we do a release of exiobase details?
 release <- FALSE
 
 # Should we compress data across versions upon upsert to a table?
@@ -174,7 +188,7 @@ compress_data <- TRUE
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- TRUE
+reset_schema <- FALSE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
@@ -189,8 +203,7 @@ clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-# clpfu_version <- "v2.1a4"
-clpfu_version <- "v3.0a1"
+clpfu_version <- "v3.0b1"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -211,7 +224,8 @@ if (parallel::detectCores() == 10) {
   worker_threads <- 8
 } else if (parallel::detectCores() == 24) {
   # M2 Ultra
-  worker_threads <- 16
+  # worker_threads <- 16
+  worker_threads <- 4
 } else {
   # To be safe
   worker_threads <- 2

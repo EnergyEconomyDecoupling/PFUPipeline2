@@ -127,6 +127,9 @@ download_dependency_hook <- function(.hashed_dependency,
 #'                         Override if you want to avoid the overhead
 #'                         of readhing the schema with every upsert.
 #' @param dataset_colname,valid_from_version_colname,valid_to_version_colname See `PFUPipelineTools::dataset_info`.
+#' @param value_colname The name of the value column in `db_table_name`.
+#'                      Default is [PFUPipelineTools::mat_colnames]`$value` or
+#'                      "`r PFUPipelineTools::mat_colnames$value`".
 #'
 #' @return A hashed data frame that serves as the "ticket"
 #'         with which the full data frame can be retrieved at a later time.
@@ -143,6 +146,7 @@ upsert_hook <- function(.df,
                         schema = PFUPipelineTools::schema_from_conn(conn),
                         fk_parent_tables = PFUPipelineTools::get_all_fk_tables(conn = conn, schema = schema),
                         dataset_colname = PFUPipelineTools::dataset_info$dataset_colname,
+                        value_colname = PFUPipelineTools::mat_colnames$value,
                         valid_from_version_colname = PFUPipelineTools::dataset_info$valid_from_version_colname,
                         valid_to_version_colname = PFUPipelineTools::dataset_info$valid_to_version_colname) {
 
@@ -178,6 +182,7 @@ upsert_hook <- function(.df,
       in_place = TRUE,
       db_table_name = db_table_name,
       index_map = index_map,
+      value_colname = value_colname,
       # Don't keep single unique columns,
       # because groups may have different columns
       # with single unique values.
@@ -215,4 +220,51 @@ upsert_hook <- function(.df,
 #' @export
 db_table_name_hook <- function(target_name) {
     strsplit(target_name, "_")[[1]][[1]]
+}
+
+
+#' Get the name of the value column from the table name
+#'
+#' When uploading tables to the database,
+#' we need to know the name of the value column.
+#' This function bundles, in one place,
+#' the logic for deciding the value column name.
+#' For most tables, the value column name will be "value".
+#' But some require special logic.
+#'
+#' @param table_name The name of the table being uploaded.
+#' @param default_value_colname The default name of the value column.
+#'                              Default is "value".
+#'
+#' @returns The name of the value column in `table_name`.
+#'
+#' @export
+value_colname_hook <- function(table_name,
+                               default_value_colname = PFUPipelineTools::mat_colnames$value) {
+  if (table_name == "PhiConstants") {
+    value_colname = "phi"
+  } else if (table_name %in% c("AllMachineData",
+                               "IncompleteAllocationTables", "CompletedAllocationTables",
+                               "IncompleteEfficiencyTables", "CompletedEfficiencyTables",
+                               "CompletedPhiuTables")) {
+    # Not capitalization difference
+    value_colname <- "Value"
+  } else if (table_name %in% c("AMWPFUDataRaw", "AMWPFUData", "HMWPFUDataRaw", "HMWPFUData",
+                               "AllIEAData", "IEAData", "BalancedIEAData", "SpecifiedIEAData")) {
+    value_colname <- IEATools::iea_cols$e_dot
+  } else if (table_name == "AggEtaPFU") {
+    value_colname <- c(Recca::aggregate_cols$aggregate_primary,
+                       Recca::aggregate_cols$aggregate_final,
+                       Recca::aggregate_cols$aggregate_useful,
+                       Recca::efficiency_cols$eta_pf,
+                       Recca::efficiency_cols$eta_fu,
+                       Recca::efficiency_cols$eta_pu)
+  } else if (table_name == "SectorAggEtaFU") {
+    value_colname <- c(Recca::all_stages$final,
+                       Recca::all_stages$useful,
+                       Recca::efficiency_cols$eta_fu)
+  } else {
+    value_colname = default_value_colname
+  }
+  return(value_colname)
 }
