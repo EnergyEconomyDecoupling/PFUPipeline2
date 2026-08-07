@@ -4,14 +4,16 @@
 #'
 #' This is a dangerous function.
 #' It destroys the `targets` cache
-#' and deletes all tables in the database.
+#' and optionally deletes all tables in the database
+#' (when `drop_tables = TRUE`).
 #' User confirmation is required.
 #'
 #' @param drv The database driver.
 #'            Default is `RPostgres::Postgres()`.
 #' @param dbname The name of the database you want nuke.
+#'               Default is "SandboxDB".
 #' @param host The database host.
-#'             Default is "eviz.cs.calvin.edu".
+#'             Default is "mexer.site".
 #' @param port The database port.
 #'             Default is `6432`.
 #' @param user The database user.
@@ -20,10 +22,13 @@
 #'             Default is constructed from the
 #'             `drv`, `dbname`, `host`, `port`, and `user`
 #'             arguments.
+#' @param drop_tables A boolean that tells whether to delete all
+#'                    tables in the remote database.
+#'                    Default is `FALSE`.
 #'
 #' @export
 start_over <- function(drv = RPostgres::Postgres(),
-                       dbname = "ScratchMDB",
+                       dbname = "SandboxDB",
                        host = "mexer.site",
                        port = 6432,
                        user = "dbcreator",
