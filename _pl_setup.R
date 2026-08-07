@@ -87,7 +87,7 @@ clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v3.0b1"
+clpfu_version <- "v3.0b2"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -108,8 +108,8 @@ if (parallel::detectCores() == 10) {
   worker_threads <- 8
 } else if (parallel::detectCores() == 24) {
   # M2 Ultra
-  # worker_threads <- 16
-  worker_threads <- 4
+  worker_threads <- 16
+  # worker_threads <- 4
 } else {
   # To be safe
   worker_threads <- 2
