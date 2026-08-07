@@ -7,112 +7,8 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
-# countries <- "AGO"
-# countries <- "BEN" # First country with no EIOU
-# countries <- "CMR"
-# countries <- "GHA"
-# countries <- "USA"
-# countries <- "ZAF"
-# countries <- "WMBK"
-# countries <- "WABK"
-# countries <- "WRLD"
-# countries <- c("GHA", "ZAF")
-# countries <- c("USA", "WRLD")
-# countries <- c("USA", "AUS")
-# countries <- c("WMBK", "USA")
-# countries <- c("AGO", "BEN", "WMBK")
-# countries <- c("AGO", "BEN", "WMBK", "WABK", "WRLD", "GHA", "ZAF")
-# Countries with updated Road information as of 21 November 2025
-# countries <- c("AUS", "AUT", "BEL", "BRA", "CAN", "CHL", "CYP", "CZE", "DEU", "DNK",
-#                "ESP", "FIN", "FRA", "GRC", "HKG", "HRV", "HUN", "IRL", "ITA", "JPN",
-#                "KOR", "LTU", "LUX", "LVA", "MAR", "NLD", "NZL", "POL", "PRT", "ROU",
-#                "SLV", "SVN", "SWE", "SWZ", "URY", "USA")
-# Countries with updated Iron and steel and Chemical and petrochemical information
-# as of 10 Dec 2025
-# countries <- c("WRLD", "USA", "KOR", "MEX", "IND", "DEU",
-#                "FRA", "ESP", "DEU", "NGA", "RUS", "MEX") # Encountered a deadlock error on PSUTWithoutNEU
-# Countries with updated chemicals sectors
-# as of 16 Dec 2025
-# countries <- c("AUS", "CAN", "CHNM") # No deadlock error on PSUTWithoutNEU
-# Countries with the following updates on 6 Jan 2026:
-# FRA (NMM), ESP (NFM) and DEU (Paper and pulp)
-# countries <- c("WRLD", "FRA", "ESP", "DEU") # No deadlock error on PSUTWithoutNEU
-
-# Countries with updated allocations for industrial sectors
-# as of 29 Jan 2026 # No deadlock error.  Everything worked.
-# countries <- c("ALB", "BEL", "BGR", "CHE", "CYP", "CZE", "DEU", "DNK", "EST", "GRC", "ESP",
-#                "FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
-#                "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SWZ", "SVN", "SVK", "WRLD")
-
-# Countries with updated allocations in NFM, NMM, and Paper and pulp sectors.  4 Feb 2026.
-# Worked! No deadlock error.
-# countries <- c("AUT", "WRLD")
-
-# Countries to run on 5 Feb 2026
-# countries <- c("ALB", "ARG", "AUS", "AUT", "BEL", "BGR", "BIH", "BLR", "CHE", "CHL", "GEO", "KAZ",
-#                "MAR", "MDA", "MKD", "NZL", "SRB", "WRLD")
-
-# Countries to run on 10 Feb 2026 with updated residential electricity.
-# countries <- c("CRI", "CYP", "CZE", "DEU", "EST", "FIN", "FRA", "GRC",
-#                "HUN", "IRL", "ITA", "LTU", "LUX", "LVA", "MLT", "NLD",
-#                "POL", "PRT", "ROU", "SVK", "SVN", "SWE", "TUR", "TWN",
-#                "UKR", "URY", "XKX", "WRLD")
-
-# Countries to run on 19 Feb 2026 with updated CPS electricity allocations
-# countries <- c("DEU", "WRLD")
-
-# Updated CPS on 24 Feb 2026
-# countries <- c("AUT", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
-#                "EST", "GRC", "ESP", "FIN", "FRA", "HRV", "HUN",
-#                "IRL", "ITA", "LTU", "LUX", "LVA", "MLT", "NLD",
-#                "POL", "PRT", "ROU", "SWE", "SVN", "SVK", "WRLD")
-
-# A test country (AUT) on 3 Mar 2026
-# countries <- c("AUT", "WRLD")
-
-# Countries to run on 4 Mar 2026
-# countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
-#                "EST", "ESP", "FIN", "FRA", "GRC", "HRV",
-#                "HUN", "IRL", "ITA", "LTU", "LUX", "LVA",
-#                "MLT", "NLD", "POL", "PRT", "ROU", "SVK",
-#                "SVN", "SWE")
-
-# Countries to run on 17 Mar 2026
-# countries <- c("BEL", "BGR", "CYP", "CZE", "DEU", "DNK",
-#                "EST", "GRC", "ESP")
-
-
-# Countries to run on 19 Mar 2026
-# countries <- c("FIN", "FRA", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX",
-#                "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SWE", "SVN", "SVK")
-
-# Countries to run on 31 Mar 2026
-# countries <- "USA"
-
-# Countries to run on 1 April 2026
-# countries <- "GBR"
-
-# Countries to run on 2 April 2026
-# countries <- "AUS"
-
-# Countries to run on 7 Apr 2026
-# countries <- c("ALB", "ARG", "AUT", "BEL", "BGR", "BIH", "BLR", "CAN", "CHE", "CHL",
-#                "CYP", "CZE", "EST", "FIN", "GEO", "GRC", "HRV", "HUN", "IRL", "ITA",
-#                "LTU", "LUX", "LVA", "MAR", "MDA", "MKD", "NLD", "NOR", "NZL", "POL",
-#                "ROU", "SRB", "SVK", "SVN", "SWE", "TUR", "TWN", "UKR", "URY")
-
-# Countries to run on 12 May 2026
-# countries <- c("AUS", "CAN", "DEU", "DNK", "ESP", "FRA", "GBR", "HKG", "KOR")
-
-# Countries to run on 9 June 2026 first try with versioning code.
-# countries <- "BRA"
-
-# Countries to run on 12 June 2026 first try with versioning code.
-# countries <- "PRT"
-
-
-
+# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+countries <- "GHA"
 
 # Regular: tar_make()
 # Debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
@@ -148,20 +44,8 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-years <- 1960:2020
-# years <- 1960
-# years <- 1971
-# years <- 1996
-# years <- 2010
-# years <- 2013
-# years <- 1960:1980
-# years <- 1995:2020
-# years <- 1995:1996
-# years <- 1971:1972
-# years <- 1971:1990
-# years <- 1995:1996
-# years <- 1990:1995
-# years <- 1996
+# years <- 1960:2020
+years <- 1996
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -195,8 +79,8 @@ reset_schema <- FALSE
 # Dataset and version information ----------------------------------------------
 
 # Tells what database you are targeting
-dbname <- "ScratchMDB"
-# dbname <- "SandboxDB"
+# dbname <- "ScratchMDB"
+dbname <- "SandboxDB"
 
 # Tells what CL-PFU dataset you are creating
 clpfu_dataset <- "CL-PFU"
@@ -283,7 +167,7 @@ if (!startsWith(input_data_version, "v")) {
 }
 
 # Create a list of important paths for the CL-PFU pipeline
-input_data_path <- file.path(project_path, "InputData", input_data_version)
+input_data_path <- file.path(project_path, "Input Data", "CL-PFU Data", input_data_version)
 output_data_path <- file.path(project_path, "OutputData")
 
 clpfu_setup_paths <- list(
@@ -291,6 +175,8 @@ clpfu_setup_paths <- list(
   input_data_path = input_data_path,
   output_data_path = output_data_path,
   iea_data_folder = file.path(project_path,
+                              "Input Data",
+                              "External Data",
                               "IEA extended energy balance data",
                               paste("IEA", iea_year, "energy balance data"),
                               paste("IEA Extended Energy Balances", iea_year, "(TJ)")),
