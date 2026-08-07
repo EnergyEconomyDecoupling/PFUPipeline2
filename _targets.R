@@ -26,7 +26,6 @@ tar_option_set(
                "Matrix",
                "MWTools",
                "PFUPipelineTools",
-               "qs",
                "Rilostat",
                "tibble"),
   # Optionally set the default storage format. qs is fast.
