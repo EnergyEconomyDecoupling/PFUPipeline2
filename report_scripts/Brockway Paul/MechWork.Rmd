@@ -3,7 +3,7 @@ title: "Mechanical work analysis for the CL-PFU database"
 output:
   bookdown::pdf_document2:
     toc: false
-date: "2026-04-02"
+date: "2026-08-10"
 author: Matthew Kuperus Heun
 bibliography: "refs.bib"
 ---
