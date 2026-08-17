@@ -33,7 +33,14 @@ on.exit(DBI::dbDisconnect(conn))
 
 countries <- unlist(PFUPipelineTools::canonical_countries)
 
-v_string = "v3.0b1"
+v_string <- "v3.0"
+output_folder <- file.path("~",
+                           "OneDrive - University of Leeds",
+                           "Fellowship 1960-2015 PFU database research",
+                           "Output Data",
+                           v_string,
+                           "For Joao")
+file.exists(output_folder)
 
 psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   version_string = v_string,
@@ -171,12 +178,14 @@ allocated_final_energy |>
                           values_to = "matvals")
   ) |>
   matsindf::expand_to_tidy(drop = 0) |>
-  write.csv(file = "~/Desktop/For Joao/Allocated final energy and exergy for Joao.csv",
+  write.csv(file = file.path(output_folder,
+                             "Allocated final energy and exergy for Joao.csv"),
             row.names = FALSE)
 
 
 aggetapfu |>
-  write.csv(file = "~/Desktop/For Joao/AggEtaPFU for Joao.csv",
+  write.csv(file = file.path(output_folder,
+                             "AggEtaPFU for Joao.csv"),
             row.names = FALSE)
 
 
