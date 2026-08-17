@@ -40,7 +40,9 @@ output_folder <- file.path("~",
                            "Output Data",
                            v_string,
                            "For Joao")
-file.exists(output_folder)
+if (!file.exists(output_folder)) {
+  dir.create(output_folder)
+}
 
 psut_mats_downloaded <- PFUPipelineTools::pl_filter_collect(
   version_string = v_string,
