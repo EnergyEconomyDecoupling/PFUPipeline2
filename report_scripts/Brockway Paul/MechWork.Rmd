@@ -22,7 +22,7 @@ library(tidyr)
 
 ```{r version-string}
 # Set the version we want to use for this report.
-vrsn_str <- "v3.0b1"
+vrsn_str <- "v3.0"
 ```
 
 ```{r stuff-to-exclude, include=FALSE} 
@@ -441,7 +441,8 @@ md_df |>
   ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
   ggplot2::scale_y_continuous(breaks = seq(0, 30, by = 5)) +
   ggplot2::scale_fill_manual(
-    values = c(`Domestic appliances` = "steelblue1", 
+    values = c(`Natural gas turbines` = "lightsteelblue",
+               `Domestic appliances` = "steelblue1", 
                `Static diesel engines` = "steelblue3", 
                `Static gasoline engines` = "steelblue4")) +
   ggplot2::labs(x = NULL, y = "World inputs for MD [EJ]", fill = NULL) +
