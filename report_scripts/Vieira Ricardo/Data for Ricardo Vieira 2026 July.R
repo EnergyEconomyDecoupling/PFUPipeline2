@@ -5,7 +5,7 @@
 # - All countries
 # - Show both Y matrices and RCV format in a .csv file
 
-conn <- PFUPipelineTools::get_scratchmdb_conn(user = "dbcreator")
+conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
 
 countries <- unlist(PFUPipelineTools::canonical_countries)
