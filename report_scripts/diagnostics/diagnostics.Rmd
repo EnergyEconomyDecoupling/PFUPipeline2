@@ -40,7 +40,7 @@ We first set the version of the database
 for which diagnostics are desired.
 
 ```{r version} 
-clpfu_version <- "v3.0b1"
+clpfu_version <- "v3.0"
 ```
 
 Set data file paths.
