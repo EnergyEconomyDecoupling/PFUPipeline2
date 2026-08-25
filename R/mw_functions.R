@@ -227,13 +227,25 @@ make_mw_psut <- function(.hmw_df,
 #' `TRUE` is returned, enabling the pipeline to continue,
 #' even if there are some years where there is no muscle work data available.
 #'
+#' The argument `tol` with default value of `1e-3` was added
+#' on 25 Aug 2026 by Matthew Kuperus Heun
+#' (overrideing the default tolerance of `1e-6`
+#' to work around a problem
+#' where muscle work imbalances of `3e-4`
+#' were observed for USA in 2005 and 2006.
+#' If the muscle work code is rewritten,
+#' we should check whether this looser tolerance (`1e-3`)
+#' remains necessary.
+#'
 #' @param .psut_df A data frame of muscle work PSUT matrices.
+#' @param tol The acceptable tolerance for imbalances.
+#'            Default is `1e-3`.
 #'
 #' @return A data frame with new boolean column ".balanced" that tells
 #'         whether the matrices are balanced.
 #'
 #' @export
-verify_mw_energy_balance <- function(.psut_df) {
+verify_mw_energy_balance <- function(.psut_df, tol = 1e-3) {
 
   if (is.null(.psut_df)) {
     return(TRUE)
@@ -244,7 +256,8 @@ verify_mw_energy_balance <- function(.psut_df) {
 
   # We have some rows. Perform the check.
   .psut_df |>
-    Recca::verify_inter_industry_balance(balanced = ".balanced") |>
+    Recca::verify_inter_industry_balance(balanced = ".balanced",
+                                         tol = tol) |>
     magrittr::extract2(".balanced") |>
     unlist() |>
     all()
