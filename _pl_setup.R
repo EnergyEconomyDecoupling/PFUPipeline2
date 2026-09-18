@@ -7,8 +7,8 @@
 
 # Countries --------------------------------------------------------------------
 
-countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
-# countries <- c("DEU", "USA")
+# countries <- c(PFUPipelineTools::canonical_countries, wrld = "WRLD") |> as.character()
+countries <- c("DEU", "USA")
 
 # Regular: tar_make()
 # Debugging: tar_make(callr_function = NULL, use_crew = FALSE, as_job = FALSE)
@@ -44,7 +44,8 @@ if (!("WRLD" %in% countries) & !("WRLD" %in% additional_exemplar_countries)) {
 
 # Years ------------------------------------------------------------------------
 
-years <- 1960:2020
+# years <- 1960:2020
+years <- 2005
 
 # Set the years to provide exiobase coefficients
 years_exiobase <- 1995:2020
@@ -71,7 +72,7 @@ compress_data <- TRUE
 
 # Reset schema?
 # Think VERY CAREFULLY before setting this TRUE!
-reset_schema <- FALSE
+reset_schema <- TRUE
 # Set back to FALSE quickly, i.e. immediately after tar_make()!
 # Likely only need to set TRUE after start_over().
 
@@ -79,14 +80,15 @@ reset_schema <- FALSE
 
 # Tells what database you are targeting
 # dbname <- "ScratchMDB"
-dbname <- "ScratchMDB"
+dbname <- "SandboxDB"
 
 # Tells what CL-PFU dataset you are creating
 clpfu_dataset <- "CL-PFU"
 clpfu_iea_dataset <- "CL-PFU IEA"
 clpfu_mw_dataset <- "CL-PFU MW"
 clpfu_both_dataset <- "CL-PFU IEA+MW"
-clpfu_version <- "v3.0"
+clpfu_version <- "v2.0"
+# clpfu_version <- "v3.0"
 
 # Tells what IEAEWEB dataset you are using
 iea_dataset <- "IEA EWEB"
@@ -107,8 +109,8 @@ if (parallel::detectCores() == 10) {
   worker_threads <- 8
 } else if (parallel::detectCores() == 24) {
   # M2 Ultra
-  # worker_threads <- 16
-  worker_threads <- 4
+  worker_threads <- 16
+  # worker_threads <- 4 # For cases where we outstrip available memory
 } else {
   # To be safe
   worker_threads <- 2
@@ -127,7 +129,6 @@ if (debug) {
 
 # Directory for input and output data ------------------------------------------
 project_path <- file.path("~",
-                          "OneDrive",
                           "OneDrive - University of Leeds",
                           "Fellowship 1960-2015 PFU database research")
 
