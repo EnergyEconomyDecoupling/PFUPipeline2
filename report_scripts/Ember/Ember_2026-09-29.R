@@ -1,16 +1,5 @@
-# Following a Teams call with Henrique Matos, Ricardo Pinto, and Tania Sousa
-# on 14 April 2026,
-# this script downloads allocation and efficiency data
-# for a few countries to assist Henrique's MS work.
-#
-# --- MKH, 15 April 2026
-
-# Following a Teams call with Henrique Matos, Ricardo Pinto, and Tania Sousa
-# on 14 May 2026,
-# I'm changing the script to supply data data for all years.
-# Specifically, I commented the Year %in% years portion of the filter.
-#
-# ---MKH, 14 May 2026
+# This script downloads data for Emily Nurse and James Blackwell
+# at Ember.
 
 version_string <- "v3.0"
 
