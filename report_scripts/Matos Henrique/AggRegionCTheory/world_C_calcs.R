@@ -126,9 +126,13 @@ Y_u_db_expanded <-matsbyname::mat_from_store_byname(
   v_piece = "all")
 
 C_Y_calc <- matsbyname::matrixproduct_byname(Y_f_vec_hat_inv_db, Y_u_db_expanded) |>
-  matsbyname::matrixproduct_byname(eta_vec_hat_inv)
+  matsbyname::matrixproduct_byname(eta_vec_hat_inv_db) |>
+  matsbyname::select_rowcol_piece_byname(
+    remove = RCLabels::make_or_pattern("Aviation gasoline",
+                                       "")
+  )
 
-matsbyname::equal_byname(C_Y_calc, C_Y)
+matsbyname::equal_byname(C_Y_calc, C_Y_db)
 
 
 
