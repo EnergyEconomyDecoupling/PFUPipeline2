@@ -89,7 +89,7 @@ U_u_special <- ruvy_gha_1971 |>
 Y_u_T__eta_fu_hat_inv <- Y_u_T |>
   matsbyname::matrixproduct_byname(eta_fu_hat_inv)
 
-# This matrix give the amoung of final energy
+# This matrix give the amount of final energy
 # going into each machine (and useful product)
 # in rows.
 # Columns are the sectors in which the final and
