@@ -15,7 +15,7 @@ conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
 
 versn_string <- "v3.0"
-years <- c(1971)
+years <- 2000
 
 C_gha <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "Cmats",
