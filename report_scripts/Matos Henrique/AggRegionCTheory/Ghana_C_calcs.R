@@ -19,6 +19,7 @@ versn_string <- "v3.0"
 # 2000, 2001 (at least) don't work.
 # Next step is to investigate the difference
 # between 1999 and 2000.
+# Maybe multiply by the selector sooner?
 years <- 2000
 
 C_gha <- PFUPipelineTools::pl_filter_collect(
