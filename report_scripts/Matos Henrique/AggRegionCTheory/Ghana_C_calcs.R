@@ -161,35 +161,29 @@ res3 <- res2 |>
 
 # Convert the vector into a matrix,
 # splitting at the "___".
-C_Y_calc <- res3 |>
+res4 <- res3 |>
   matsbyname::matricize_byname(notation = underline_notation) |>
   matsbyname::fractionize_byname(margin = 1)
 
-# C_Y_calc should be compared to C_Y_db to see if they are equal.
+# Now multiply by a selector matrix that keeps only rows that exist
+# in Y_f, thereby eliminating spurious rows in C_Y.
+Y_f_vect <- ruvy_gha_1971 |>
+  dplyr::filter(LastStage == "Final") |>
+  purrr::pluck("Y", 1) |>
+  matsbyname::vectorize_byname(notation = RCLabels::arrow_notation) |>
+  matsbyname::clean_byname(margin = 1) |>
+  matsbyname::setcolnames_byname("col")
+Y_f_selector <- matsbyname::quotient_byname(Y_f_vect, Y_f_vect) |>
+  matsbyname::hatize_byname(keep = "rownames")
 
+C_Y_calc <- matsbyname::matrixproduct_byname(Y_f_selector, res4) |>
+  matsbyname::clean_byname()
+
+# C_Y_calc should be compared to C_Y_db to see if they are equal.
 C_Y_db <- C_gha_1971 |>
   purrr::pluck("C_Y", 1)
-
-
-C_Y_calc |> as.matrix() |> View()
-C_Y_db |> as.matrix() |> View()
-
-
-
-# The next code gives TRUE, so they are the same except
-# for the Fuel oil -> CPS row.
-C_Y_calc |>
-  matsbyname::select_rows_byname(remove_pattern = '^Fuel oil -> Commercial and public services$') |>
-  matsbyname::difference_byname(C_Y_db) |>
-  matsbyname::iszero_byname()
-
-matsbyname::difference_byname(C_Y_calc, C_Y_db) |> as.matrix() |> View()
-
-
-
-
-
-
+# The next line should give TRUE
+matsbyname::equal_byname(C_Y_calc, C_Y_db, tol = 1e-6)
 
 
 DBI::dbDisconnect(conn)
