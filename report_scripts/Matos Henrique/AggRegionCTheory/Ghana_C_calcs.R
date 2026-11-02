@@ -15,18 +15,19 @@ conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
 
 versn_string <- "v3.0"
+years <- c(1971)
 
-C_gha_1971 <- PFUPipelineTools::pl_filter_collect(
+C_gha <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "Cmats",
   version_string = versn_string,
   Dataset == "CL-PFU IEA",
-  Year == 1971,
+  Year %in% years,
   Country == "GHA",
   create_matsindf = TRUE,
   collect = TRUE,
   conn = conn)
 
-ruvy_gha_1971 <- PFUPipelineTools::pl_filter_collect(
+ruvy_gha <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "PSUTReAllChopAllDsAllGrAll",
   version_string = versn_string,
   Dataset == "CL-PFU IEA",
@@ -34,26 +35,26 @@ ruvy_gha_1971 <- PFUPipelineTools::pl_filter_collect(
   IncludesNEU == "TRUE",
   ProductAggregation == "Specified",
   IndustryAggregation == "Specified",
-  Year == 1971,
+  Year %in% years,
   Country == "GHA",
   create_matsindf = TRUE,
   collect = TRUE,
   conn = conn)
 
-etai_gha_1971 <- PFUPipelineTools::pl_filter_collect(
+etai_gha <- PFUPipelineTools::pl_filter_collect(
   db_table_name = "Etai",
   version_string = versn_string,
   Dataset == "CL-PFU IEA",
   EnergyType == "E",
   LastStage == "Useful",
   IncludesNEU == "TRUE",
-  Year == 1971,
+  Year %in% years,
   Country == "GHA",
   create_matsindf = TRUE,
   collect = TRUE,
   conn = conn)
 
-Y_u_T <- ruvy_gha_1971 |>
+Y_u_T <- ruvy_gha |>
   dplyr::filter(LastStage == "Useful") |>
   purrr::pluck("Y", 1) |>
   matsbyname::transpose_byname() |>
@@ -63,7 +64,7 @@ Y_u_T <- ruvy_gha_1971 |>
                                      flip = TRUE) |>
   matsbyname::setcoltype("Industry -> Product")
 
-eta_fu_hat_inv <- etai_gha_1971 |>
+eta_fu_hat_inv <- etai_gha |>
   purrr::pluck("eta_i", 1) |>
   matsbyname::hatinv_byname(keep = "rownames") |>
   matsbyname::setrowtype("Industry -> Product") |>
@@ -72,7 +73,7 @@ eta_fu_hat_inv <- etai_gha_1971 |>
 # U_u_special gives the fraction of each type of final energy
 # going into each machine.
 # Columns sum to 1.
-U_u_special <- ruvy_gha_1971 |>
+U_u_special <- ruvy_gha |>
   dplyr::filter(LastStage == "Useful") |>
   purrr::pluck("U", 1) |>
   matsbyname::fractionize_byname(margin = 2) |>
@@ -167,7 +168,7 @@ res4 <- res3 |>
 
 # Now multiply by a selector matrix that keeps only rows that exist
 # in Y_f, thereby eliminating spurious rows in C_Y.
-Y_f_vect <- ruvy_gha_1971 |>
+Y_f_vect <- ruvy_gha |>
   dplyr::filter(LastStage == "Final") |>
   purrr::pluck("Y", 1) |>
   matsbyname::vectorize_byname(notation = RCLabels::arrow_notation) |>
@@ -180,7 +181,7 @@ C_Y_calc <- matsbyname::matrixproduct_byname(Y_f_selector, res4) |>
   matsbyname::clean_byname()
 
 # C_Y_calc should be compared to C_Y_db to see if they are equal.
-C_Y_db <- C_gha_1971 |>
+C_Y_db <- C_gha |>
   purrr::pluck("C_Y", 1)
 # The next line should give TRUE
 matsbyname::equal_byname(C_Y_calc, C_Y_db, tol = 1e-6)
