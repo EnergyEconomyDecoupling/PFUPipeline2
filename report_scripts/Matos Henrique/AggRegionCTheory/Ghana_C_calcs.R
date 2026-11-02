@@ -15,6 +15,10 @@ conn <- PFUPipelineTools::get_scratchmdb_conn()
 on.exit(DBI::dbDisconnect(conn))
 
 versn_string <- "v3.0"
+# 1971-1999 work
+# 2000, 2001 (at least) don't work.
+# Next step is to investigate the difference
+# between 1999 and 2000.
 years <- 2000
 
 C_gha <- PFUPipelineTools::pl_filter_collect(
