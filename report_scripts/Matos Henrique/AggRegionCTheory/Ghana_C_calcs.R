@@ -62,6 +62,8 @@ etai_gha <- PFUPipelineTools::pl_filter_collect(
 Y_u_T <- ruvy_gha |>
   dplyr::filter(LastStage == "Useful") |>
   purrr::pluck("Y", 1) |>
+  # Eliminate all Exports
+  matsbyname::select_cols_byname(remove_pattern = "^Exports") |>
   matsbyname::transpose_byname() |>
   matsbyname::switch_notation_byname(margin = 2,
                                      from = RCLabels::from_notation,
@@ -176,6 +178,8 @@ res4 <- res3 |>
 Y_f_vect <- ruvy_gha |>
   dplyr::filter(LastStage == "Final") |>
   purrr::pluck("Y", 1) |>
+  # Eliminate all Exports
+  matsbyname::select_cols_byname(remove_pattern = "^Exports") |>
   matsbyname::vectorize_byname(notation = RCLabels::arrow_notation) |>
   matsbyname::clean_byname(margin = 1) |>
   matsbyname::setcolnames_byname("col")
@@ -190,6 +194,13 @@ C_Y_db <- C_gha |>
   purrr::pluck("C_Y", 1)
 # The next line should give TRUE
 matsbyname::equal_byname(C_Y_calc, C_Y_db, tol = 1e-6)
+
+
+
+matsbyname::equal_byname(res4, C_Y_db, tol = 1e-6)
+
+matsbyname::difference_byname(C_Y_calc, C_Y_db) |> as.matrix() |> View()
+
 
 
 DBI::dbDisconnect(conn)
