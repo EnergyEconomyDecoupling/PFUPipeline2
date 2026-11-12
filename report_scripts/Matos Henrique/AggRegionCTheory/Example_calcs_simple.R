@@ -42,18 +42,14 @@ eta_i <- matsbyname::quotient_byname(
     matsbyname::setrowtype("Product") |>
     matsbyname::transpose_byname())
 
-eta_i_hatinv <- eta_i |>
-  matsbyname::hatinv_byname(keep = "rownames")
-
 # Define a new notation
 underline_notation <- RCLabels::notation_vec(sep = " ___ ")
 
 tol <- 1e-10
 common_coltype <- "Common"
 
-this_sector <- "Industry"
-this_Ef <- "Electricity"
-
+this_sector <- "Residential"
+this_Ef <- "Gas"
 
 C_mat <- NULL
 for (this_sector in colnames(Y_f)) {
@@ -88,6 +84,14 @@ for (this_sector in colnames(Y_f)) {
 
     Y_u_common_new_colnames <- Y_u_common |>
       matsbyname::setcolnames_byname(new_colnames)
+
+    eta_i_trimmed <- Y_u_common_new_colnames |>
+      matsbyname::mat_from_store_byname(v = eta_i, margin = 1, margin_v = 1, notation = RCLabels::arrow_notation)
+
+    eta_i_hatinv <- eta_i_trimmed |>
+      matsbyname::hatinv_byname(keep = "rownames")
+
+
 
     # Find the final energy associated with these machines
     # by multiplying by hatinv(etai)
