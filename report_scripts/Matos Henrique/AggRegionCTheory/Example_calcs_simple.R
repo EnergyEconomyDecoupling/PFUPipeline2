@@ -55,7 +55,7 @@ this_sector <- "Industry"
 this_Ef <- "Electricity"
 
 
-C_submat_collection <- NULL
+C_mat <- NULL
 for (this_sector in colnames(Y_f)) {
   for (this_Ef in rownames(Y_f)) {
     U_u_Ef_row <- U_u |>
@@ -95,12 +95,12 @@ for (this_sector in colnames(Y_f)) {
       matsbyname::matrixproduct_byname(Y_u_common_new_colnames)
 
     # Create the piece of the allocation matrix
-    C_submat <- Y_u_common_Ef |>
+    this_C_submat <- Y_u_common_Ef |>
       matsbyname::transpose_byname() |>
       matsbyname::fractionize_byname(margin = 1) |>
       matsbyname::clean_byname()
 
-    C_submat_collection <- matsbyname::sumbyname(C_submat_collection, C_submat)
+    C_mat <- matsbyname::sum_byname(C_mat, this_C_submat)
   }
 }
 
