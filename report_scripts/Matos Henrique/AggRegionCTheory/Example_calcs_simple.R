@@ -1,3 +1,9 @@
+# This file contains an R implementation of the new algorithm for
+# calculating allocations.
+# Next step is to try it for Ghana in various years.
+# That work is in a different file, namely
+# Example_calcs_simple_GHA.R
+
 Y_f <- matrix(c(10, 0,
                 0, 20), byrow = TRUE, nrow = 2,
               dimnames = list(c("Electricity", "Gas"),
