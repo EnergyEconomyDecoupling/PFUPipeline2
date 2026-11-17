@@ -52,6 +52,18 @@ ruvy_this_country <- PFUPipelineTools::pl_filter_collect(
   collect = TRUE,
   conn = conn)
 
+print(paste0("Downloading ", this_country, " YfuUEIOUfudetails matrices"))
+YfuUEIOUfudetails_this_country <- PFUPipelineTools::pl_filter_collect(
+  db_table_name = "YfuUEIOUfudetails",
+  version_string = versn_string,
+  Dataset == "CL-PFU IEA",
+  EnergyType == "E",
+  Year %in% years,
+  Country == this_country,
+  create_matsindf = TRUE,
+  collect = TRUE,
+  conn = conn)
+
 # Extract matrices
 C_Y_this_year_db <- C_this_country |>
   dplyr::filter(Year == this_year) |>
@@ -67,6 +79,10 @@ Y_f_db <- ruvy_this_year |>
   matsbyname::select_cols_byname(remove_pattern = "^Statistical differences") |>
   matsbyname::select_cols_byname(remove_pattern = "^Losses$") |>
   matsbyname::select_cols_byname(remove_pattern = "^Stock changes")
+
+Yfudetails_this_year <- YfuUEIOUfudetails_this_country |>
+  dplyr::filter(Year == this_year) |>
+  purrr::pluck("Y_fu_details", 1)
 
 U_u_db <- ruvy_this_year |>
   dplyr::filter(LastStage == "Useful", Year == this_year) |>
@@ -94,6 +110,7 @@ eta_i_calc <- matsbyname::quotient_byname(
   matsbyname::colsums_byname(U_u_db) |>
     matsbyname::setrowtype("Product") |>
     matsbyname::transpose_byname())
+
 
 
 
