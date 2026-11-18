@@ -1,12 +1,22 @@
 # This script calculates
 # C_Y and C_EIOU matrices
-# for all countries and all years and compares
-# to allocation matrices in the database.
+# for all countries and all years and
+# compares to allocation matrices
+# already in the database.
+#
+# If this script runs to completion without stopping,
+# it demonstrates that we have the correct
+# formula/algorithm to calculate C matrices
+# from existing data in the database
+# for those cases where we know the answer.
+#
+# That should provide confidence for calculating
+# C_Y and C_U_EIOU for aggregated regions
+# where we have not allocation matrices.
 
 conn <- PFUPipelineTools::get_scratchmdb_conn()
 # conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
 on.exit(DBI::dbDisconnect(conn))
-
 
 versn_string <- "v3.0"
 years <- 1960:2020
@@ -85,6 +95,11 @@ for (this_country in countries) {
     C_Y_this_year_db <- C_this_country |>
       dplyr::filter(Year == this_year) |>
       purrr::pluck("C_Y", 1)
+    if (is.null(C_Y_this_year_db)) {
+      # Nothing to be done.
+      # Go on to the next year
+      next
+    }
     # This value of C_U_EIOU is for comparison purposes
     C_U_EIOU_this_year_db <- C_this_country |>
       dplyr::filter(Year == this_year) |>
@@ -140,7 +155,7 @@ for (this_country in countries) {
     # The original calcs were
     #   Y_fu_details = Yf_vec_hat * C_Y * etai_hat
     #   U_EIOU_fu_details = U_EIOU_f_vec_hat * C_U_EIOU * etau_hat
-    # So the reverse calculations are
+    # So the calculations to find the C matrices are
     #   C_Y = Yf_vec_hat_inv * Yfu_details * etai_hat_inv
     #   C_U_EIOU = U_EIOU_f_vec_inv * U_EIOU_fu_details * etai_hat_inv
     C_Y_calc <- Yf_vec_hat_inv |>
@@ -152,7 +167,7 @@ for (this_country in countries) {
       matsbyname::matrixproduct_byname(etai_hat_inv) |>
       matsbyname::clean_byname()
 
-    # Now compare to _Y and C_U_EIOU in the database
+    # Now compare to C_Y and C_U_EIOU in the database
     # by difference.
     # the two compare_* matrices should be zero to within tol
     compare_C_Y <- matsbyname::difference_byname(C_Y_calc, C_Y_this_year_db)
@@ -162,3 +177,5 @@ for (this_country in countries) {
     print(paste0(this_country, ", ", this_year, ", C_Y, C_U_EIOU: ", matsbyname::iszero_byname(compare_C_Y)))
   }
 }
+
+print("Success!")
