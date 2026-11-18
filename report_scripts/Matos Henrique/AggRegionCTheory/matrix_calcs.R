@@ -1,11 +1,7 @@
-# This is another run at the problem of computing
+# This script calculates
 # C_Y and C_EIOU matrices
-# from RUVY matrices.
-# This is needed so that we can calculate
-# allocation matrices for aggregated regions.
-
-# The strategy this time will be to very calculate
-# each result and try to reverse the process.
+# for all countries and all years and compares
+# to allocation matrices in the database.
 
 conn <- PFUPipelineTools::get_scratchmdb_conn()
 # conn <- PFUPipelineTools::get_mexerdb_conn(user = "dbcreator")
@@ -13,167 +9,156 @@ on.exit(DBI::dbDisconnect(conn))
 
 
 versn_string <- "v3.0"
-years <- 1971:2020
+years <- 1960:2020
 
 tol <- 1e-10
 
+countries <- PFUPipelineTools::canonical_countries
 
-# For this example, we'll try Angola, 1984
-# because that was a country/year combination that failed.
-this_country <- "AGO"
-this_year <- 1984
+for (this_country in countries) {
 
+  # Download data from the database
+  print("")
+  print(paste0("Downloading ", this_country, " Cmats"))
+  C_this_country <- PFUPipelineTools::pl_filter_collect(
+    db_table_name = "Cmats",
+    version_string = versn_string,
+    Dataset == "CL-PFU IEA",
+    Year %in% years,
+    Country == this_country,
+    create_matsindf = TRUE,
+    collect = TRUE,
+    conn = conn)
 
-# Download data from the database
-print("")
-print(paste0("Downloading ", this_country, " Cmats"))
-C_this_country <- PFUPipelineTools::pl_filter_collect(
-  db_table_name = "Cmats",
-  version_string = versn_string,
-  Dataset == "CL-PFU IEA",
-  Year %in% years,
-  Country == this_country,
-  create_matsindf = TRUE,
-  collect = TRUE,
-  conn = conn)
+  print(paste0("Downloading ", this_country, " RUVY matrices"))
+  Yf_this_country <- PFUPipelineTools::pl_filter_collect(
+    db_table_name = "PSUTReAllChopAllDsAllGrAll",
+    version_string = versn_string,
+    Dataset == "CL-PFU IEA",
+    EnergyType == "E",
+    LastStage == "Final",
+    IncludesNEU == TRUE,
+    ChoppedMat == "None",
+    ChoppedVar == "None",
+    ProductAggregation == "Specified",
+    IndustryAggregation == "Specified",
+    Year %in% years,
+    Country == this_country,
+    create_matsindf = TRUE,
+    collect = TRUE,
+    conn = conn) |>
+    dplyr::select(dplyr::all_of(c("Dataset", "ValidFromVersion", "ValidToVersion", "Country",
+                                  "Method", "EnergyType", "LastStage", "IncludesNEU", "Year",
+                                  "ChoppedMat", "ChoppedVar", "ProductAggregation",
+                                  "IndustryAggregation", "Y", "U_EIOU")))
 
-print(paste0("Downloading ", this_country, " RUVY matrices"))
-ruvy_this_country <- PFUPipelineTools::pl_filter_collect(
-  db_table_name = "PSUTReAllChopAllDsAllGrAll",
-  version_string = versn_string,
-  Dataset == "CL-PFU IEA",
-  EnergyType == "E",
-  IncludesNEU == "TRUE",
-  ProductAggregation == "Specified",
-  IndustryAggregation == "Specified",
-  Year %in% years,
-  Country == this_country,
-  create_matsindf = TRUE,
-  collect = TRUE,
-  conn = conn)
+  print(paste0("Downloading ", this_country, " YfuUEIOUfudetails matrices"))
+  YfuUEIOUfudetails_this_country <- PFUPipelineTools::pl_filter_collect(
+    db_table_name = "YfuUEIOUfudetails",
+    version_string = versn_string,
+    Dataset == "CL-PFU IEA",
+    EnergyType == "E",
+    Year %in% years,
+    Country == this_country,
+    create_matsindf = TRUE,
+    collect = TRUE,
+    conn = conn)
 
-print(paste0("Downloading ", this_country, " YfuUEIOUfudetails matrices"))
-YfuUEIOUfudetails_this_country <- PFUPipelineTools::pl_filter_collect(
-  db_table_name = "YfuUEIOUfudetails",
-  version_string = versn_string,
-  Dataset == "CL-PFU IEA",
-  EnergyType == "E",
-  Year %in% years,
-  Country == this_country,
-  create_matsindf = TRUE,
-  collect = TRUE,
-  conn = conn)
+  print(paste0("Downloading ", this_country, " etai matrices"))
+  etai_this_country <- PFUPipelineTools::pl_filter_collect(
+    db_table_name = "Etai",
+    version_string = versn_string,
+    Dataset == "CL-PFU IEA",
+    EnergyType == "E",
+    Year %in% years,
+    Country == this_country,
+    IncludesNEU == TRUE,
+    LastStage == "Useful",
+    create_matsindf = TRUE,
+    collect = TRUE,
+    conn = conn)
 
-# Extract matrices
-C_Y_this_year_db <- C_this_country |>
-  dplyr::filter(Year == this_year) |>
-  purrr::pluck("C_Y", 1)
-ruvy_this_year <- ruvy_this_country |>
-  dplyr::filter(Year == this_year)
+  for (this_year in years) {
 
-# Extract various RUVY matrices
-Y_f_db <- ruvy_this_year |>
-  dplyr::filter(LastStage == "Final", Year == this_year) |>
-  purrr::pluck("Y", 1) |>
-  matsbyname::select_cols_byname(remove_pattern = "^Exports") |>
-  matsbyname::select_cols_byname(remove_pattern = "^Statistical differences") |>
-  matsbyname::select_cols_byname(remove_pattern = "^Losses$") |>
-  matsbyname::select_cols_byname(remove_pattern = "^Stock changes")
+    # Extract matrices.
+    # This value of C_Y is for comparison purposes
+    C_Y_this_year_db <- C_this_country |>
+      dplyr::filter(Year == this_year) |>
+      purrr::pluck("C_Y", 1)
+    # This value of C_U_EIOU is for comparison purposes
+    C_U_EIOU_this_year_db <- C_this_country |>
+      dplyr::filter(Year == this_year) |>
+      purrr::pluck("C_EIOU", 1)
+    # Get Yf and U_EIOU for this country and this year
+    Yf_this_year <- Yf_this_country |>
+      dplyr::filter(Year == this_year) |>
+      purrr::pluck("Y", 1) |>
+      matsbyname::select_cols_byname(remove_pattern = "^Exports") |>
+      matsbyname::select_cols_byname(remove_pattern = "^Statistical differences") |>
+      matsbyname::select_cols_byname(remove_pattern = "^Losses$") |>
+      matsbyname::select_cols_byname(remove_pattern = "^Stock changes")
+    U_EIOU_this_year <- Yf_this_country |>
+      dplyr::filter(Year == this_year) |>
+      purrr::pluck("U_EIOU", 1)
+    # Get the details matrices for this country and this year
+    Yfudetails_this_year <- YfuUEIOUfudetails_this_country |>
+      dplyr::filter(Year == this_year) |>
+      purrr::pluck("Y_fu_details", 1) |>
+      matsbyname::switch_notation_byname(margin = 2,
+                                         from = RCLabels::from_notation,
+                                         to = RCLabels::arrow_notation,
+                                         flip = TRUE)
+    UEIOUfudetails_this_year <- YfuUEIOUfudetails_this_country |>
+      dplyr::filter(Year == this_year) |>
+      purrr::pluck("U_EIOU_fu_details", 1) |>
+      matsbyname::switch_notation_byname(margin = 2,
+                                         from = RCLabels::from_notation,
+                                         to = RCLabels::arrow_notation,
+                                         flip = TRUE)
+    # Get the machine efficiencies for this country and this year
+    etai_this_year <- etai_this_country |>
+      dplyr::filter(Year == this_year) |>
+      purrr::pluck("eta_i", 1) |>
+      matsbyname::setrowtype("Industry -> Product")
 
-Yfudetails_this_year <- YfuUEIOUfudetails_this_country |>
-  dplyr::filter(Year == this_year) |>
-  purrr::pluck("Y_fu_details", 1)
+    # Calculate vectorized inverses
+    # for the Yf and U_EIOU matrices
+    Yf_vec_hat_inv <- Yf_this_year |>
+      matsbyname::vectorize_byname(notation = RCLabels::arrow_notation) |>
+      matsbyname::hatinv_byname(keep = "rownames")
+    UEIOUf_vec_hat_inv <- U_EIOU_this_year |>
+      matsbyname::vectorize_byname(notation = RCLabels::arrow_notation) |>
+      matsbyname::hatinv_byname(keep = "rownames")
+    # Calculate inverses for machine efficiencies
+    etai_hat_inv <- etai_this_year |>
+      matsbyname::hatinv_byname(keep = "rownames")
 
-U_u_db <- ruvy_this_year |>
-  dplyr::filter(LastStage == "Useful", Year == this_year) |>
-  purrr::pluck("U", 1)
+    # Do the calculation of C_Y and C_U_EIOU
+    # These calculations are the reverse of the
+    # calculation that provided the useful version of the
+    # final demand (Y_u) and energy industry own use matrices (U_EIOU_u).
+    # The original calcs were
+    #   Y_fu_details = Yf_vec_hat * C_Y * etai_hat
+    #   U_EIOU_fu_details = U_EIOU_f_vec_hat * C_U_EIOU * etau_hat
+    # So the reverse calculations are
+    #   C_Y = Yf_vec_hat_inv * Yfu_details * etai_hat_inv
+    #   C_U_EIOU = U_EIOU_f_vec_inv * U_EIOU_fu_details * etai_hat_inv
+    C_Y_calc <- Yf_vec_hat_inv |>
+      matsbyname::matrixproduct_byname(Yfudetails_this_year) |>
+      matsbyname::matrixproduct_byname(etai_hat_inv) |>
+      matsbyname::clean_byname()
+    C_U_EIOU_calc <- UEIOUf_vec_hat_inv |>
+      matsbyname::matrixproduct_byname(UEIOUfudetails_this_year) |>
+      matsbyname::matrixproduct_byname(etai_hat_inv) |>
+      matsbyname::clean_byname()
 
-V_u_db <- ruvy_this_year |>
-  dplyr::filter(LastStage == "Useful", Year == this_year) |>
-  purrr::pluck("V", 1)
-
-Y_u_db <- ruvy_this_year |>
-  dplyr::filter(LastStage == "Useful", Year == this_year) |>
-  purrr::pluck("Y", 1) |>
-  matsbyname::setrowtype("Product [from Industry]")
-
-Y_u_db_compare <- Y_u_db |>
-  matsbyname::select_cols_byname(remove_pattern = "^Exports") |>
-  matsbyname::select_cols_byname(remove_pattern = "^Statistical differences") |>
-  matsbyname::select_cols_byname(remove_pattern = "^Losses$") |>
-  matsbyname::select_cols_byname(remove_pattern = "^Stock changes") |>
-  matsbyname::clean_byname()
-
-eta_i_calc <- matsbyname::quotient_byname(
-  matsbyname::rowsums_byname(V_u_db, colname = "Product") |>
-    matsbyname::setcoltype("Product"),
-  matsbyname::colsums_byname(U_u_db) |>
-    matsbyname::setrowtype("Product") |>
-    matsbyname::transpose_byname())
-
-
-
-
-# Calculate Y_u from Y_f using C_Y and efficiencies.
-# This proves that we can do a forward calculation.
-Y_f_vec <- Y_f_db |>
-  matsbyname::vectorize_byname(notation = RCLabels::arrow_notation)
-Y_f_vec_hat <- Y_f_vec |>
-  matsbyname::hatize_byname()
-
-YFCY <- matsbyname::matrixproduct_byname(Y_f_vec_hat, C_Y_this_year_db)
-
-eta_i_store <- matsbyname::mat_from_store_byname(a = YFCY,
-                                                 v = eta_i_calc,
-                                                 margin = 2,
-                                                 margin_v = 1) |>
-  matsbyname::setrowtype("Industry -> Product")
-eta_i_store_hat <- eta_i_store |>
-  matsbyname::hatize_byname(keep = "rownames")
-
-
-Y_u_prelim_1_calc <- matsbyname::matrixproduct_byname(YFCY, eta_i_store_hat)
-Y_u_prelim_2_calc <- matsbyname::transpose_byname(Y_u_prelim_1_calc)
-Y_u_prelim_3_calc <- Y_u_prelim_2_calc |>
-  matsbyname::switch_notation_byname(margin = 1,
-                                     from = RCLabels::arrow_notation,
-                                     to = RCLabels::from_notation, flip = TRUE)
-Y_u_calc <- Y_u_prelim_3_calc |>
-  matsbyname::aggregate_pieces_byname(margin = 2, piece = "suff", notation = RCLabels::arrow_notation) |>
-  matsbyname::setcoltype("Industry") |>
-  matsbyname::sort_rows_cols()
-
-compare_Y_u <- matsbyname::difference_byname(Y_u_calc, Y_u_db_compare)
-# When this is true, we have obtained the correct answer in the forward direction!
-matsbyname::iszero_byname(compare)
-
-
-
-# The challenge here is that we have collapsed to the column suffix of
-# Y_u_prelim_3_calc to form Y_u_calc.
-# Thus, we have lost the information about the final energy source
-# of all entries in the Y_u matrix.
-
-# But if we had saved Y_u_prelim_3_calc,
-# could we back-calculate C_Y?
-# Let's try.
-
-
-
-# Calculate some inverses
-Y_f_vec_hat_inv <- matsbyname::invert_byname(Y_f_vec_hat)
-eta_i_hat_inv <- eta_i_store |>
-  matsbyname::hatinv_byname()
-
-Y_f_vec_hat_inv_Yu <- Y_f_vec_hat_inv |>
-  matsbyname::matrixproduct_byname(Y_u_prelim_3_calc |>
-                                     matsbyname::transpose_byname()) |>
-  matsbyname::switch_notation_byname(margin = 2,
-                                     from = RCLabels::from_notation,
-                                     to = RCLabels::arrow_notation,
-                                     flip = TRUE)
-
-C_Y_calc <- matsbyname::matrixproduct_byname(Y_f_vec_hat_inv_Yu, eta_i_hat_inv)
-
-compare_C_Y <- matsbyname::difference_byname(C_Y_calc, C_Y_this_year_db)
-matsbyname::iszero_byname(compare_C_Y)
+    # Now compare to _Y and C_U_EIOU in the database
+    # by difference.
+    # the two compare_* matrices should be zero to within tol
+    compare_C_Y <- matsbyname::difference_byname(C_Y_calc, C_Y_this_year_db)
+    compare_C_U_EIOU <- matsbyname::difference_byname(C_U_EIOU_calc, C_U_EIOU_this_year_db)
+    stopifnot(matsbyname::iszero_byname(compare_C_Y, tol = tol) &
+                matsbyname::iszero_byname(compare_C_U_EIOU, tol = tol))
+    print(paste0(this_country, ", ", this_year, ", C_Y, C_U_EIOU: ", matsbyname::iszero_byname(compare_C_Y)))
+  }
+}
