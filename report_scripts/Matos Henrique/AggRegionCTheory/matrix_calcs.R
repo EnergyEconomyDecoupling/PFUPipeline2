@@ -88,94 +88,43 @@ for (this_country in countries) {
     collect = TRUE,
     conn = conn)
 
-  for (this_year in years) {
+  print(paste0("Testing ", this_country))
 
-    # Extract matrices.
-    # This value of C_Y is for comparison purposes
-    C_Y_this_year_db <- C_this_country |>
-      dplyr::filter(Year == this_year) |>
-      purrr::pluck("C_Y", 1)
-    if (is.null(C_Y_this_year_db)) {
-      # Nothing to be done.
-      # Go on to the next year
-      next
-    }
-    # This value of C_U_EIOU is for comparison purposes
-    C_U_EIOU_this_year_db <- C_this_country |>
-      dplyr::filter(Year == this_year) |>
-      purrr::pluck("C_EIOU", 1)
-    # Get Yf and U_EIOU for this country and this year
-    Yf_this_year <- Yf_this_country |>
-      dplyr::filter(Year == this_year) |>
-      purrr::pluck("Y", 1) |>
-      matsbyname::select_cols_byname(remove_pattern = "^Exports") |>
-      matsbyname::select_cols_byname(remove_pattern = "^Statistical differences") |>
-      matsbyname::select_cols_byname(remove_pattern = "^Losses$") |>
-      matsbyname::select_cols_byname(remove_pattern = "^Stock changes")
-    U_EIOU_this_year <- Yf_this_country |>
-      dplyr::filter(Year == this_year) |>
-      purrr::pluck("U_EIOU", 1)
-    # Get the details matrices for this country and this year
-    Yfudetails_this_year <- YfuUEIOUfudetails_this_country |>
-      dplyr::filter(Year == this_year) |>
-      purrr::pluck("Y_fu_details", 1) |>
-      matsbyname::switch_notation_byname(margin = 2,
-                                         from = RCLabels::from_notation,
-                                         to = RCLabels::arrow_notation,
-                                         flip = TRUE)
-    UEIOUfudetails_this_year <- YfuUEIOUfudetails_this_country |>
-      dplyr::filter(Year == this_year) |>
-      purrr::pluck("U_EIOU_fu_details", 1) |>
-      matsbyname::switch_notation_byname(margin = 2,
-                                         from = RCLabels::from_notation,
-                                         to = RCLabels::arrow_notation,
-                                         flip = TRUE)
-    # Get the machine efficiencies for this country and this year
-    etai_this_year <- etai_this_country |>
-      dplyr::filter(Year == this_year) |>
-      purrr::pluck("eta_i", 1) |>
-      matsbyname::setrowtype("Industry -> Product")
+  # Make a single data frame
 
-    # Calculate vectorized inverses
-    # for the Yf and U_EIOU matrices
-    Yf_vec_hat_inv <- Yf_this_year |>
-      matsbyname::vectorize_byname(notation = RCLabels::arrow_notation) |>
-      matsbyname::hatinv_byname(keep = "rownames")
-    UEIOUf_vec_hat_inv <- U_EIOU_this_year |>
-      matsbyname::vectorize_byname(notation = RCLabels::arrow_notation) |>
-      matsbyname::hatinv_byname(keep = "rownames")
-    # Calculate inverses for machine efficiencies
-    etai_hat_inv <- etai_this_year |>
-      matsbyname::hatinv_byname(keep = "rownames")
-
-    # Do the calculation of C_Y and C_U_EIOU
-    # These calculations are the reverse of the
-    # calculation that provided the useful version of the
-    # final demand (Y_u) and energy industry own use matrices (U_EIOU_u).
-    # The original calcs were
-    #   Y_fu_details = Yf_vec_hat * C_Y * etai_hat
-    #   U_EIOU_fu_details = U_EIOU_f_vec_hat * C_U_EIOU * etau_hat
-    # So the calculations to find the C matrices are
-    #   C_Y = Yf_vec_hat_inv * Yfu_details * etai_hat_inv
-    #   C_U_EIOU = U_EIOU_f_vec_inv * U_EIOU_fu_details * etai_hat_inv
-    C_Y_calc <- Yf_vec_hat_inv |>
-      matsbyname::matrixproduct_byname(Yfudetails_this_year) |>
-      matsbyname::matrixproduct_byname(etai_hat_inv) |>
-      matsbyname::clean_byname()
-    C_U_EIOU_calc <- UEIOUf_vec_hat_inv |>
-      matsbyname::matrixproduct_byname(UEIOUfudetails_this_year) |>
-      matsbyname::matrixproduct_byname(etai_hat_inv) |>
-      matsbyname::clean_byname()
-
-    # Now compare to C_Y and C_U_EIOU in the database
-    # by difference.
-    # the two compare_* matrices should be zero to within tol
-    compare_C_Y <- matsbyname::difference_byname(C_Y_calc, C_Y_this_year_db)
-    compare_C_U_EIOU <- matsbyname::difference_byname(C_U_EIOU_calc, C_U_EIOU_this_year_db)
-    stopifnot(matsbyname::iszero_byname(compare_C_Y, tol = tol) &
-                matsbyname::iszero_byname(compare_C_U_EIOU, tol = tol))
-    print(paste0(this_country, ", ", this_year, ", C_Y, C_U_EIOU: ", matsbyname::iszero_byname(compare_C_Y)))
-  }
+  df_this_country <- Yf_this_country |>
+    dplyr::rename(
+      Y___Final = Y,
+      U_EIOU___Final = U_EIOU
+    ) |>
+    dplyr::mutate(
+      LastStage = "FU"
+    ) |>
+    dplyr::left_join(YfuUEIOUfudetails_this_country |>
+                       dplyr::mutate(LastStage = "FU"),
+                     by = c("Dataset", "ValidFromVersion", "ValidToVersion",
+                            "Country", "Method", "EnergyType", "LastStage", "Year")) |>
+    dplyr::left_join(etai_this_country |>
+                       dplyr::mutate(LastStage = "FU"),
+                     by = c("Dataset", "ValidFromVersion", "ValidToVersion",
+                            "Country", "Method", "EnergyType", "LastStage", "IncludesNEU", "Year")) |>
+    dplyr::left_join(C_this_country |>
+                       dplyr::mutate(
+                         LastStage = "FU") |>
+                       dplyr::rename(C_Y_orig = dplyr::all_of("C_Y"),
+                                     C_EIOU_orig = dplyr::all_of("C_EIOU")),
+                     by = c("Dataset", "ValidFromVersion", "ValidToVersion",
+                            "Country", "Method", "EnergyType", "LastStage", "Year")) |>
+    Recca::calc_C_Y_C_EIOU() |>
+    dplyr::mutate(
+      EqualC_Y = matsbyname::difference_byname(C_Y, C_Y_orig) |>
+        matsbyname::iszero_byname(),
+      EqualC_EIOU = matsbyname::difference_byname(C_EIOU, C_EIOU_orig) |>
+        matsbyname::iszero_byname()
+    )
+  stopifnot(all(unlist(df_this_country$EqualC_Y)))
+  stopifnot(all(unlist(df_this_country$EqualC_EIOU)))
+  print(paste0(this_country, ": worked!"))
 }
 
 print("Success!")
