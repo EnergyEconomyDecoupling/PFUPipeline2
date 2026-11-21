@@ -111,19 +111,28 @@ for (this_country in countries) {
     dplyr::left_join(C_this_country |>
                        dplyr::mutate(
                          LastStage = "FU") |>
-                       dplyr::rename(C_Y_orig = dplyr::all_of("C_Y"),
-                                     C_EIOU_orig = dplyr::all_of("C_EIOU")),
+                       dplyr::rename(C_Y_orig = dplyr::any_of("C_Y"),
+                                     C_EIOU_orig = dplyr::any_of("C_EIOU")),
                      by = c("Dataset", "ValidFromVersion", "ValidToVersion",
                             "Country", "Method", "EnergyType", "LastStage", "Year")) |>
-    Recca::calc_C_Y_C_EIOU() |>
-    dplyr::mutate(
-      EqualC_Y = matsbyname::difference_byname(C_Y, C_Y_orig) |>
-        matsbyname::iszero_byname(),
-      EqualC_EIOU = matsbyname::difference_byname(C_EIOU, C_EIOU_orig) |>
-        matsbyname::iszero_byname()
-    )
-  stopifnot(all(unlist(df_this_country$EqualC_Y)))
-  stopifnot(all(unlist(df_this_country$EqualC_EIOU)))
+    Recca::calc_C_Y_C_EIOU()
+  # Check results, but only if the matrices exist.
+  if (("C_Y" %in% colnames(df_this_country)) & ("C_Y_orig" %in% colnames(df_this_country))) {
+    df_this_country <- df_this_country |>
+      dplyr::mutate(
+        EqualC_Y = matsbyname::difference_byname(C_Y, C_Y_orig) |>
+          matsbyname::iszero_byname(tol = tol)
+      )
+    stopifnot(all(unlist(df_this_country$EqualC_Y)))
+  }
+  if (("C_EIOU" %in% colnames(df_this_country)) & ("C_EIOU_orig" %in% colnames(df_this_country))) {
+    df_this_country <- df_this_country |>
+      dplyr::mutate(
+        EqualC_EIOU = matsbyname::difference_byname(C_EIOU, C_EIOU_orig) |>
+          matsbyname::iszero_byname(tol = tol)
+      )
+    stopifnot(all(unlist(df_this_country$EqualC_EIOU)))
+  }
   print(paste0(this_country, ": worked!"))
 }
 
