@@ -137,3 +137,4 @@ for (this_country in countries) {
 }
 
 print("Success!")
+DBI::dbDisconnect(conn)
