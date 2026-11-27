@@ -3,7 +3,7 @@ title: "Mechanical work analysis for the CL-PFU database"
 output:
   bookdown::pdf_document2:
     toc: false
-date: "2026-08-10"
+date: "2026-11-27"
 author: Matthew Kuperus Heun
 bibliography: "refs.bib"
 ---
@@ -608,6 +608,86 @@ md_Y_df |>
         booktabs = TRUE)
 
 ```
+
+
+
+## High-pressure fluids (HPF)
+
+Several energy carriers are aggregated to the
+High-pressure fluids category (HPF):
+High-pressure air (HPA), 
+High-pressure liquids (HPL), and 
+High-pressure natural gas (HPNG).
+Figure \@ref(fig:hpf-Y-machine-graph) 
+shows HPF produced by various machines, 
+only some of which are powered by Electricity.
+**** Note that the jump of HPNG 
+in about 1990 should be reviewed. ****
+
+
+
+```{r hpf-Y-calcs, echo=FALSE}
+hpf_Y <- world_mats |> 
+  dplyr::filter(Year >= 1971, 
+                Dataset == "CL-PFU IEA+MW",
+                LastStage == "Useful",
+                IncludesNEU == FALSE,
+                ProductAggregation == "Specified", 
+                IndustryAggregation == "Specified") |> 
+  dplyr::select(-R, -U, -U_feed, -U_EIOU, -r_EIOU, -V, -S_units) |>
+  dplyr::mutate(
+    Y_HPF = Y |> 
+      matsbyname::select_rowcol_piece_byname(retain = c("HPA", "HPL", "HPNG"), 
+                                             piece = "pref", 
+                                             pattern_type = "exact",
+                                             notation = RCLabels::from_notation, 
+                                             margin = 1) |> 
+      matsbyname::clean_byname(margin = 2), 
+    Y_HPF_input = Y_HPF |> 
+      matsbyname::colsums_byname(rowname = "HPF sector inputs") |> 
+      matsbyname::transpose_byname(), 
+    Y_HPF_machines = Y_HPF |> 
+      matsbyname::rowsums_byname(colname = "HPF machine outputs"),
+    Y = NULL, 
+    Y_HPF = NULL
+  )
+```
+
+
+```{r hpf-Y-machine-graph, fig.width=6, fig.height=3, fig.retina=2, fig.align='center', fig.cap='World-level HPF production by machine.', echo=FALSE}
+hpf_Y |> 
+  dplyr::mutate(
+    Y_HPF_input = NULL, 
+  ) |> 
+  tidyr::pivot_longer(cols = "Y_HPF_machines", names_to = "matnames", values_to = "matvals") |> 
+  matsindf::expand_to_tidy() |> 
+  dplyr::rename(EXu = matvals) |>
+  dplyr::mutate(
+    matnames = NULL,
+    colnames = NULL,
+    rowtypes = NULL, 
+    coltypes = NULL, 
+    EXu = EXu / 1e6 # Convert TJ to EJ
+  ) |> 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = Year, 
+                                         y = EXu,
+                                         fill = rownames)) + 
+  ggplot2::geom_area() + 
+  ggplot2::scale_x_continuous(breaks = c(1980, 2000, 2020)) +
+  ggplot2::facet_grid(cols = ggplot2::vars(EnergyType)) + 
+  ggplot2::labs(x = NULL, 
+                y = "HPF production by machine [EJ]", 
+                fill = NULL) +
+  ggplot2::scale_fill_viridis_d(direction = -1, end = 0.8, option = "inferno") +
+
+  MKHthemes::xy_theme() + 
+  ggplot2::theme(
+    legend.text = element_text(size = 6), 
+    legend.key.size = unit(0.4, "lines")
+  )
+```
+
+
 
 
 # Conclusion
